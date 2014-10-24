@@ -146,12 +146,13 @@ NetplaySession::NetplaySession(int pid, std::shared_ptr<InputPushBuilder> pb_net
 		irp->pull_inputs(flush);
 	}
 
+	last_frame_push = clock::now();
 	aig = std::make_shared<AsyncInputGrab>(irp, [=](InputFrame frame) 
 	{
 		if(controller->shutdown) {
 			return;
 		}
-
+		
 		if(no_push_counter > 0) {
 			no_push_counter--;
 			return;
@@ -159,6 +160,16 @@ NetplaySession::NetplaySession(int pid, std::shared_ptr<InputPushBuilder> pb_net
 
 		if(ipb_local->buffer_size() < input_buffer_max) 
 		{
+			{
+				auto time_now = clock::now();
+				double rate = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - last_frame_push).count() / 1000.0;
+				if(rate >= 1/30.0)
+					rate = 1/30.0;
+				else if(rate < 1/60.0)
+					rate = 1/60.0;
+				frame.rate(rate);
+			}
+
 			BYTE* raw = (BYTE*)&frame;
 
 			for(InputFrame last_local_iframe : last_local_iframes) {
@@ -191,15 +202,7 @@ NetplaySession::NetplaySession(int pid, std::shared_ptr<InputPushBuilder> pb_net
 				raw[0x19] = 0;
 				raw[0x1b] = 0;
 			}
-
-			std::cout << "[ ";
-			for(int i = 0; i < sizeof(InputFrame); i++) {
-				if(raw[i]) {
-					std::cout << "raw[" << i << "] ";
-				}
-			}
-			std::cout << " ]" << std::endl;
-
+			
 			InputFrame pushed = frame;
 			BYTE* raw_p = (BYTE*)&pushed;
 

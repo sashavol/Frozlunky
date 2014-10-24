@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 
-#define INPUT_FRAME_REMOTE_SIZE 54
+#define INPUT_FRAME_REMOTE_SIZE 62
 
 #define IFRAME_AH_JUMP 0x10
 #define IFRAME_AH_WHIP 0x11
@@ -32,8 +32,18 @@ struct InputFrame {
 	uint8_t pid;
 
 	uint8_t unk3[8];
+	uint8_t game_rate[sizeof(double)];
 
 	BYTE __pad[16];
+	
+
+	double rate() {
+		return *(double*)game_rate;
+	}
+
+	void rate(double val) {
+		*(double*)game_rate = val;
+	}
 
 	int game_state() const {
 		return *(int*)_game_state;

@@ -74,6 +74,7 @@ private:
 	int no_push_counter;
 
 	clock::time_point ping_out;
+	clock::time_point last_frame_push;
 
 	inline void push_input(InputFrame frame);
 
