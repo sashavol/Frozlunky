@@ -648,6 +648,11 @@ bool InputReceivePatch::perform_persistent_dwi_patch()
 			pb->perform();
 			spel->jmp_build(dwi_exec_space+offs, 5, pb->get_subroutine(), pb->get_subroutine_size());
 			pb->set_cancel_routine(ibufpos_reset_routine);
+
+			//write rate updater
+			if(pb->get_pid() == 0) {
+				pb->write_rate_updater(this->frame_mult_addr);
+			}
 		}
 		offs += 5;
 	}

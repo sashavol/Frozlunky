@@ -274,7 +274,6 @@ void InputPushBuilder::push_input(const InputFrame& frame) {
 	spel->write_mem(froz_buffer_position_ptr, &input_buffer_position, sizeof(int));
 }
 
-//TODO
 void InputPushBuilder::set_cancel_routine(Address jmpout) {
 	main_loop_end = jmpout;
 
@@ -292,4 +291,11 @@ void InputPushBuilder::destroy() {
 		spel->free(subroutine);
 		subroutine = 0;
 	}
+}
+
+void InputPushBuilder::write_rate_updater(Address frame_mult_addr) {
+	spel->write_mem(subroutine + 0x199, force_mult1_subroutine, sizeof(force_mult1_subroutine));
+	spel->write_mem(subroutine + 0x1B1, force_mult2_subroutine, sizeof(force_mult2_subroutine));
+	spel->write_mem(subroutine + 0x1CF, force_mult3_subroutine, sizeof(force_mult3_subroutine));
+	spel->write_mem(subroutine + 0x199 + 2, &frame_mult_addr, sizeof(Address));
 }

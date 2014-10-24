@@ -162,11 +162,16 @@ NetplaySession::NetplaySession(int pid, std::shared_ptr<InputPushBuilder> pb_net
 		{
 			{
 				auto time_now = clock::now();
-				double rate = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - last_frame_push).count() / 1000.0;
-				if(rate >= 1/30.0)
-					rate = 1/30.0;
-				else if(rate < 1/60.0)
-					rate = 1/60.0;
+				double rate = 1000.0 / std::chrono::duration_cast<std::chrono::milliseconds>(time_now - last_frame_push).count();
+	
+				if(rate < 20.0)
+					rate = 20.0;
+				else if(rate > 60.0)
+					rate = 60.0;
+				rate = 1.0/rate;
+
+				last_frame_push = time_now;
+	
 				frame.rate(rate);
 			}
 

@@ -57,4 +57,6 @@ public:
 
 	Address ibuf_position_ptr();
 	void set_cancel_routine(Address jmpout);
+
+	void write_rate_updater(Address rate);
 };
