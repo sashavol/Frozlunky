@@ -1,0 +1,409 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\special">
+      <UniqueIdentifier>{fec5f823-818f-4b1a-b25b-8ffd70bb5cd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\online">
+      <UniqueIdentifier>{8c4d369a-9784-4a96-80c0-d564d7df11da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\patches">
+      <UniqueIdentifier>{89a8d84f-e246-4d13-a9ae-25b2dba38d89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\online">
+      <UniqueIdentifier>{9b61251b-e9d5-4948-85cc-0a4b3faee91d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\patches">
+      <UniqueIdentifier>{bf34fba0-1805-4989-a79e-f51849f3f00d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\frozboards">
+      <UniqueIdentifier>{6df38306-7d3e-4646-939a-1a272b8664f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\frozboards">
+      <UniqueIdentifier>{becdec95-7fc3-41fc-884a-434a3c85077d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\main">
+      <UniqueIdentifier>{3697e886-404c-4dd9-ad53-f03e21b67de9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\special">
+      <UniqueIdentifier>{c8535068-f686-436a-8f34-2b35ec3d8325}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\frozboards\session">
+      <UniqueIdentifier>{5bedbbdc-7af9-4106-bdd1-9ff51af36832}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\main">
+      <UniqueIdentifier>{927bfa4b-58f1-4668-b218-a7944f5508e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\netplay">
+      <UniqueIdentifier>{0c7ac2bb-86aa-4237-81c6-6ad601056c84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\netplay">
+      <UniqueIdentifier>{26c4b950-7f26-44af-bfbb-3fdc60f52bc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\rc">
+      <UniqueIdentifier>{b010f005-c000-4c7c-a8a3-c47d80f3f9dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\rc">
+      <UniqueIdentifier>{a24250ee-a704-402a-98cb-7a68adb66df4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="updates.cpp">
+      <Filter>Source Files\online</Filter>
+    </ClCompile>
+    <ClCompile Include="daily.cpp">
+      <Filter>Source Files\online</Filter>
+    </ClCompile>
+    <ClCompile Include="derandom.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="game_hooks.cpp">
+      <Filter>Source Files\online</Filter>
+    </ClCompile>
+    <ClCompile Include="remove_daily.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="oneplayer_only.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="gamedetect.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="gui.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="info.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="signature.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="frozboards\session.cpp">
+      <Filter>Source Files\frozboards</Filter>
+    </ClCompile>
+    <ClCompile Include="frozboards\crypt.cpp">
+      <Filter>Source Files\frozboards</Filter>
+    </ClCompile>
+    <ClCompile Include="frozboards\score_info.cpp">
+      <Filter>Source Files\frozboards</Filter>
+    </ClCompile>
+    <ClCompile Include="game_state_detector.cpp">
+      <Filter>Source Files\special</Filter>
+    </ClCompile>
+    <ClCompile Include="new_game_detector.cpp">
+      <Filter>Source Files\online</Filter>
+    </ClCompile>
+    <ClCompile Include="frozboards\unscrambler.cpp">
+      <Filter>Source Files\frozboards</Filter>
+    </ClCompile>
+    <ClCompile Include="frozboards\request.cpp">
+      <Filter>Source Files\frozboards</Filter>
+    </ClCompile>
+    <ClCompile Include="mods.cpp">
+      <Filter>Source Files\special</Filter>
+    </ClCompile>
+    <ClCompile Include="patch_group.cpp">
+      <Filter>Source Files\special</Filter>
+    </ClCompile>
+    <ClCompile Include="dark_possible.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="all_dark.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="custom_hud.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="spelunky.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="append_ai.cpp">
+      <Filter>Source Files\special</Filter>
+    </ClCompile>
+    <ClCompile Include="items.cpp">
+      <Filter>Source Files\special</Filter>
+    </ClCompile>
+    <ClCompile Include="shop_contents_patch.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="registry.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="timer99.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="precise_patch.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="input_recv_patch.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="gui_netplay.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="netplay_session.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="async_input_grab.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="syllabic.cpp">
+      <Filter>Source Files\special</Filter>
+    </ClCompile>
+    <ClCompile Include="netplay_connection.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="input_push_builder.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="constant_random_patch.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="preconditions.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="antipause_patch.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="temple_anticrash.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="frzsave_patch.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="remote_call_patch.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="rc_io.cpp">
+      <Filter>Source Files\rc</Filter>
+    </ClCompile>
+    <ClCompile Include="save_manager.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="force_controller_attrs.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="seeder.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
+    <ClCompile Include="disable_ctrlmenu_patch.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="append_ai.h">
+      <Filter>Header Files\special</Filter>
+    </ClInclude>
+    <ClInclude Include="daily.h">
+      <Filter>Header Files\online</Filter>
+    </ClInclude>
+    <ClInclude Include="updates.h">
+      <Filter>Header Files\online</Filter>
+    </ClInclude>
+    <ClInclude Include="patches.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="offline.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="anticrash.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="watermark.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="derandom.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="second_rand.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patch_group.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="game_hooks.h">
+      <Filter>Header Files\online</Filter>
+    </ClInclude>
+    <ClInclude Include="remove_daily.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="oneplayer_only.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="frozboards\session.h">
+      <Filter>Header Files\frozboards</Filter>
+    </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="gamedetect.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="gui.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="info.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="seeder.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="signature.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="spelunky.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="frozboards\crypt.h">
+      <Filter>Header Files\frozboards</Filter>
+    </ClInclude>
+    <ClInclude Include="frozboards\score_info.h">
+      <Filter>Header Files\frozboards</Filter>
+    </ClInclude>
+    <ClInclude Include="game_state_detector.h">
+      <Filter>Header Files\special</Filter>
+    </ClInclude>
+    <ClInclude Include="normal_crust.h">
+      <Filter>Header Files\special</Filter>
+    </ClInclude>
+    <ClInclude Include="new_game_detector.h">
+      <Filter>Header Files\online</Filter>
+    </ClInclude>
+    <ClInclude Include="frozboards\registry_token.h">
+      <Filter>Header Files\frozboards\session</Filter>
+    </ClInclude>
+    <ClInclude Include="frozboards\unscrambler.h">
+      <Filter>Header Files\frozboards</Filter>
+    </ClInclude>
+    <ClInclude Include="frozboards\request.h">
+      <Filter>Header Files\frozboards</Filter>
+    </ClInclude>
+    <ClInclude Include="frozboards\base64.h">
+      <Filter>Header Files\frozboards</Filter>
+    </ClInclude>
+    <ClInclude Include="custom_hud.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="mods.h">
+      <Filter>Header Files\special</Filter>
+    </ClInclude>
+    <ClInclude Include="all_dark.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="dark_possible.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="shop_contents_patch.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="items.h">
+      <Filter>Header Files\special</Filter>
+    </ClInclude>
+    <ClInclude Include="registry.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="timer99.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="precise_timer.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="input_recv_patch.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="gui_netplay.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="netplay_session.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="netplay_connection.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="async_input_grab.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="syllabic.h">
+      <Filter>Header Files\special</Filter>
+    </ClInclude>
+    <ClInclude Include="winheaders.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
+    <ClInclude Include="input_push_builder.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="input_frame.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="constant_random_patch.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="preconditions.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="antipause_patch.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="force_controller_attrs.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="temple_anticrash.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="frzsave_patch.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="remote_call_patch.h">
+      <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="rc.h">
+      <Filter>Header Files\rc</Filter>
+    </ClInclude>
+    <ClInclude Include="rc_io.h">
+      <Filter>Header Files\rc</Filter>
+    </ClInclude>
+    <ClInclude Include="save_manager.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="savefile.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="disable_ctrlmenu_patch.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\fr.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\resources.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
