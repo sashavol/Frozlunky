@@ -216,8 +216,6 @@ namespace NetplayGUI
 									return;
 								}
 
-								std::cout << " !! Connected !! " << std::endl;
-
 								conn->on_disconnect([=](NetplayDisconnectEvent evt) {
 									crp->undo();
 									anticrash->undo();

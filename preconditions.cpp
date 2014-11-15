@@ -35,6 +35,4 @@ int NetplayPreconditions::check() {
 	}
 }
 
-void NetplayPreconditions::load_savefile() {
-	//TODO
-}
+void NetplayPreconditions::load_savefile() {}
