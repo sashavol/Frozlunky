@@ -58,6 +58,12 @@
     <Filter Include="Source Files\rc">
       <UniqueIdentifier>{a24250ee-a704-402a-98cb-7a68adb66df4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\special\tile_editing">
+      <UniqueIdentifier>{8708bb8e-b811-4608-b293-63c4de5425bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\special\tile_editing">
+      <UniqueIdentifier>{3051f519-5630-49b0-b25c-0e1bbfffe00a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="updates.cpp">
@@ -206,6 +212,12 @@
     </ClCompile>
     <ClCompile Include="disable_ctrlmenu_patch.cpp">
       <Filter>Source Files\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="tile_editing.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
+    <ClCompile Include="tile_patch.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -394,6 +406,12 @@
     </ClInclude>
     <ClInclude Include="disable_ctrlmenu_patch.h">
       <Filter>Header Files\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="tile_editing.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="tile_patch.h">
+      <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

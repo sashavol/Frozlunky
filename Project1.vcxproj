@@ -122,6 +122,8 @@
     <ClCompile Include="spelunky.cpp" />
     <ClCompile Include="syllabic.cpp" />
     <ClCompile Include="temple_anticrash.cpp" />
+    <ClCompile Include="tile_editing.cpp" />
+    <ClCompile Include="tile_patch.cpp" />
     <ClCompile Include="timer99.cpp" />
     <ClCompile Include="updates.cpp" />
     <ClCompile Include="util.cpp" />
@@ -135,6 +137,7 @@
     <ClInclude Include="custom_hud.h" />
     <ClInclude Include="dark_possible.h" />
     <ClInclude Include="disable_ctrlmenu_patch.h" />
+    <ClInclude Include="tile_editing.h" />
     <ClInclude Include="force_controller_attrs.h" />
     <ClInclude Include="frozboards\base64.h" />
     <ClInclude Include="frozboards\crypt.h" />
@@ -170,6 +173,7 @@
     <ClInclude Include="shop_contents_patch.h" />
     <ClInclude Include="syllabic.h" />
     <ClInclude Include="temple_anticrash.h" />
+    <ClInclude Include="tile_patch.h" />
     <ClInclude Include="timer99.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="daily.h" />
