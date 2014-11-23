@@ -6,6 +6,7 @@
 #include "append_ai.h"
 #include "timer99.h"
 #include "precise_timer.h"
+#include "tile_editing.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
@@ -270,6 +271,15 @@ namespace Mods {
 		}
 	}
 
+	
+	int ChunkEditorButton::handle(int evt) {
+		if(evt == 2) {
+			TileEditing::ShowUI();
+		}
+		return Fl_Button::handle(evt);
+	}
+
+
 	Fl_Double_Window* make_mods_window() {
 		if(mods_window != nullptr) {
 			delete (Fl_Double_Window*)mods_window;
@@ -279,9 +289,9 @@ namespace Mods {
 		std::shared_ptr<AppendAIPatch> aip = std::dynamic_pointer_cast<AppendAIPatch>(mods->get("aip"));
 
 		Fl_Double_Window* w;
-		{ Fl_Double_Window* o = new Fl_Double_Window(264, 340, "Special Mods");
+		{ Fl_Double_Window* o = new Fl_Double_Window(264, 370, "Special Mods");
 		w = o;
-		{ new DoneButton(5, 310, 255, 25, "Close Window");
+		{ new DoneButton(5, 340, 255, 25, "Close Window");
 		} // Fl_Button* o
 		{ Fl_Check_Button* o = new ModCheckbox("dpos", 5, 10, 255, 15, "Dark ice caves and hell are possible");
 		o->down_box(FL_DOWN_BOX);
@@ -344,6 +354,19 @@ namespace Mods {
 			
 		} // Fl_Group* o
 
+		{
+			Fl_Button* o = new ChunkEditorButton(5, 305, 255, 25, "Room Editor");
+			if(TileEditing::Visible()) {
+				o->deactivate();
+			}
+
+			TileEditing::DisplayStateCallback([=](bool vis) {
+				if(vis)
+					o->deactivate();
+				else
+					o->activate();
+			});
+		}
 
 		o->end();
 		} // Fl_Double_Window* o
@@ -362,6 +385,8 @@ namespace Mods {
 		mods->add("smo", std::make_shared<ShopContentsPatch>(dp));
 		mods->add("smlt", std::make_shared<Timer99Patch>(dp));
 		mods->add("pret", std::make_shared<PreciseTimerPatch>(dp, gh,  chp));
+
+		TileEditing::Initialize(spel, dp, gh);
 	}
 
 	std::shared_ptr<PatchGroup> ModsGroup() {

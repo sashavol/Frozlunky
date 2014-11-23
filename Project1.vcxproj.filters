@@ -219,6 +219,9 @@
     <ClCompile Include="tile_patch.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="tile_chunk.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -411,6 +414,12 @@
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
     <ClInclude Include="tile_patch.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="tile_chunk.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="tile_editor_widget.h">
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
   </ItemGroup>
