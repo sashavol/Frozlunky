@@ -1,7 +1,7 @@
 #include "tile_editing.h"
 #include "tile_editor_widget.h"
 
-#include <FL/Fl_Window.H>
+#include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Scrollbar.H>
@@ -44,12 +44,10 @@ static const std::pair<KeyType, ValueType>& mget(const std::vector<std::pair<Key
 struct AreaControls {
 	std::string narea;
 	Fl_Button* edit_btn;
-	Fl_Box* data_label;
 
 	AreaControls(const std::string& narea, Fl_Button* edit_btn, Fl_Box* data) : 
 		narea(narea),
-		edit_btn(edit_btn),
-		data_label(data)
+		edit_btn(edit_btn)
 	{}
 
 	//updates widgets with correct data for this area
@@ -61,12 +59,10 @@ struct AreaControls {
 		//no chunks, nothing to edit
 		if(chunks.empty()) {
 			edit_btn->deactivate();
-			data_label->label("No chunks");
 			return;
 		}
 
 		edit_btn->activate();
-		data_label->copy_label((std::to_string(chunks.size()) + " chunks").c_str());
 	}
 };
 
@@ -96,7 +92,10 @@ namespace TileEditing {
 				window->remove(editors[current_area_editor]);
 			}
 
-			window->add(editors[current_area_editor = area]);
+			EditorWidget* ew = editors[current_area_editor = area];
+			window->add(ew);
+			window->add(ew->sidebar_scrollbar);
+
 			window->redraw();
 		}
 		else {
@@ -169,12 +168,8 @@ namespace TileEditing {
 		controls[narea]->update();
 	}
 
-	static void create_editor(const std::string& narea, Fl_Scrollbar* scrollbar, int x, int y, int w, int h) {
-		editors[narea] = new EditorWidget(x, y, w, h, scrollbar, tp->query_chunks(mget(area_lookup, narea).second));
-	}
-
 	static void construct_window() {
-		Fl_Window* cons = new Fl_Window(1000, 430, "Level Editor Overview");
+		Fl_Window* cons = new Fl_Double_Window(730, 430, "Level Editor Overview");
 		window = cons;
 
 		cons->begin();
@@ -182,22 +177,23 @@ namespace TileEditing {
 		int y = 5;
 		for(auto&& area : area_lookup) {
 			create_controls(5, y, area.first);
-			y += 30;
+			y += 27;
 		}
 
 		y += 5;
 
-		new SaveButton(5, y, 140, 25);
-		new RevertButton(155, y, 140, 25);
+		new SaveButton(5, y, 80, 25);
+		new RevertButton(90, y, 80, 25);
 		y += 30;
-		new DoneButton(5, y, 290, 25);
-
-		Fl_Scrollbar* scrollbar = new Fl_Scrollbar(300, 5, 15, cons->h() - 10);
+		new DoneButton(5, y, 160, 25);
 
 		cons->end();
 
 		for(auto&& area : area_lookup) {
-			create_editor(area.first, scrollbar, 315, 5, cons->w() - 200 - 5, cons->h() - 10); 
+			EditorScrollbar* es = new EditorScrollbar(165, 5, 15, cons->h() - 10);
+			EditorWidget* ew = new EditorWidget(190, 5, 595, cons->h() - 10, es, tp->query_chunks(area.second));
+			es->set_parent_editor(ew);
+			editors[area.first] = ew;
 		}
 
 		SetCurrentEditor(area_lookup.begin()->first);

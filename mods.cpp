@@ -355,7 +355,7 @@ namespace Mods {
 		} // Fl_Group* o
 
 		{
-			Fl_Button* o = new ChunkEditorButton(5, 305, 255, 25, "Room Editor");
+			Fl_Button* o = new ChunkEditorButton(5, 308, 255, 25, "Room Editor");
 			if(TileEditing::Visible()) {
 				o->deactivate();
 			}
