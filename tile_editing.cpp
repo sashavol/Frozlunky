@@ -99,7 +99,12 @@ namespace TileEditing {
 
 		static void SetActiveFile(const std::string& file) {
 			current_file = file;
-			window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file)).c_str());
+
+			if(file == "")
+				window->label(WINDOW_BASE_TITLE);
+			else
+				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file)).c_str());
+			
 			tp->apply_chunks(); //apply chunks upon setting active file to guarantee newly active file is not unapplied
 		}
 
@@ -222,20 +227,11 @@ namespace TileEditing {
 		display_cb = cb;
 	}
 
-	BUTTON_CLASS(DoneButton, "Close Editor");
-	int DoneButton::handle(int evt) {
-		if(evt == 2) {
-			
-		}
-		else if(evt == FL_FOCUS)
-			return 0;
-		return Fl_Button::handle(evt);
-	}
-
-	BUTTON_CLASS(RevertButton, "Revert Changes");
+	BUTTON_CLASS(RevertButton, "New File");
 	int RevertButton::handle(int evt) {
 		if(evt == 2) {
-			//TODO
+			tp->revert_chunks();
+			IO::SetActiveFile("");
 		}
 		else if(evt == FL_FOCUS)
 			return 0;
@@ -339,12 +335,11 @@ namespace TileEditing {
 			y += 27;
 		}
 
-		y += 5;
+		y -= 20;
 
 		new SaveButton(5, y += 30, 150, 25);
 		new LoadButton(5, y += 30, 150, 25);
 		new RevertButton(5, y += 30, 150, 25);
-		new DoneButton(5, y += 30, 150, 25);
 
 		cons->end();
 

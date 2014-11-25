@@ -406,13 +406,19 @@ namespace Mods {
 				mods_window = nullptr;
 			}
 
-			if(appended_ai_tree) {
-				Fl_Tree_Item* first = appended_ai_tree->first();
-				if(first) {
-					for(int i = 0; i < first->children(); i++) {
-						delete (int*)(first->child(i)->user_data());
+			try {
+				if(appended_ai_tree) {
+					Fl_Tree_Item* first = appended_ai_tree->first();
+					if(first) {
+						for(int i = 0; i < first->children(); i++) {
+							delete (int*)(first->child(i)->user_data());
+						}
 					}
+					appended_ai_tree = nullptr;
 				}
+			}
+			catch(std::exception& e) {
+				DBG_EXPR(std::cout << "[Mods] Warning: Encountered exception during hybrid AI tree update: " << e.what() << std::endl);
 				appended_ai_tree = nullptr;
 			}
 		});
