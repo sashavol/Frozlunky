@@ -608,10 +608,14 @@ Fl_Window* make_window()
 			try {
 				change_every_level->value(std::stoi(cel_save));
 			}
-			catch(std::exception e) {
-				change_every_level->value(0);
-				Registry::SetValue("ChangeSeed", "0");
+			catch(std::exception&) {
+				change_every_level->value(1);
+				Registry::SetValue("ChangeSeed", "1");
 			}
+		}
+		else {
+			change_every_level->value(1);
+			Registry::SetValue("ChangeSeed", "1");
 		}
 		change_every_level->callback([](Fl_Widget* cel_widget) {
 			Fl_Check_Button* fcel = dynamic_cast<Fl_Check_Button*>(cel_widget);
