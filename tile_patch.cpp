@@ -191,78 +191,6 @@ Address TilePatch::rel_chunk_ref(const Chunk* cnk) {
 	}
 }
 
-//void TilePatch::link_chunks() {
-//	std::vector<LinkedChunk*> links;
-//	std::vector<SingleChunk*> scs;
-//	std::vector<GroupChunk*> gcs;
-//
-//	for(Chunk* c : chunks) {
-//		if(c->type() == ChunkType::Single)
-//			scs.push_back(static_cast<SingleChunk*>(c));
-//		else
-//			gcs.push_back(static_cast<GroupChunk*>(c));
-//	}
-//
-//	for(auto i = scs.begin(); i != scs.end();) {
-//		std::vector<Chunk*> link;
-//		link.push_back(*i);
-//
-//		for(auto j = scs.begin(); j != scs.end();) {
-//			if(link.size() >= MAX_LINK_SIZE) {
-//				break;
-//			}
-//			
-//			if(j == i) {
-//				j++;
-//				continue;
-//			}
-//
-//			SingleChunk* nx = *j;
-//			//
-//			bool found = false;
-//			for(Chunk* sc : link) {
-//				if(abs((int)rel_chunk_ref(nx) - (int)rel_chunk_ref(sc)) < 0x10) {
-//					link.push_back(nx);
-//					j = scs.erase(j);
-//					found = true;
-//					break;
-//				}
-//			}
-//
-//			if(!found) {
-//				j++;
-//			}
-//		}
-//
-//		if(link.size() > 1) {
-//			i = scs.erase(i);
-//			links.push_back(new LinkedChunk(link));
-//		}
-//		else {
-//			i++;
-//		}
-//	}
-//
-//	std::cout << "Exit "<< std::endl;
-//
-//	chunks.clear();
-//	for(LinkedChunk* lc : links) {
-//		chunks.push_back(lc);
-//	}
-//	for(SingleChunk* sc : scs) {
-//		chunks.push_back(sc);
-//	}
-//	for(GroupChunk* gc : gcs) {
-//		chunks.push_back(gc);
-//	}
-//
-//	std::sort(chunks.begin(), chunks.end(), [=](const Chunk* a, const Chunk* b) {
-//		return rel_chunk_ref(a) < rel_chunk_ref(b);
-//	});
-//
-//	std::cout << "[TilePatch] Made " << links.size() << " chunk-links." << std::endl;
-//}
-
 static void delete_chunk(Chunk* cnk) {
 	if(cnk->type() == ChunkType::Single)
 		delete static_cast<SingleChunk*>(cnk);
@@ -319,31 +247,6 @@ TilePatch::TilePatch(std::shared_ptr<Spelunky> spel) :
 	DISCOVER_CNK(LevelGen_TempleCnk);
 	DISCOVER_CNK(LevelGen_TutorialCnk);
 	DISCOVER_CNK(LevelGen_WormCnk);
-
-		//reverse single chunks, later chunks are more likely to be used across multiple levels.
-	std::sort(chunks.begin(), chunks.end(), [=](const Chunk* a, const Chunk* b) {
-		return rel_chunk_ref(a) > rel_chunk_ref(b);
-	});
-
-	std::vector<Chunk*> sc;
-	std::vector<Chunk*> gc;
-
-	for(Chunk* c : chunks) {
-		if(c->type() == ChunkType::Group) {
-			gc.push_back(c);
-		}
-		else {
-			sc.push_back(c);
-		}
-	}
-
-	chunks.clear();
-	for(Chunk* c : sc) {
-		chunks.push_back(c);
-	}
-	for(Chunk* c : gc) {
-		chunks.push_back(c);
-	}
 
 	DBG_EXPR(
 		std::cout << "Possible tiles: ";

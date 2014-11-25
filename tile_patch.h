@@ -9,6 +9,13 @@
 
 #define MAX_LINK_SIZE 3
 
+//TODO implement tile-staticizer accepting a seeder and a tile patch, have it set a static seed 
+	// and return an ordered form of the tiles generated per area. (16 per area)
+	// Have it handle removing extra obstacles (and possibly enemies) if necessary.
+
+	//considerations:
+		//black market spawn, udjat eye spawn, maui head spawn, etc.
+
 class TilePatch : public Patch {
 private:
 	bool is_valid;

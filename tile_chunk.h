@@ -63,17 +63,3 @@ public:
 public:
 	std::vector<Chunk*> get_chunks();
 };
-
-//A set of chunks treated as one chunk, with each chunk receiving identical data.
-//struct LinkedChunk : public GroupChunk {
-//private:
-//	std::vector<Chunk*> chunks;
-//
-//public:
-//	LinkedChunk(const std::vector<Chunk*>& chunks);
-//
-//public:
-//	virtual char tile(int x, int y) const override;
-//	virtual void tile(int x, int y, char value) override;
-//};
-//
