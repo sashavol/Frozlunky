@@ -71,7 +71,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>fltk.lib;psapi.lib;libcurl_a.lib;libeay32.lib;muparser32.lib;Winmm.lib;enet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fltk.lib;psapi.lib;libcurl_a.lib;libeay32.lib;muparser32.lib;Winmm.lib;enet.lib;pugixml.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <AssemblyDebug>false</AssemblyDebug>
     </Link>
@@ -126,6 +126,7 @@
     <ClCompile Include="tile_chunk.cpp" />
     <ClCompile Include="tile_editing.cpp" />
     <ClCompile Include="tile_patch.cpp" />
+    <ClCompile Include="tile_util.cpp" />
     <ClCompile Include="timer99.cpp" />
     <ClCompile Include="updates.cpp" />
     <ClCompile Include="util.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="temple_anticrash.h" />
     <ClInclude Include="tile_editor_widget.h" />
     <ClInclude Include="tile_patch.h" />
+    <ClInclude Include="tile_util.h" />
     <ClInclude Include="timer99.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="daily.h" />

@@ -34,7 +34,7 @@ void SingleChunk::tile(int x, int y, char tile) {
 	data[y*get_width() + x] = tile;
 }
 
-ChunkType SingleChunk::type() {
+ChunkType SingleChunk::type() const {
 	return ChunkType::Single;
 }
 
@@ -78,8 +78,12 @@ GroupChunk::GroupChunk(const std::vector<Chunk*>& group) :
 	chunks(group)
 {}
 
+GroupChunk::GroupChunk(const std::vector<Chunk*>& group, int w, int h) : 
+	Chunk(group_name(group), w, h), 
+	chunks(group) 
+{}
 
-void GroupChunk::tileref(int x, int y, std::function<void(Chunk*, int x, int y)> fn) {
+void GroupChunk::tileref(int x, int y, std::function<void(Chunk*, int x)> fn) {
 	if(y >= get_height() || x >= get_width())
 		throw std::runtime_error("Out of bounds tile.");
 	
@@ -91,7 +95,7 @@ void GroupChunk::tileref(int x, int y, std::function<void(Chunk*, int x, int y)>
 			++it;
 		}
 		else {
-			fn(*it, x, y);
+			fn(*it, x);
 			break;
 		}
 	}
@@ -99,22 +103,55 @@ void GroupChunk::tileref(int x, int y, std::function<void(Chunk*, int x, int y)>
 
 char GroupChunk::tile(int x, int y) const {
 	char val = 0;
-	(const_cast<GroupChunk* const>(this))->tileref(x, y, [&](Chunk* c, int rx, int ry) {
-		val = c->tile(rx, ry);
+	(const_cast<GroupChunk* const>(this))->tileref(x, y, [&](Chunk* c, int rx) {
+		val = c->tile(rx, 0);
 	});
 	return val;
 }
 
 void GroupChunk::tile(int x, int y, char tile) {
-	tileref(x, y, [&](Chunk* c, int rx, int ry) {
-		c->tile(rx, ry, tile);
+	tileref(x, y, [&](Chunk* c, int rx) {
+		c->tile(rx, 0, tile);
 	});
 }
 
-ChunkType GroupChunk::type() {
+ChunkType GroupChunk::type() const {
 	return ChunkType::Group;
 }
 
 std::vector<Chunk*> GroupChunk::get_chunks() {
 	return chunks;
 }
+
+////////
+
+//LinkedChunk::LinkedChunk(const std::vector<Chunk*>& chunks) : 
+//	GroupChunk(chunks, chunks[0]->get_width(), chunks[0]->get_height()),
+//	chunks(chunks)
+//{
+//	if(chunks.size() == 0)
+//		throw std::runtime_error("No chunks passed to link.");
+//
+//	Chunk* base = chunks[0];
+//	for(Chunk* c : chunks) {
+//		if(c == base)
+//			break;
+//		
+//		int w = base->get_width(), h = base->get_height();
+//		for(int y = 0; y < h; y++) {
+//			for(int x = 0; x < w; x++) {
+//				c->tile(x, y, base->tile(x, y));
+//			}
+//		}
+//	}
+//}
+//
+//void LinkedChunk::tile(int x, int y, char val) {
+//	for(Chunk* c : chunks) {
+//		c->tile(x, y, val);
+//	}
+//}
+//
+//char LinkedChunk::tile(int x, int y) const {
+//	return chunks[0]->tile(x, y);
+//}

@@ -22,7 +22,7 @@ public:
 
 	virtual char tile(int x, int y) const = 0;
 	virtual void tile(int x, int y, char value) = 0;
-	virtual ChunkType type() = 0;
+	virtual ChunkType type() const = 0;
 };
 
 //A single chunk has a width and a height, and accessible tiles through a string.
@@ -35,7 +35,7 @@ public:
 
 	virtual char tile(int x, int y) const override;
 	virtual void tile(int x, int y, char value) override;
-	virtual ChunkType type() override;
+	virtual ChunkType type() const override;
 
 	const std::string& get_data() const;
 	void set_data(const std::string& data);
@@ -50,12 +50,13 @@ private:
 
 public:
 	GroupChunk(const std::vector<Chunk*>& chunks);
+	GroupChunk(const std::vector<Chunk*>& chunks, int w, int h);
 
 private:
-	virtual void tileref(int x, int y, std::function<void(Chunk*, int x, int y)>);
+	void tileref(int x, int y, std::function<void(Chunk*, int x)>);
 
 public:
-	virtual ChunkType type() override;
+	virtual ChunkType type() const override;
 	virtual char tile(int x, int y) const override;
 	virtual void tile(int x, int y, char value) override;
 
@@ -63,3 +64,16 @@ public:
 	std::vector<Chunk*> get_chunks();
 };
 
+//A set of chunks treated as one chunk, with each chunk receiving identical data.
+//struct LinkedChunk : public GroupChunk {
+//private:
+//	std::vector<Chunk*> chunks;
+//
+//public:
+//	LinkedChunk(const std::vector<Chunk*>& chunks);
+//
+//public:
+//	virtual char tile(int x, int y) const override;
+//	virtual void tile(int x, int y, char value) override;
+//};
+//

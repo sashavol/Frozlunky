@@ -1,4 +1,5 @@
 #include "tile_editing.h"
+#include "tile_util.h"
 #include "tile_editor_widget.h"
 
 #include <FL/Fl_Double_Window.H>
@@ -8,7 +9,12 @@
 
 #include <map>
 #include <unordered_map>
+#include <fstream>
+
 #include <boost/assign.hpp> 
+#include <pugixml.hpp>
+
+#define WINDOW_BASE_TITLE "Tile Editor"
 
 //OPT add simulation widget to the overview page, should simulate a chosen area's chunks
 static Fl_Window* window = nullptr;
@@ -68,13 +74,121 @@ struct AreaControls {
 
 static std::map<std::string, AreaControls*> controls;
 
-namespace TileEditing {
-	void DisplayStateCallback(std::function<void(bool)> cb) {
-		display_cb = cb;
-	}
 
+namespace TileEditing {
 	static std::string current_area_editor;
 	static std::map<std::string, EditorWidget*> editors;
+	
+	namespace IO 
+	{
+		static std::string current_file;	
+		static bool unsaved_changes = false;
+		
+		static void status_handler(unsigned state) {
+			if(state == STATE_CHUNK_WRITE || state == STATE_CHUNK_PASTE) {
+				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file + "**").c_str());
+				unsaved_changes = true;
+			}
+			else if(state == STATE_CHUNK_APPLY) {
+				if(unsaved_changes)
+					window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file + "*").c_str());
+				else
+					window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file).c_str());
+			}
+		}
+
+		static void SetActiveFile(const std::string& file) {
+			current_file = file;
+			window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file)).c_str());
+			tp->apply_chunks(); //apply chunks upon setting active file to guarantee newly active file is not unapplied
+		}
+
+		static void LoadFile(const std::string& file) {
+			std::ifstream fst(file, std::ios::in);
+			if(!fst.is_open()) {
+				//create file if not exists
+				std::ofstream ofs(file, std::ios::out);
+				if(!ofs.is_open()) {
+					throw std::runtime_error("Failed to create file.");
+				}
+				else {
+					SetActiveFile(file);
+					ofs.close();
+				}
+			}
+			else {
+				fst.close();
+				pugi::xml_document xmld;
+				if(!xmld.load_file(file.c_str())) {
+					throw std::runtime_error("XML Parser failed to load file.");
+				}			
+
+				std::vector<SingleChunk*> scs = tp->root_chunks();
+				pugi::xml_node chunks = xmld.child("chunks");
+				for(pugi::xml_node cnk : chunks) {
+					if(std::distance(cnk.children().begin(), cnk.children().end()) != 1)
+						throw std::runtime_error("Invalid format.");
+
+					pugi::xml_node data = *(cnk.children().begin());
+					if(data.type() != pugi::xml_node_type::node_pcdata)  {
+						throw std::runtime_error("Invalid node format, expected node_pcdata.");
+					}
+
+					std::string str(cnk.name());
+					std::string val(data.value());
+					for(SingleChunk* sc : scs) {
+						if(sc->get_name() == str) {
+							if(sc->get_data().size() == val.size()) {
+								sc->set_data(val);
+							}
+							break;
+						}
+					}
+				}
+
+				SetActiveFile(current_file);
+			}
+		}
+		
+		static void _singlechunks(Chunk* c, std::function<void(Chunk*)> cb) {
+			if(c->type() == ChunkType::Group) {
+				for(Chunk* ck : static_cast<GroupChunk*>(c)->get_chunks()) {
+					_singlechunks(ck, cb);
+				}
+			}
+			else {
+				cb(c);
+			}
+		}
+
+		static void EncodeToFile() {
+			pugi::xml_document xmld;
+			pugi::xml_node node = xmld.append_child("chunks");
+			if(!node) { 
+				throw std::runtime_error("Failed to create chunks node.");	
+			}
+
+			for(SingleChunk* c : tp->root_chunks()) {
+				pugi::xml_node cnkn = node.append_child(c->get_name().c_str());
+				pugi::xml_node data = cnkn.append_child(pugi::xml_node_type::node_pcdata);
+				data.set_value(static_cast<SingleChunk*>(c)->get_data().c_str());
+			}
+
+			if(!xmld.save_file(current_file.c_str())) {
+				throw std::runtime_error("Failed to write document.");
+			}
+
+			SetActiveFile(current_file);
+
+			unsaved_changes = false;
+		}
+
+		static const std::string& CurrentFile() {
+			return current_file;
+		}
+	}
+
+	
 	static void SetCurrentEditor(const std::string& area) {
 		if(area == current_area_editor)
 			return;
@@ -96,6 +210,7 @@ namespace TileEditing {
 			window->add(ew);
 			window->add(ew->sidebar_scrollbar);
 
+			ew->take_focus();
 			window->redraw();
 		}
 		else {
@@ -103,36 +218,78 @@ namespace TileEditing {
 		}
 	}
 
-	struct DoneButton : public Fl_Button {
-		DoneButton(int x, int y, int w, int h) : Fl_Button(x,y,w,h, "Close Editor") {}
-		int DoneButton::handle(int evt) override {
-			if(evt == 2) {
-				//TODO
-			}
-			return Fl_Button::handle(evt);
-		}
-	};
+	void DisplayStateCallback(std::function<void(bool)> cb) {
+		display_cb = cb;
+	}
 
-	struct RevertButton : public Fl_Button {
-		RevertButton(int x, int y, int w, int h) : Fl_Button(x,y,w,h, "Revert Changes") {}
-		int RevertButton::handle(int evt) override {
-			if(evt == 2) {
-				//TODO
-			}
-			return Fl_Button::handle(evt);
+	BUTTON_CLASS(DoneButton, "Close Editor");
+	int DoneButton::handle(int evt) {
+		if(evt == 2) {
+			
 		}
-	};
+		else if(evt == FL_FOCUS)
+			return 0;
+		return Fl_Button::handle(evt);
+	}
 
-	struct SaveButton : public Fl_Button {
-		SaveButton(int x, int y, int w, int h) : Fl_Button(x,y,w,h, "Save Changes") {}
-		int SaveButton::handle(int evt) override {
-			if(evt == 2) {
-				//TODO
-			}
-			return Fl_Button::handle(evt);
+	BUTTON_CLASS(RevertButton, "Revert Changes");
+	int RevertButton::handle(int evt) {
+		if(evt == 2) {
+			//TODO
 		}
-	};
+		else if(evt == FL_FOCUS)
+			return 0;
+		return Fl_Button::handle(evt);
+	}
 
+	BUTTON_CLASS(SaveButton, "Save to File");
+	int SaveButton::handle(int evt) {
+		if(evt == 2) {
+			try {
+				if(IO::current_file != "") {
+					IO::EncodeToFile();	
+				}
+				else {
+					try {
+						std::string file = TileUtil::QueryTileFile(true);
+						try {
+							IO::SetActiveFile(file);
+							IO::EncodeToFile();
+						}
+						catch(std::exception& e) {
+							MessageBox(NULL, (std::string("Error saving file: ") + e.what()).c_str(), "Error", MB_OK);
+						}
+					}
+					catch(std::exception&) {}
+				}
+			}
+			catch(std::exception&) {}
+		}
+		else if(evt == FL_FOCUS)
+			return 0;
+		return Fl_Button::handle(evt);
+	}
+	
+	BUTTON_CLASS(LoadButton, "Load File");
+	int LoadButton::handle(int evt) {
+		if(evt == 2) {
+			try {
+				std::string file = TileUtil::QueryTileFile(false);
+				try {
+					IO::LoadFile(file);
+					::window->redraw();
+				}
+				catch(std::exception& e) {
+					MessageBox(NULL, (std::string("Error loading file: ") + e.what()).c_str(), "Error", MB_OK);
+				}
+			}
+			catch(std::exception&) {}
+		}
+		else if(evt == FL_FOCUS)
+			return 0;
+
+		return Fl_Button::handle(evt);	
+	}
 	
 	struct AreaButton : public Fl_Button {
 		std::string area;
@@ -148,6 +305,8 @@ namespace TileEditing {
 			if(evt == 2) {
 				SetCurrentEditor(area);
 			}
+			else if(evt == FL_FOCUS)
+				return 0;
 			return Fl_Button::handle(evt);
 		}
 	};
@@ -182,17 +341,18 @@ namespace TileEditing {
 
 		y += 5;
 
-		new SaveButton(5, y, 80, 25);
-		new RevertButton(90, y, 80, 25);
-		y += 30;
-		new DoneButton(5, y, 160, 25);
+		new SaveButton(5, y += 30, 150, 25);
+		new LoadButton(5, y += 30, 150, 25);
+		new RevertButton(5, y += 30, 150, 25);
+		new DoneButton(5, y += 30, 150, 25);
 
 		cons->end();
 
 		for(auto&& area : area_lookup) {
-			EditorScrollbar* es = new EditorScrollbar(165, 5, 15, cons->h() - 10);
-			EditorWidget* ew = new EditorWidget(190, 5, 595, cons->h() - 10, es, tp->query_chunks(area.second));
+			EditorScrollbar* es = new EditorScrollbar(710, 5, 15, cons->h() - 10);
+			EditorWidget* ew = new EditorWidget(tp, 165, 5, 545, cons->h() - 10, es, tp->query_chunks(area.second));
 			es->set_parent_editor(ew);
+			ew->status_callback(IO::status_handler);
 			editors[area.first] = ew;
 		}
 
@@ -205,6 +365,8 @@ namespace TileEditing {
 		if(!tp->valid()) {
 			return false;
 		}
+		tp->perform();
+		//TODO add UI in mods menu to enable / disable this
 
 		construct_window();
 		window->callback([](Fl_Widget* widget) {

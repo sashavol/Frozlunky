@@ -1,5 +1,6 @@
 #include "tile_patch.h"
 #include <iostream>
+#include <algorithm>
 
 static BYTE LevelGen_Selector_find[] = {0x81,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x8B};
 static std::string LevelGen_Selector_mask = "x......x.......x......x";
@@ -54,6 +55,13 @@ static std::pair<int, int> wh_determine(unsigned stlen) {
 	}
 }
 
+const std::set<char>& TilePatch::possible_tiles() const {
+	return pos_tiles;
+}
+
+bool TilePatch::valid_tile(char tile) const {
+	return pos_tiles.find(tile) != pos_tiles.end();
+}
 
 //TODO some obstacles are still grouped as 1-height
 void TilePatch::scan_dyn_fn(const std::string& name) {
@@ -131,6 +139,15 @@ void TilePatch::scan_dyn_fn(const std::string& name) {
 		idx++;
 	}
 
+	//record tile types
+	for(SingleChunk* sc : single_chunks) {
+		const std::string& data = sc->get_data();
+		for(char c : data) {
+			if(pos_tiles.find(c) == pos_tiles.end())
+				pos_tiles.insert(c);
+		}
+	}
+
 	int single_count = 0, group_count = 0;
 	for(auto it = single_chunks.begin(); it != single_chunks.end(); ++it) {
 		if((*it)->get_height() == 1) {
@@ -164,6 +181,87 @@ void TilePatch::scan_dyn_fn(const std::string& name) {
 
 	DBG_EXPR(std::cout << "[TilePatch] Found " << single_chunks.size() << " total chunks: " << single_count << " single, " << group_count  << " grouped" << std::endl);
 }
+
+Address TilePatch::rel_chunk_ref(const Chunk* cnk) {
+	if(cnk->type() == ChunkType::Single) {
+		return chunk_refs[static_cast<const SingleChunk*>(cnk)->get_name()];
+	}
+	else {
+		return chunk_refs[const_cast<GroupChunk*>(static_cast<const GroupChunk*>(cnk))->get_chunks()[0]->get_name()];
+	}
+}
+
+//void TilePatch::link_chunks() {
+//	std::vector<LinkedChunk*> links;
+//	std::vector<SingleChunk*> scs;
+//	std::vector<GroupChunk*> gcs;
+//
+//	for(Chunk* c : chunks) {
+//		if(c->type() == ChunkType::Single)
+//			scs.push_back(static_cast<SingleChunk*>(c));
+//		else
+//			gcs.push_back(static_cast<GroupChunk*>(c));
+//	}
+//
+//	for(auto i = scs.begin(); i != scs.end();) {
+//		std::vector<Chunk*> link;
+//		link.push_back(*i);
+//
+//		for(auto j = scs.begin(); j != scs.end();) {
+//			if(link.size() >= MAX_LINK_SIZE) {
+//				break;
+//			}
+//			
+//			if(j == i) {
+//				j++;
+//				continue;
+//			}
+//
+//			SingleChunk* nx = *j;
+//			//
+//			bool found = false;
+//			for(Chunk* sc : link) {
+//				if(abs((int)rel_chunk_ref(nx) - (int)rel_chunk_ref(sc)) < 0x10) {
+//					link.push_back(nx);
+//					j = scs.erase(j);
+//					found = true;
+//					break;
+//				}
+//			}
+//
+//			if(!found) {
+//				j++;
+//			}
+//		}
+//
+//		if(link.size() > 1) {
+//			i = scs.erase(i);
+//			links.push_back(new LinkedChunk(link));
+//		}
+//		else {
+//			i++;
+//		}
+//	}
+//
+//	std::cout << "Exit "<< std::endl;
+//
+//	chunks.clear();
+//	for(LinkedChunk* lc : links) {
+//		chunks.push_back(lc);
+//	}
+//	for(SingleChunk* sc : scs) {
+//		chunks.push_back(sc);
+//	}
+//	for(GroupChunk* gc : gcs) {
+//		chunks.push_back(gc);
+//	}
+//
+//	std::sort(chunks.begin(), chunks.end(), [=](const Chunk* a, const Chunk* b) {
+//		return rel_chunk_ref(a) < rel_chunk_ref(b);
+//	});
+//
+//	std::cout << "[TilePatch] Made " << links.size() << " chunk-links." << std::endl;
+//}
 
 static void delete_chunk(Chunk* cnk) {
 	if(cnk->type() == ChunkType::Single)
@@ -221,6 +319,39 @@ TilePatch::TilePatch(std::shared_ptr<Spelunky> spel) :
 	DISCOVER_CNK(LevelGen_TempleCnk);
 	DISCOVER_CNK(LevelGen_TutorialCnk);
 	DISCOVER_CNK(LevelGen_WormCnk);
+
+		//reverse single chunks, later chunks are more likely to be used across multiple levels.
+	std::sort(chunks.begin(), chunks.end(), [=](const Chunk* a, const Chunk* b) {
+		return rel_chunk_ref(a) > rel_chunk_ref(b);
+	});
+
+	std::vector<Chunk*> sc;
+	std::vector<Chunk*> gc;
+
+	for(Chunk* c : chunks) {
+		if(c->type() == ChunkType::Group) {
+			gc.push_back(c);
+		}
+		else {
+			sc.push_back(c);
+		}
+	}
+
+	chunks.clear();
+	for(Chunk* c : sc) {
+		chunks.push_back(c);
+	}
+	for(Chunk* c : gc) {
+		chunks.push_back(c);
+	}
+
+	DBG_EXPR(
+		std::cout << "Possible tiles: ";
+		for(char c : pos_tiles) {
+			std::cout << c;
+		}
+		std::cout << std::endl;
+	);
 }
 
 bool TilePatch::_perform() {
@@ -228,6 +359,10 @@ bool TilePatch::_perform() {
 }
 
 bool TilePatch::_undo() {
+	for(auto&& c : chunk_origs) {
+		const std::string& data = c.second->get_data();
+		spel->write_mem(chunk_addrs[c.first], data.c_str(), data.size()+1, true);
+	}
 	return true;
 }
 
@@ -237,14 +372,24 @@ bool TilePatch::valid() {
 }
 
 
-static void apply_tile(Chunk* cnk) {
-	//TODO
+void TilePatch::apply_chunk(Chunk* cnk) {
+	if(cnk->type() == ChunkType::Single) {
+		SingleChunk* sc = static_cast<SingleChunk*>(cnk);
+
+		const std::string& data = sc->get_data();
+		spel->write_mem(chunk_addrs[sc->get_name()], data.c_str(), data.size()+1, true);
+	}
+	else {
+		for(Chunk* c : static_cast<GroupChunk*>(cnk)->get_chunks()) {
+			apply_chunk(c);
+		}
+	}
 }
 
-void TilePatch::apply_tiles() {
+void TilePatch::apply_chunks() {
 	if(this->is_active()) {
 		for(Chunk* c : chunks) {
-			apply_tile(c);
+			apply_chunk(c);
 		}
 	}
 }
@@ -276,6 +421,26 @@ std::vector<Chunk*> TilePatch::query_chunks(const std::string& start) {
 		if(c->get_name().find(start) == 0) {
 			out.push_back(c);
 		}
+	}
+	return out;
+}
+
+
+static void root_cnk(Chunk* c, std::vector<SingleChunk*>& sc) {
+	if(c->type() == ChunkType::Single) {
+		sc.push_back(static_cast<SingleChunk*>(c));
+	}
+	else {
+		for(Chunk* ck : static_cast<GroupChunk*>(c)->get_chunks()) {
+			root_cnk(ck, sc);
+		}
+	}
+}
+
+std::vector<SingleChunk*> TilePatch::root_chunks() {
+	std::vector<SingleChunk*> out;
+	for(Chunk* c : chunks) {
+		root_cnk(c, out);
 	}
 	return out;
 }
