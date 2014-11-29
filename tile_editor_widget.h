@@ -12,10 +12,13 @@
 #include <functional>
 #include <chrono>
 
-//OPT set up force chunk patch for particular functions, that could be useful.
-//		this should probably be integrated into tile_patch.cpp somehow, since it maintains root chunk references
-
+//TODO proper buttons (1-1, 1-2, 1-3 ... etc)
 //TODO fix mouse no longer working after using tab / shift+tab
+//TODO force seed option
+//TODO fix load button not showing correct file-name in title bar
+//TODO fix scroll-bar up button not working
+//TODO add save as button
+//TODO sane testing environment for area levels > 1 (force level to 1)
 
 //struct LockedTile {
 //	int x;
@@ -63,21 +66,25 @@ struct ChunkEnv {
 	}
 
 	//try moving cursor.x by dx
-	void try_dx(int dx) {
+	bool try_dx(int dx) {
 		int rx = cx + dx;
 		if(rx >= 0 && rx < cnk->get_width()) {
 			lcx = cx;
 			cx = rx;
+			return true;
 		}
+		return false;
 	}
 
 	//try moving cursor.y by dy
-	void try_dy(int dy) {
+	bool try_dy(int dy) {
 		int ry = cy + dy;
 		if(ry >= 0 && ry < cnk->get_height()) {
 			lcy = cy;
 			cy = ry;
+			return true;
 		}
+		return false;
 	}
 
 	bool locked(int x, int y) {
@@ -142,6 +149,61 @@ public:
 		this->status_cb = cb;
 	}
 
+private:
+	//OPT issue: chunk render width/height scanning are unsafe assumptions for non-uniform chunk sizes (not applicable currently)
+	void shift_env_left(int u) {
+		if(!active_env->try_dx(-u)) {
+			int lcy = active_env->cy;
+			auto rpos = get_chunk_render_pos(active_env->cnk);
+			Chunk* cnk = find_chunk(rpos.first - cnk_render_w + 1, rpos.second);
+			if(cnk) {
+				active_env = envs[cnk];
+				active_env->cy = lcy;
+				active_env->cx = cnk->get_width() - 1;
+			}
+		}
+	}
+
+	void shift_env_right(int u) {
+		if(!active_env->try_dx(u)) {
+			int lcy = active_env->cy;
+			auto rpos = get_chunk_render_pos(active_env->cnk);
+			Chunk* cnk = find_chunk(rpos.first + cnk_render_w, rpos.second);
+			if(cnk) {
+				active_env = envs[cnk];
+				active_env->cy = lcy;
+				active_env->cx = 0;
+			}
+		}
+	}
+
+	void shift_env_up(int u) {
+		if(!active_env->try_dy(-u)) {
+			int lcx = active_env->cx;
+			auto rpos = get_chunk_render_pos(active_env->cnk);
+			Chunk* cnk = find_chunk(rpos.first, rpos.second - cnk_render_h + 1); 
+			if(cnk) {
+				active_env = envs[cnk];
+				active_env->cx = lcx;
+				active_env->cy = cnk->get_height() - 1;
+			}
+		}
+	}
+
+	void shift_env_down(int u) {
+		if(!active_env->try_dy(u)) {
+			int lcx = active_env->cx;
+			auto rpos = get_chunk_render_pos(active_env->cnk);
+			Chunk* cnk = find_chunk(rpos.first, rpos.second + cnk_render_h);
+			if(cnk) {
+				active_env = envs[cnk];
+				active_env->cx = lcx;
+				active_env->cy = 0;
+			}
+		}
+	}
+
+public:
 	virtual int handle(int evt) override {
 		//TODO handle swapping between chunkenvs, editing chunks using envs, etc.
 		switch(evt) {
@@ -204,36 +266,36 @@ public:
 					break;
 
 				case 65361:
-					active_env->try_dx(ctrl_down ? -2 : -1);
+					shift_env_left(ctrl_down ? 2 : 1);
 					parent()->redraw();
 					break;
 
 				case 65362: //up
-					active_env->try_dy(ctrl_down ? -2 : -1);
+					shift_env_up(ctrl_down ? 2 : 1);
 					parent()->redraw();
 					break;
 
 				case 65363:
-					active_env->try_dx(ctrl_down ? 2 : 1);
+					shift_env_right(ctrl_down ? 2 : 1);
 					parent()->redraw();
 					break;
 
 				case 65364: //down
-					active_env->try_dy(ctrl_down ? 2 : 1);
+					shift_env_down(ctrl_down ? 2 : 1);
 					parent()->redraw();
 					break;
 
 				case 32:    //space
 					active_env->put('0');
 					if(!ctrl_down)
-						active_env->try_dx(1);
+						shift_env_right(1);
 					parent()->redraw();
 					break;
 
 				case 65288: //backspace
 					active_env->put('0');
 					if(!ctrl_down)
-						active_env->try_dx(-1);
+						shift_env_left(1);
 					parent()->redraw();
 					break;
 
@@ -318,7 +380,7 @@ public:
 						if(tp->valid_tile(tile)) {
 							active_env->put(tile);
 							if(!ctrl_down) {
-								active_env->try_dx(1);
+								shift_env_right(1);
 							}
 							status(STATE_CHUNK_WRITE);
 							parent()->redraw();
@@ -363,8 +425,8 @@ public:
 		Fl_Widget(x,y,w,h,""),
 		chunks(chunks),
 		sidebar_scrollbar(scrollbar),
-		cnk_render_w(135),
-		cnk_render_h(108),
+		cnk_render_w(130),
+		cnk_render_h(104),
 		hv_gap(0),
 		active_env(nullptr),
 		ctrl_down(false),
@@ -502,7 +564,7 @@ private:
 
 	void render_env(int rx, int ry) {
 		Chunk* c = active_env->cnk;
-		fl_rect(rx, ry, cnk_render_w, cnk_render_h, 0x0000FF00);
+		fl_rect(rx, ry, cnk_render_w, cnk_render_h, 0x00006000);
 		
 		int maxw = cnk_render_w, maxh = cnk_render_h;
 		fit_chunk_aspect(c, maxw, maxh);
