@@ -12,6 +12,7 @@
 #include <functional>
 #include <chrono>
 
+//TODO disable/enable checkbox in mods.cpp
 //TODO proper buttons (1-1, 1-2, 1-3 ... etc)
 //TODO fix mouse no longer working after using tab / shift+tab
 //TODO force seed option
@@ -19,6 +20,7 @@
 //TODO fix scroll-bar up button not working
 //TODO add save as button
 //TODO sane testing environment for area levels > 1 (force level to 1)
+//TODO default templates for chunks
 
 //struct LockedTile {
 //	int x;
