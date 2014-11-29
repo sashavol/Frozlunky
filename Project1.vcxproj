@@ -121,6 +121,8 @@
     <ClCompile Include="shop_contents_patch.cpp" />
     <ClCompile Include="signature.cpp" />
     <ClCompile Include="spelunky.cpp" />
+    <ClCompile Include="static_area_patch.cpp" />
+    <ClCompile Include="static_chunk_patch.cpp" />
     <ClCompile Include="syllabic.cpp" />
     <ClCompile Include="temple_anticrash.cpp" />
     <ClCompile Include="tile_chunk.cpp" />
@@ -136,6 +138,8 @@
     <ClInclude Include="anticrash.h" />
     <ClInclude Include="antipause_patch.h" />
     <ClInclude Include="async_input_grab.h" />
+    <ClInclude Include="static_area_patch.h" />
+    <ClInclude Include="static_chunk_patch.h" />
     <ClInclude Include="constant_random_patch.h" />
     <ClInclude Include="custom_hud.h" />
     <ClInclude Include="dark_possible.h" />

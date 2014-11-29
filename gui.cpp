@@ -106,7 +106,7 @@ std::shared_ptr<RemoteCallPatch> CurrentRCP() {
 DisplayModsButton* mods_button = nullptr;
 
 void init_special_mods() {
-	Mods::Initialize(dp, info_hooks, chp);
+	Mods::Initialize(seeder, dp, info_hooks, chp);
 	Mods::SetVisibilityChangeCallback([](bool visible) {
 		if(!mods_button)
 			return;

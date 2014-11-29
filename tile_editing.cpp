@@ -18,11 +18,11 @@
 
 //OPT add simulation widget to the overview page, should simulate a chosen area's chunks
 static Fl_Window* window = nullptr;
-static std::shared_ptr<TilePatch> tp;	
+static std::shared_ptr<StaticChunkPatch> tp;	
 static std::function<void(bool)> display_cb;
 
 typedef std::vector<std::pair<std::string, std::string>> area_map;
-static area_map area_lookup = boost::assign::map_list_of
+/*static area_map area_lookup = boost::assign::map_list_of
 			("Tutorial", "LevelGen_Tutorial")		
 			("Mines (1-1 to 1-4)", "LevelGen_Mines")
 			("Jungle (2-1 to 2-4)", "LevelGen_JungleGeneral")
@@ -34,7 +34,20 @@ static area_map area_lookup = boost::assign::map_list_of
 			("Haunted Castle", "LevelGen_JungleHauntedMansion")
 			("Black Market", "LevelGen_JungleBlackMarket")
 			("Yeti Level", "LevelGen_IceCavesYeti")
-			("The Mothership", "LevelGen_IceCavesSpaceship");
+			("The Mothership", "LevelGen_IceCavesSpaceship");*/
+static area_map area_lookup = boost::assign::map_list_of
+			("Tutorial", "Tutorial")		
+			("Mines (1-1 to 1-4)", "Mines")
+			("Jungle (2-1 to 2-4)", "Jungle")
+			("Ice Caves (3-1 to 3-4)", "IceCaves")
+			("Temple (4-1 to 4-3)", "Temple")
+			("Olmec (4-4)", "TempleOlmec")
+			("Hell (5-1 to 5-3)", "Hell")
+			("Worm", "Worm")
+			("Haunted Castle", "JungleHauntedCastle")
+			("Black Market", "JungleBlackMarket")
+			("Yeti Level", "IceCavesYeti")
+			("The Mothership", "IceCavesSpaceship");
 
 template <typename KeyType, typename ValueType>
 static const std::pair<KeyType, ValueType>& mget(const std::vector<std::pair<KeyType, ValueType>>& m, const KeyType& key) {
@@ -62,8 +75,7 @@ struct AreaControls {
 
 		std::vector<Chunk*> chunks = tp->query_chunks(rarea);
 		
-		//no chunks, nothing to edit
-		if(chunks.empty()) {
+		if(!tp->valid() || chunks.empty()) {
 			edit_btn->deactivate();
 			return;
 		}
@@ -227,10 +239,14 @@ namespace TileEditing {
 		display_cb = cb;
 	}
 
+	void revert_chunks() {
+		//TODO
+	}
+
 	BUTTON_CLASS(RevertButton, "New File");
 	int RevertButton::handle(int evt) {
 		if(evt == 2) {
-			tp->revert_chunks();
+			revert_chunks();
 			IO::SetActiveFile("");
 		}
 		else if(evt == FL_FOCUS)
@@ -310,15 +326,11 @@ namespace TileEditing {
 	//lays out the UI widgets and stores them to an AreaControls object.
 	static void create_controls(int x, int y, const std::string& narea) {
 		const std::string& rarea = mget(area_lookup, narea).second;
+
 		Fl_Button* btn = new AreaButton(x, y, 150, 25, narea);
 		Fl_Box* data = new Fl_Box(x+160, y, 1, 25, "");
 		data->align(FL_ALIGN_RIGHT);
 		
-		if(!tp->valid()) {
-			btn->deactivate();
-			return;
-		}
-
 		controls[narea] = new AreaControls(narea, btn, data);
 		controls[narea]->update();
 	}
@@ -343,25 +355,29 @@ namespace TileEditing {
 
 		cons->end();
 
+		std::string valid_editor;
 		for(auto&& area : area_lookup) {
 			EditorScrollbar* es = new EditorScrollbar(710, 5, 15, cons->h() - 10);
-			EditorWidget* ew = new EditorWidget(tp, 165, 5, 545, cons->h() - 10, es, tp->query_chunks(area.second));
-			es->set_parent_editor(ew);
-			ew->status_callback(IO::status_handler);
-			editors[area.first] = ew;
+			std::vector<Chunk*> chunks = tp->query_chunks(area.second);
+			if(!chunks.empty()) {
+				if(valid_editor.empty()) {
+					valid_editor = area.first;
+				}
+
+				EditorWidget* ew = new EditorWidget(tp, 165, 5, 545, cons->h() - 10, es, chunks);
+				es->set_parent_editor(ew);
+				ew->status_callback(IO::status_handler);
+				editors[area.first] = ew;
+			}
 		}
 
-		SetCurrentEditor(area_lookup.begin()->first);
+		if(!valid_editor.empty()) {
+			SetCurrentEditor(valid_editor);
+		}
 	}
 
-	bool Initialize(std::shared_ptr<Spelunky> spel, std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<GameHooks> gh) {
-		//DEBUG (After UI is implemented this will only initialize on use)
-		tp = std::make_shared<TilePatch>(spel);
-		if(!tp->valid()) {
-			return false;
-		}
-		tp->perform();
-		//TODO add UI in mods menu to enable / disable this
+	bool Initialize(std::shared_ptr<Seeder> seeder, std::shared_ptr<StaticChunkPatch> scp) {
+		tp = scp;
 
 		construct_window();
 		window->callback([](Fl_Widget* widget) {

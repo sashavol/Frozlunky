@@ -12,6 +12,7 @@
 #include "derandom.h"
 #include "shop_contents_patch.h"
 #include "custom_hud.h"
+#include "seeder.h"
 #include "game_hooks.h"
 
 
@@ -51,7 +52,7 @@ namespace Mods {
 	void ShowModsGUI();
 	void HideModsGUI();
 	void SetVisibilityChangeCallback(visibility_callback cb);
-	void Initialize(std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<GameHooks> gh, std::shared_ptr<CustomHudPatch> chp);
+	void Initialize(std::shared_ptr<Seeder> seeder, std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<GameHooks> gh, std::shared_ptr<CustomHudPatch> chp);
 }
 
 #undef BUTTON_CLASS

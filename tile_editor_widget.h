@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tile_chunk.h"
-#include "tile_patch.h"
+#include "static_chunk_patch.h"
 #include <FL/Fl_Widget.H>
 #include <FL/fl_draw.H>
 #include <FL/Fl_Scrollbar.H>
@@ -17,13 +17,13 @@
 
 //TODO fix mouse no longer working after using tab / shift+tab
 
-struct LockedTile {
-	int x;
-	int y;
-	char value;
-
-	LockedTile(int x, int y, char value) : x(x), y(y), value(value) {}
-};
+//struct LockedTile {
+//	int x;
+//	int y;
+//	char value;
+//
+//	LockedTile(int x, int y, char value) : x(x), y(y), value(value) {}
+//};
 
 struct ChunkEnv {
 	Chunk* cnk;
@@ -32,7 +32,7 @@ struct ChunkEnv {
 	int lcx;
 	int lcy;
 
-	std::vector<LockedTile> tile_locks;
+	//std::vector<LockedTile> tile_locks;
 
 	ChunkEnv(Chunk* cnk) : 
 		cnk(cnk), 
@@ -41,7 +41,7 @@ struct ChunkEnv {
 		lcx(-1),
 		lcy(-1)
 	{
-		int w = cnk->get_width(), h = cnk->get_height();
+		/*int w = cnk->get_width(), h = cnk->get_height();
 		for(int y = 0; y < h; y++) {
 			for(int x = 0; x < w; x++) {
 				char tile = cnk->tile(x, y);
@@ -55,7 +55,7 @@ struct ChunkEnv {
 					continue;
 				}
 			}
-		}
+		}*/
 	}
 
 	bool in_bounds() {
@@ -81,10 +81,10 @@ struct ChunkEnv {
 	}
 
 	bool locked(int x, int y) {
-		for(auto&& locks : tile_locks) {
+		/*for(auto&& locks : tile_locks) {
 			if(locks.x == x && locks.y == y)
 				return true;
-		}
+		}*/
 		return false;
 	}
 
@@ -114,7 +114,7 @@ public:
 private:
 	typedef std::chrono::high_resolution_clock clock;
 
-	std::shared_ptr<TilePatch> tp;
+	std::shared_ptr<StaticChunkPatch> tp;
 	std::function<void(unsigned)> status_cb;
 
 	std::vector<Chunk*> chunks;
@@ -359,18 +359,23 @@ public:
 		active_env = nullptr;
 	}
 
-	EditorWidget(std::shared_ptr<TilePatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks) : 
+	EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks) : 
 		Fl_Widget(x,y,w,h,""),
 		chunks(chunks),
 		sidebar_scrollbar(scrollbar),
-		cnk_render_w(100),
-		cnk_render_h(85),
-		hv_gap(5),
+		cnk_render_w(135),
+		cnk_render_h(108),
+		hv_gap(0),
 		active_env(nullptr),
 		ctrl_down(false),
 		shift_down(false),
 		tp(tp)
 	{
+		if(chunks.empty()) {
+			this->deactivate();
+			return;
+		}
+
 		for(Chunk* c : chunks) {
 			envs[c] = new ChunkEnv(c);
 		}
@@ -504,9 +509,9 @@ private:
 		
 		int xu = maxw/c->get_width(), yu = maxh/c->get_height();
 
-		for(auto&& lock : active_env->tile_locks) {
+		/*for(auto&& lock : active_env->tile_locks) {
 			fl_rect(rx + xu*lock.x, ry + yu*lock.y, xu, yu, 0x60606000);
-		}
+		}*/
 
 		fl_rect(rx + xu*active_env->cx, ry + yu*active_env->cy, xu, yu, 0xFF000000);
 	}

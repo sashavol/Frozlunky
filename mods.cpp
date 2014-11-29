@@ -376,7 +376,7 @@ namespace Mods {
 		return w;
 	}
 
-	void Initialize(std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<GameHooks> gh, std::shared_ptr<CustomHudPatch> chp) {
+	void Initialize(std::shared_ptr<Seeder> seeder, std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<GameHooks> gh, std::shared_ptr<CustomHudPatch> chp) {
 		std::shared_ptr<Spelunky> spel = dp->spel;
 		mods = std::make_shared<PatchGroup>(spel);
 		mods->add("alld", std::make_shared<AllDarkPatch>(spel));
@@ -386,7 +386,16 @@ namespace Mods {
 		mods->add("smlt", std::make_shared<Timer99Patch>(dp));
 		mods->add("pret", std::make_shared<PreciseTimerPatch>(dp, gh,  chp));
 
-		TileEditing::Initialize(spel, dp, gh);
+		{
+			std::shared_ptr<TilePatch> tp(new TilePatch(spel));
+			std::shared_ptr<StaticChunkPatch> stcp(new StaticChunkPatch(dp, tp, seeder));
+			mods->add("stcp", stcp);
+
+			//TODO checkbox
+			stcp->perform();
+
+			TileEditing::Initialize(seeder, stcp);
+		}
 	}
 
 	std::shared_ptr<PatchGroup> ModsGroup() {
@@ -407,8 +416,9 @@ namespace Mods {
 			}
 
 			try {
-				if(appended_ai_tree) {
+				if(appended_ai_tree && appended_ai_tree->children() > 0) {
 					Fl_Tree_Item* first = appended_ai_tree->first();
+					
 					if(first) {
 						for(int i = 0; i < first->children(); i++) {
 							delete (int*)(first->child(i)->user_data());
@@ -417,8 +427,8 @@ namespace Mods {
 					appended_ai_tree = nullptr;
 				}
 			}
-			catch(std::exception& e) {
-				DBG_EXPR(std::cout << "[Mods] Warning: Encountered exception during hybrid AI tree update: " << e.what() << std::endl);
+			catch(...) {
+				DBG_EXPR(std::cout << "[Mods] Warning: Encountered exception during hybrid AI tree update" << std::endl);
 				appended_ai_tree = nullptr;
 			}
 		});

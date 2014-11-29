@@ -225,6 +225,12 @@
     <ClCompile Include="tile_util.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="static_chunk_patch.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
+    <ClCompile Include="static_area_patch.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -426,6 +432,12 @@
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
     <ClInclude Include="tile_util.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="static_chunk_patch.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="static_area_patch.h">
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
   </ItemGroup>

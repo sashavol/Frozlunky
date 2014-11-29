@@ -143,12 +143,12 @@ DerandomizePatch::DerandomizePatch(std::shared_ptr<Spelunky> spel) : Patch(spel)
 
 		spel->read_mem(g_LevelOffsetContainer+7, &g_LevelOffset, sizeof(Address));
 
-#ifdef DEBUG_MODE
-		std::cout << "current game container: " << std::setbase(16) << g_PtrCurrentGameContainer << std::endl;
-		std::cout << "current game: " << std::setbase(16) << g_PtrCurrentGame << std::endl;
-		std::cout << "Level offset container: " << std::setbase(16) << g_LevelOffsetContainer << std::endl;
-		std::cout << "Level offset: " << std::setbase(16) << g_LevelOffset << std::endl;
-#endif
+		DBG_EXPR(
+			std::cout << "current game container: " << std::setbase(16) << g_PtrCurrentGameContainer << std::endl;
+			std::cout << "current game: " << std::setbase(16) << g_PtrCurrentGame << std::endl;
+			std::cout << "Level offset container: " << std::setbase(16) << g_LevelOffsetContainer << std::endl;
+			std::cout << "Level offset: " << std::setbase(16) << g_LevelOffset << std::endl;
+		);
 
 		std::memcpy(reset_idx_patch+5, &g_PtrCurrentGame, sizeof(Address));
 		std::memcpy(reset_idx_patch+11, &g_LevelOffset, sizeof(Address));
@@ -167,11 +167,11 @@ DerandomizePatch::DerandomizePatch(std::shared_ptr<Spelunky> spel) : Patch(spel)
 		std::memcpy(&g_RandomBytes, original_seed_gen_code+0x1, sizeof(Address));
 		std::memcpy(&g_RandomIdx, original_seed_gen_code+0x30, sizeof(Address));
 
-#ifdef DEBUG_MODE
-		std::cout << "Found seed_gen_address at " << seed_gen_address << std::endl;
-		std::cout << "current random idx: " << std::setbase(16) << g_RandomIdx << std::endl;
-		std::cout << "random byte array: " << std::setbase(16) << g_RandomBytes << std::endl;
-#endif
+		DBG_EXPR(
+			std::cout << "Found seed_gen_address at " << seed_gen_address << std::endl;
+			std::cout << "current random idx: " << std::setbase(16) << g_RandomIdx << std::endl;
+			std::cout << "random byte array: " << std::setbase(16) << g_RandomBytes << std::endl;
+		);
 
 		std::memcpy(reset_idx_patch+24, &g_RandomIdx, sizeof(Address));
 

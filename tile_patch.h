@@ -46,6 +46,8 @@ public:
 	std::vector<Chunk*> all_chunks();
 	std::vector<SingleChunk*> root_chunks();
 
+	Address get_gen_fn(const std::string& name);
+
 	const std::set<char>& possible_tiles() const;
 	bool valid_tile(char tile) const;
 

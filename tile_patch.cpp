@@ -257,6 +257,10 @@ TilePatch::TilePatch(std::shared_ptr<Spelunky> spel) :
 	);
 }
 
+Address TilePatch::get_gen_fn(const std::string& name) {
+	return dyn_fn_addrs[name];
+}
+
 bool TilePatch::_perform() {
 	return true;
 }

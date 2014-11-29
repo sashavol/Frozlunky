@@ -149,6 +149,8 @@ void Spelunky::jmp_build(Address from, size_t from_size, Address to, size_t to_s
 	BYTE* jmpback_code = new BYTE[from_size+5];
 	read_mem(from, jmpback_code, from_size);
 
+	//OPT this does not check if an instruction is being overwritten, just bytes.
+		//may be worth fixing
 	//realign jmps and calls
 	for(unsigned i = 0; i < from_size;) {
 		if(jmpback_code[i] == 0xE8 || jmpback_code[i] == 0xE9) {
