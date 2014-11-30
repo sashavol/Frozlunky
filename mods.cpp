@@ -16,7 +16,6 @@
 #include <FL/Fl_Tree.H>
 #include <FL/Fl_Group.H>
 
-
 namespace Mods {
 	std::shared_ptr<PatchGroup> mods;
 
@@ -274,7 +273,12 @@ namespace Mods {
 	
 	int ChunkEditorButton::handle(int evt) {
 		if(evt == 2) {
-			TileEditing::ShowUI();
+			if(!mods->get("stcp")->is_active()) {
+				MessageBox(NULL, "Please enable Custom Levels before opening the editor.", "Level Editor", MB_OK);
+			}
+			else {
+				TileEditing::ShowUI();
+			}
 		}
 		return Fl_Button::handle(evt);
 	}
@@ -291,8 +295,6 @@ namespace Mods {
 		Fl_Double_Window* w;
 		{ Fl_Double_Window* o = new Fl_Double_Window(264, 370, "Special Mods");
 		w = o;
-		{ new DoneButton(5, 340, 255, 25, "Close Window");
-		} // Fl_Button* o
 		{ Fl_Check_Button* o = new ModCheckbox("dpos", 5, 10, 255, 15, "Dark ice caves and hell are possible");
 		o->down_box(FL_DOWN_BOX);
 		} // Fl_Check_Button* o
@@ -355,7 +357,9 @@ namespace Mods {
 		} // Fl_Group* o
 
 		{
-			Fl_Button* o = new ChunkEditorButton(5, 308, 255, 25, "Room Editor");
+			new ModCheckbox("stcp", 5, 308, 255, 25, "Enable Custom Levels");
+
+			Fl_Button* o = new ChunkEditorButton(5, 338, 255, 25, "Level Editor");
 			if(TileEditing::Visible()) {
 				o->deactivate();
 			}
@@ -390,9 +394,6 @@ namespace Mods {
 			std::shared_ptr<TilePatch> tp(new TilePatch(spel));
 			std::shared_ptr<StaticChunkPatch> stcp(new StaticChunkPatch(dp, tp, seeder));
 			mods->add("stcp", stcp);
-
-			//TODO checkbox
-			stcp->perform();
 
 			TileEditing::Initialize(seeder, stcp);
 		}

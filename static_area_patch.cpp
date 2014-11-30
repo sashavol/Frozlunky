@@ -19,9 +19,14 @@ static BYTE lvlseg_opcode[] = {0x83,0xFA,0xAA,0x0F,0x85,0xBB,0xBB,0xBB,0xBB};
 /*
 	AA (+2)  -> Chunk index 
 	BB (+7)  -> Chunk string pointer
-	CC (+12) -> Jmpout address
+	CC (+4)  -> Diff to next cnkseg
 */
-static BYTE cnkseg_opcode[] = {0x83,0xF8,0xAA,0x75,0x0B,0x61,0x68,0xAA,0xAA,0xAA,0xAA,0xE9,0xBB,0xBB,0xBB,0xBB};
+static BYTE cnkseg_opcode[] = {0x83,0xF8,0xAA,0x75,0xCC,0x61,0x68,0xAA,0xAA,0xAA,0xAA};
+
+/*
+	AA (+1)  -> Jmpout diff
+*/
+static BYTE cnkseg_jmpout[] = {0xE9,0xAA,0xAA,0xAA,0xAA};
 
 static Address find_end(std::shared_ptr<Spelunky> spel, Address start_addr) {
 	static BYTE end_find[] = {0x83, 0xC4, 0xCC, 0xC3};
@@ -45,50 +50,132 @@ static Address find_end(std::shared_ptr<Spelunky> spel, Address start_addr) {
 	return end;
 }
 
-Address StaticAreaPatch::find_jmp() {
-	//push string then jump pattern.
-	static BYTE jmppat_find[] = {0x68,0xCC,0xCC,0xCC,0xCC,0xE9,0xCC,0xCC,0xCC,0xCC};
-	static std::string jmppat_mask = "x....x....";
-	
-	static BYTE jmpshort_find[] = {0x68,0xCC,0xCC,0xCC,0xCC,0xEB,0xCC};
-	static std::string jmpshort_mask = "x....x..";
 
-	//WARN this relies upon the assumption that jumps to finish within the gen function following the
-		// push string; jmp .. pattern are most frequent
-	std::map<Address, size_t> jumps;
-	
-	//long jumps
-	for(Address p = spel->find_mem(jmppat_find,jmppat_mask,gen_fn); p != 0 && p < gen_fn_end; p = spel->find_mem(jmppat_find,jmppat_mask,p+1)) {
-		signed int diff = 0;
-		spel->read_mem(p + 6, &diff, sizeof(signed int));
-		if(!diff)
-			continue;
+struct jumpfind {
+	Address jumpto;
+	Address pushref;
+	Address jmpref;
 
-		Address to = (signed int)(p+5+5) + (signed int)diff;
-		jumps[to]++;
+	jumpfind(Address jumpto, Address pushref, Address jmpref) : 
+		jumpto(jumpto), pushref(pushref), jmpref(jmpref) 
+	{}
+};
+
+//converts all jumps and calls to their static address, 
+//use extract_pre to compute diff for the modified addresses
+static void process_pre(Address pre_base, BYTE* pre, size_t presize) {
+	for(size_t p = 0; p < presize;) {
+		if(pre[p] == 0xE9 || pre[p] == 0xE8) {
+			*(signed int*)(pre + p + 1) += (pre_base + p + 5);
+			p += 5;
+		}
+		else
+			p++;
+	}
+}
+
+static void extract_pre(Address ex, BYTE* pre, size_t presize) {
+	for(size_t p = 0; p < presize;) {
+		if(pre[p] == 0xE9 || pre[p] == 0xE8) {
+			*(signed int*)(pre + p + 1) -= (ex + p + 5);
+			p += 5;
+		}
+		else
+			p++;
+	}
+}
+
+bool StaticAreaPatch::find_jmp() {
+	//OPT issue: unsafe assumption about instruction base
+
+	static BYTE push_find[] = {0x68, 0xCC,0xCC,0xCC,0xCC};
+	static std::string push_mask = "x....";
+
+	static BYTE shortjmp_find[] = {0xEB, 0xCC};
+	static std::string shortjmp_mask = "x.";
+
+	static BYTE longjmp_find[] = {0xE9, 0xCC, 0xCC, 0xCC, 0xCC};
+	static std::string longjmp_mask = "x....";
+
+	std::vector<jumpfind> jfs;
+
+	for(Address psh = spel->find_mem(push_find, push_mask, gen_fn); psh != 0 && psh < gen_fn_end; psh = spel->find_mem(push_find, push_mask, psh+1)) {
+		Address jms = spel->find_mem(shortjmp_find, shortjmp_mask, psh);
+		Address jml = spel->find_mem(longjmp_find, longjmp_mask, psh);
+		if(jms < jml) {
+			signed char diff = 0;
+			spel->read_mem(jms, &diff, sizeof(signed char));
+			Address targ = (jms + 2) + diff;
+			jfs.push_back(jumpfind(targ, psh, jms));
+		}
+		else {
+			signed int diff = 0;
+			spel->read_mem(jml + 1, &diff, sizeof(signed int));
+			Address targ = (jml + 5) + diff;
+			jfs.push_back(jumpfind(targ, psh, jml));
+		}
 	}
 
-	//short jumps
-	for(Address p = spel->find_mem(jmpshort_find,jmpshort_mask,gen_fn); p != 0 && p < gen_fn_end; p = spel->find_mem(jmpshort_find,jmpshort_mask,p+1)) {
-		signed char diff = 0;
-		spel->read_mem(p + 6, &diff, sizeof(signed char));
-		if(!diff)
-			continue;
+	char cnkcheck[CHUNK_LEN];
+	std::map<Address, size_t> jmpcounts;
+	std::map<Address, std::map<size_t, size_t>> diff_counts;
+	for(auto&& jf : jfs) {
+		Address cnk;
+		spel->read_mem(jf.pushref + 1, &cnk, sizeof(Address));
+		spel->read_mem(cnk, cnkcheck, sizeof(cnkcheck));
 
-		Address to = (signed int)(p+5+2) + (signed int)diff;
-		jumps[to]++;
+		if(strlen(cnkcheck) == CHUNK_LEN-1 && jf.jumpto >= jf.pushref && jf.jumpto < gen_fn_end) {
+			diff_counts[jf.jumpto][jf.jmpref - (jf.pushref + 5)]++;
+			jmpcounts[jf.jumpto]++;
+		}
 	}
 
-	if(jumps.empty())
-		return 0;
-
-	auto max = std::max_element(jumps.begin(), jumps.end(), 
+	Address jmpout = std::max_element(jmpcounts.begin(), jmpcounts.end(), 
 		[=](const std::pair<Address, size_t>& a, const std::pair<Address, size_t>& b) {
+			if(a.second < 5 && b.second >= 5)
+				return true;
+			else
+				return a.first > b.first;
+		}
+	)->first;
+	
+	
+	auto& diffc = diff_counts[jmpout];
+	auto maxdiff = std::max_element(diffc.begin(), diffc.end(), 
+		[=](const std::pair<size_t, size_t>& a, const std::pair<size_t, size_t>& b) {
 			return a.second < b.second;
 		}
 	);
 
-	return max->first;
+	
+	//OPT issue: unsafe
+	//mov esi, [esp+3C (+4)], add 4 to offset string push
+	static BYTE jungle_esp_fix[] = {0x8B, 0x74, 0x24, 0x3C + 4};
+
+	for(auto&& jf : jfs) {
+		if(jf.jumpto == jmpout && (jf.jmpref - (jf.pushref + 5)) == maxdiff->first) {
+			jmpout_addr = jf.jumpto;
+			
+			BYTE* jpre;
+			if(name == "Jungle") {
+				jmpout_pre_size = sizeof(jungle_esp_fix) + jf.jmpref - (jf.pushref + 5);
+				jmpout_pre = new BYTE[jmpout_pre_size];
+				std::memcpy(jmpout_pre, jungle_esp_fix, sizeof(jungle_esp_fix));
+				jpre = jmpout_pre + sizeof(jungle_esp_fix);
+			}
+			else {
+				jmpout_pre_size = jf.jmpref - (jf.pushref + 5);
+				jmpout_pre = new BYTE[jmpout_pre_size];
+				jpre = jmpout_pre;
+			}
+			
+			spel->read_mem(jf.pushref + 5, jpre, jmpout_pre_size);
+			process_pre(jf.pushref + 5, jpre, jmpout_pre_size);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 //finds where to insert, and how many bytes the overrided instruction is
@@ -190,11 +277,13 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<Derand
 	chunk_alloc(0),
 	subroutine_alloc(0),
 	insert_addr(0),
-	chunk_jmpout(0),
 	gen_fn_end(0),
 	insert_orig(nullptr),
 	name(name),
 	lvl_chunks(lvl_chunks),
+	jmpout_pre(nullptr),
+	jmpout_pre_size(0),
+	jmpout_addr(0),
 	is_valid(true)
 {
 	if(!gen_fn) {
@@ -265,9 +354,8 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<Derand
 			}
 		}
 	}
-
-	chunk_jmpout = find_jmp();
-	if(!chunk_jmpout || chunk_jmpout >= gen_fn_end) {
+	
+	if(!find_jmp()) {
 		DBG_EXPR(std::cout << "[StaticAreaPatch] Discovered chunk generation jumpout is invalid." << std::endl);
 		is_valid = false;
 		return;
@@ -317,14 +405,16 @@ bool StaticAreaPatch::_perform() {
 	spel->write_mem(sr+11, &level_offs, sizeof(Address));
 
 	sr += sizeof(base_opcode);
-
+	
+	BYTE* prej = new BYTE[jmpout_pre_size];
 	//lvlseg->cnkseg[]->lvlseg->...
 	for(int lvl = lvl_start; lvl < lvl_end; lvl++) {
 		BYTE blvl = (BYTE)lvl;
 		spel->write_mem(sr, lvlseg_opcode, sizeof(lvlseg_opcode));
 		spel->write_mem(sr+ 2, &blvl, sizeof(BYTE));
 
-		signed int diff = (sr+sizeof(lvlseg_opcode)+lvl_chunks*sizeof(cnkseg_opcode)) - (sr+3+6);
+		signed int cnkseg_size = sizeof(cnkseg_opcode)+sizeof(cnkseg_jmpout)+jmpout_pre_size;
+		signed int diff = (sr+sizeof(lvlseg_opcode)+lvl_chunks*cnkseg_size) - (sr+3+6);
 		spel->write_mem(sr + 5, &diff, sizeof(signed int));
 
 		sr += sizeof(lvlseg_opcode);
@@ -338,12 +428,25 @@ bool StaticAreaPatch::_perform() {
 			spel->write_mem(sr+2, &bc, sizeof(BYTE));
 			spel->write_mem(sr+7, &cnk_alloc, sizeof(Address));
 
-			signed int jout_diff = chunk_jmpout - (sr+11+5);
-			spel->write_mem(sr+12, &jout_diff, sizeof(signed int));
+			signed char cnkdiff = (signed char)cnkseg_size - 5;
+			spel->write_mem(sr+4, &cnkdiff, sizeof(signed char));
 
 			sr += sizeof(cnkseg_opcode);
+			
+			std::memcpy(prej, jmpout_pre, jmpout_pre_size);
+			extract_pre(sr, prej, jmpout_pre_size);
+			spel->write_mem(sr, prej, jmpout_pre_size);
+
+			sr += jmpout_pre_size;
+
+			signed int jout_diff = jmpout_addr - (sr+5);
+			spel->write_mem(sr, cnkseg_jmpout, sizeof(cnkseg_jmpout));
+			spel->write_mem(sr+1, &jout_diff, sizeof(signed int));
+
+			sr += sizeof(cnkseg_jmpout);
 		}
 	}
+	delete[] prej;
 
 	spel->jmp_build(insert_addr, insert_size, subroutine_alloc, sr - subroutine_alloc);
 	return true;

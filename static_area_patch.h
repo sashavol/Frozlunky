@@ -27,13 +27,16 @@ private:
 	std::vector<SingleChunk*> chunks;
 	Address chunk_alloc;
 	Address subroutine_alloc;
-	Address chunk_jmpout;
 
 	BYTE eaxmov_opcode;
 
 	Address insert_addr;
 	BYTE* insert_orig;
 	size_t insert_size;
+
+	Address jmpout_addr;
+	BYTE* jmpout_pre;
+	size_t jmpout_pre_size;
 
 	bool is_valid;
 
@@ -42,7 +45,7 @@ private:
 	bool _undo() override;
 
 private:
-	Address find_jmp(); //finds where to jump after pushing chunk
+	bool find_jmp(); //finds where to jump after pushing chunk
 	std::pair<Address, size_t> find_insert(); //finds where to insert subroutine
 	BYTE find_cidx_register(); //finds what register the chunk index is stored at
 								//and returns the corresponding byte for a mov eax, ... operation.
