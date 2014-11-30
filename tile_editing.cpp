@@ -21,33 +21,78 @@ static Fl_Window* window = nullptr;
 static std::shared_ptr<StaticChunkPatch> tp;	
 static std::function<void(bool)> display_cb;
 
+
+typedef struct area_grouping {
+	std::vector<std::string> areas;
+
+	area_grouping(std::string a, std::string b="", std::string c="", std::string d="", std::string e="", std::string f="") {
+		areas.push_back(a);
+		if(!b.empty())
+			areas.push_back(b);
+		if(!c.empty())
+			areas.push_back(c);
+		if(!d.empty())
+			areas.push_back(d);
+		if(!e.empty())
+			areas.push_back(e);
+		if(!f.empty())
+			areas.push_back(f);
+	}
+
+	area_grouping() {}
+} area_grouping;
+
 typedef std::vector<std::pair<std::string, std::string>> area_map;
-/*static area_map area_lookup = boost::assign::map_list_of
-			("Tutorial", "LevelGen_Tutorial")		
-			("Mines (1-1 to 1-4)", "LevelGen_Mines")
-			("Jungle (2-1 to 2-4)", "LevelGen_JungleGeneral")
-			("Ice Caves (3-1 to 3-4)", "LevelGen_IceCavesGeneral")
-			("Temple (4-1 to 4-3)", "LevelGen_Temple")
-			("Olmec (4-4)", "LevelGen_Olmec")
-			("Hell (5-1 to 5-3)", "LevelGen_Hell")
-			("Worm", "LevelGen_Worm")
-			("Haunted Castle", "LevelGen_JungleHauntedMansion")
-			("Black Market", "LevelGen_JungleBlackMarket")
-			("Yeti Level", "LevelGen_IceCavesYeti")
-			("The Mothership", "LevelGen_IceCavesSpaceship");*/
+typedef std::vector<std::pair<std::string, area_grouping>> grouping_map;
+
 static area_map area_lookup = boost::assign::map_list_of
 			("Tutorial", "Tutorial")		
-			("Mines (1-1 to 1-4)", "Mines")
-			("Jungle (2-1 to 2-4)", "Jungle")
-			("Ice Caves (3-1 to 3-4)", "IceCaves")
-			("Temple (4-1 to 4-3)", "Temple")
+			("1-1", "Mines-1")
+			("1-2", "Mines-2")
+			("1-3", "Mines-3")
+			("1-4", "Mines-4")
+			("2-1", "Jungle-5")
+			("2-2", "Jungle-6")
+			("2-3", "Jungle-7")
+			("2-4", "Jungle-8")
+			("3-1", "IceCaves-9")
+			("3-2", "IceCaves-10")
+			("3-3", "IceCaves-11")
+			("3-4", "IceCaves-12")
+			("4-1", "Temple-13")
+			("4-2", "Temple-14")
+			("4-3", "Temple-15")
 			("Olmec (4-4)", "TempleOlmec")
-			("Hell (5-1 to 5-3)", "Hell")
+			("5-1", "Hell-17")
+			("5-2", "Hell-18")
+			("5-3", "Hell-19")
 			("Worm", "Worm")
-			("Haunted Castle", "JungleHauntedCastle")
 			("Black Market", "JungleBlackMarket")
+			("Haunted Castle", "JungleHauntedCastle")
 			("Yeti Level", "IceCavesYeti")
 			("The Mothership", "IceCavesSpaceship");
+
+static grouping_map grouping = boost::assign::map_list_of
+	("Tutorial", area_grouping("Tutorial"))
+	("Mines", area_grouping("1-1", "1-2", "1-3", "1-4"))
+	("Jungle", area_grouping("2-1", "2-2", "2-3", "2-4"))
+	("Ice Caves", area_grouping("3-1", "3-2", "3-3", "3-4"))
+	("Temple", area_grouping("4-1", "4-2", "4-3"))
+	("Olmec (4-4)", area_grouping("Olmec (4-4)"))
+	("Hell", area_grouping("5-1", "5-2", "5-3"))
+	("Black Market", area_grouping("Black Market"))
+	("Haunted Castle", area_grouping("Haunted Castle"))
+	("Worm", area_grouping("Worm"))
+	("Yeti Level", area_grouping("Yeti Level"))
+	("The Mothership", area_grouping("The Mothership"));
+
+static std::string area_group(const std::string& area) {
+	for(auto&& p : grouping) {
+		if(std::find(p.second.areas.begin(), p.second.areas.end(), area) != p.second.areas.end())
+			return p.first;
+	}
+	return "";
+}
 
 template <typename KeyType, typename ValueType>
 static const std::pair<KeyType, ValueType>& mget(const std::vector<std::pair<KeyType, ValueType>>& m, const KeyType& key) {
@@ -61,26 +106,29 @@ static const std::pair<KeyType, ValueType>& mget(const std::vector<std::pair<Key
 
 
 struct AreaControls {
-	std::string narea;
-	Fl_Button* edit_btn;
+	std::string group;
+	std::map<std::string, Fl_Button*> btns;
 
-	AreaControls(const std::string& narea, Fl_Button* edit_btn, Fl_Box* data) : 
-		narea(narea),
-		edit_btn(edit_btn)
+	AreaControls(const std::string& group, const std::map<std::string, Fl_Button*>& btns, Fl_Box* data) : 
+		group(group),
+		btns(btns)
 	{}
 
 	//updates widgets with correct data for this area
 	void update() {
-		const std::string& rarea = mget(area_lookup, narea).second;
+		for(auto&& btn : btns) {
+			Fl_Button* edit_btn = btn.second;
 
-		std::vector<Chunk*> chunks = tp->query_chunks(rarea);
+			const std::string& rarea = mget(area_lookup, btn.first).second;
+			std::vector<Chunk*> chunks = tp->query_chunks(rarea);
 		
-		if(!tp->valid() || chunks.empty()) {
-			edit_btn->deactivate();
-			return;
-		}
+			if(!tp->valid() || chunks.empty()) {
+				edit_btn->deactivate();
+				continue;
+			}
 
-		edit_btn->activate();
+			edit_btn->activate();
+		}
 	}
 };
 
@@ -209,12 +257,12 @@ namespace TileEditing {
 	static void SetCurrentEditor(const std::string& area) {
 		if(area == current_area_editor)
 			return;
-		
+
 		if(!current_area_editor.empty()) {
-			controls[current_area_editor]->edit_btn->activate();
+			controls[area_group(current_area_editor)]->btns[current_area_editor]->activate();
 		}
 
-		controls[area]->edit_btn->deactivate();
+		controls[area_group(area)]->btns[area]->deactivate();
 
 		auto ed = editors[area];
 		
@@ -324,27 +372,61 @@ namespace TileEditing {
 	};
 
 	//lays out the UI widgets and stores them to an AreaControls object.
-	static void create_controls(int x, int y, const std::string& narea) {
-		const std::string& rarea = mget(area_lookup, narea).second;
+	static void create_controls(int x, int y, const std::string& group) {
+		const std::vector<std::string>& areas = mget(grouping, group).second.areas;
+		
+		int p = 0;
+		auto make = [&](const std::string& narea) -> Fl_Button* {
+			if(areas.size() == 4 || areas.size() == 3) {
+				switch(p++) {
+				case 0:
+					return new AreaButton(x, y, 75, 18, narea);
+				case 1:
+					return new AreaButton(x+75, y, 75, 18,narea);
+				case 2:
+					return new AreaButton(x, y+20, 75, 18, narea);
+				case 3:
+					return new AreaButton(x+75, y+20, 75, 18, narea);
+				default:
+					return new AreaButton(x, y, 75, 18, narea); //invalid formatting
+				}
+			}
+			else {
+				p++;
+				return new AreaButton(x, y, 150, 20, narea);
+			}
+		};
 
-		Fl_Button* btn = new AreaButton(x, y, 150, 25, narea);
+		std::map<std::string, Fl_Button*> buttons;
+		//TODO... position the buttons according to their group / group size
+		for(const std::string& narea : areas) {
+			buttons[narea] = make(narea);
+		}
+		
 		Fl_Box* data = new Fl_Box(x+160, y, 1, 25, "");
 		data->align(FL_ALIGN_RIGHT);
 		
-		controls[narea] = new AreaControls(narea, btn, data);
-		controls[narea]->update();
+		controls[group] = new AreaControls(group, buttons, data);
+		controls[group]->update();
 	}
 
 	static void construct_window() {
-		Fl_Window* cons = new Fl_Double_Window(730, 430, "Level Editor Overview");
+		Fl_Window* cons = new Fl_Double_Window(730, 480, "Level Editor Overview");
 		window = cons;
 
 		cons->begin();
 
 		int y = 5;
-		for(auto&& area : area_lookup) {
-			create_controls(5, y, area.first);
-			y += 27;
+		for(auto it = grouping.begin(); it != grouping.end(); ++it) {
+			create_controls(5, y, it->first);
+			if(it->second.areas.size() == 4 || it->second.areas.size() == 3)
+				y += 43;
+			else {
+				y += 22;
+				
+				if(it + 1 != grouping.end() && ((it+1)->second.areas.size() == 4 || (it+1)->second.areas.size() == 3))
+					y += 2;
+			}
 		}
 
 		y -= 20;
@@ -357,14 +439,14 @@ namespace TileEditing {
 
 		std::string valid_editor;
 		for(auto&& area : area_lookup) {
-			EditorScrollbar* es = new EditorScrollbar(710, 5, 15, cons->h() - 10);
+			EditorScrollbar* es = new EditorScrollbar(710, 5, 15, 420);
 			std::vector<Chunk*> chunks = tp->query_chunks(area.second);
 			if(!chunks.empty()) {
 				if(valid_editor.empty()) {
 					valid_editor = area.first;
 				}
 
-				EditorWidget* ew = new EditorWidget(tp, 165, 5, 545, cons->h() - 10, es, chunks);
+				EditorWidget* ew = new EditorWidget(tp, 165, 5, 545, 420, es, chunks);
 				es->set_parent_editor(ew);
 				ew->status_callback(IO::status_handler);
 				editors[area.first] = ew;

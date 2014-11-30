@@ -12,23 +12,17 @@
 #include <functional>
 #include <chrono>
 
-//TODO disable/enable checkbox in mods.cpp
-//TODO proper buttons (1-1, 1-2, 1-3 ... etc)
-//TODO fix mouse no longer working after using tab / shift+tab
+//TODO worm support
 //TODO force seed option
-//TODO fix load button not showing correct file-name in title bar
+//TODO redo title bar notifications
 //TODO fix scroll-bar up button not working
-//TODO add save as button
-//TODO sane testing environment for area levels > 1 (force level to 1)
+//TODO make Save To File behave as save-as, make Ctrl+S behave as save + apply chunk
+//TODO sane testing environment for area levels > 1 (force level)
 //TODO default templates for chunks
 
-//struct LockedTile {
-//	int x;
-//	int y;
-//	char value;
-//
-//	LockedTile(int x, int y, char value) : x(x), y(y), value(value) {}
-//};
+enum Direction {
+	UP, LEFT, RIGHT, DOWN
+};
 
 struct ChunkEnv {
 	Chunk* cnk;
@@ -45,23 +39,7 @@ struct ChunkEnv {
 		cy(-1),
 		lcx(-1),
 		lcy(-1)
-	{
-		/*int w = cnk->get_width(), h = cnk->get_height();
-		for(int y = 0; y < h; y++) {
-			for(int x = 0; x < w; x++) {
-				char tile = cnk->tile(x, y);
-				if(tile == '9' || tile == '8') {
-					tile_locks.push_back(LockedTile(x, y, tile));
-					continue;
-				}
-
-				if(tile == '0' && (x == 0 || x == w-1 || y == 0 || y == h-1)) {
-					tile_locks.push_back(LockedTile(x, y, tile));
-					continue;
-				}
-			}
-		}*/
-	}
+	{}
 
 	bool in_bounds() {
 		return cx >= 0 && cy >= 0 && cx < cnk->get_width() && cy < cnk->get_height();
@@ -132,6 +110,7 @@ private:
 
 	bool ctrl_down;
 	bool shift_down;
+	bool alt_down;
 	std::shared_ptr<clock::time_point> key_press;
 
 	bool allow_input() {
@@ -152,6 +131,8 @@ public:
 	}
 
 private:
+	Direction last_dir;
+
 	//OPT issue: chunk render width/height scanning are unsafe assumptions for non-uniform chunk sizes (not applicable currently)
 	void shift_env_left(int u) {
 		if(!active_env->try_dx(-u)) {
@@ -164,6 +145,7 @@ private:
 				active_env->cx = cnk->get_width() - 1;
 			}
 		}
+		last_dir = Direction::LEFT;
 	}
 
 	void shift_env_right(int u) {
@@ -177,6 +159,7 @@ private:
 				active_env->cx = 0;
 			}
 		}
+		last_dir = Direction::RIGHT;
 	}
 
 	void shift_env_up(int u) {
@@ -190,6 +173,7 @@ private:
 				active_env->cy = cnk->get_height() - 1;
 			}
 		}
+		last_dir = Direction::UP;
 	}
 
 	void shift_env_down(int u) {
@@ -202,6 +186,25 @@ private:
 				active_env->cx = lcx;
 				active_env->cy = 0;
 			}
+		}
+		last_dir = Direction::DOWN;
+	}
+
+	void shift_env_last(int u) {
+		switch(last_dir){
+		case Direction::UP:
+			shift_env_up(u);
+			break;
+		case Direction::DOWN:
+			shift_env_down(u);
+			break;
+		case Direction::LEFT:
+			shift_env_left(u);
+			break;
+		default:
+		case Direction::RIGHT:
+			shift_env_right(u);
+			break;
 		}
 	}
 
@@ -236,7 +239,7 @@ public:
 					break;
 
 				//key_pressed only if not flag key
-				if(key != 65505 && key != 65507 && key != 65508) { 
+				if(key != 65505 && key != 65507 && key != 65508 && key != 65513 && key != 65514) { 
 					key_press = std::make_shared<clock::time_point>(clock::now());
 				}
 
@@ -310,6 +313,11 @@ public:
 					ctrl_down = true;
 					break;
 
+				case 65513:
+				case 65514:
+					alt_down = true;
+					break;
+
 				case 65535: //delete
 					active_env->put('0');
 					parent()->redraw();
@@ -381,9 +389,10 @@ public:
 						char tile = Fl::event_text()[0];
 						if(tp->valid_tile(tile)) {
 							active_env->put(tile);
-							if(!ctrl_down) {
+							if(alt_down)
+								shift_env_last(1);
+							else
 								shift_env_right(1);
-							}
 							status(STATE_CHUNK_WRITE);
 							parent()->redraw();
 						}
@@ -402,6 +411,10 @@ public:
 			case 65507:
 			case 65508:
 				ctrl_down = false;
+				break;
+			case 65513:
+			case 65514:
+				alt_down = false;
 				break;
 			}
 			//key released
@@ -433,7 +446,9 @@ public:
 		active_env(nullptr),
 		ctrl_down(false),
 		shift_down(false),
-		tp(tp)
+		alt_down(false),
+		tp(tp),
+		last_dir(Direction::UP)
 	{
 		if(chunks.empty()) {
 			this->deactivate();
