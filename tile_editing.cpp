@@ -595,7 +595,7 @@ namespace TileEditing {
 			EditorScrollbar* es = new EditorScrollbar(690, 5, 15, 420);
 			std::vector<Chunk*> chunks = tp->query_chunks(area.second);
 			if(!chunks.empty()) {
-				if(valid_editor.empty()) {
+				if(valid_editor.empty() || valid_editor == "Tutorial") {
 					valid_editor = area.first;
 				}
 

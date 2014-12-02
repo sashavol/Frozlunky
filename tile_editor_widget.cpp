@@ -126,7 +126,7 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 			cursor.ey = ccpos.second + 1;
 		}
 		else if(move_drag_start.first > -1) {
-			int ex = ccpos.first, ey = ccpos.second;
+			int ex = ccpos.first + 1, ey = ccpos.second + 1;
 			int sx = move_drag_start.first, sy = move_drag_start.second;
 
 			if(ex < sx)
@@ -136,8 +136,8 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 
 			cursor.sx = sx;
 			cursor.sy = sy;
-			cursor.ex = ex + 1;
-			cursor.ey = ey + 1;
+			cursor.ex = ex;
+			cursor.ey = ey;
 		}
 	}
 	else {
@@ -187,8 +187,12 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 		if(len >= 1) {
 			vx /= len; vy /= len;
 			
-			for(double x = from_x, y = from_y; x <= to_x && y <= to_y; x += vx, y += vy) {
+			double x = from_x, y = from_y;
+			while(x <= to_x && y <= to_y) {
 				affect((int)x, (int)y);
+				
+				x += vx;
+				y += vy;
 			}
 		}
 	}
@@ -341,6 +345,8 @@ int EditorWidget::handle(int evt) {
 					clipboard = cursor.encode();
 					cursor.put('0');
 					status(STATE_CHUNK_COPY);
+					parent()->redraw();
+					timeline.push_state();
 					return 1;
 				}
 
@@ -604,13 +610,24 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 		return std::pair<int, int>(px + cx*maxw / cw, py + cy*maxh / ch); 
 	};
 
+	
+	//chunk bg + bounds
+	auto fs = map(0, 0), fx = map(cw, ch);
+	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, fs.first, fs.second, fx.first - fs.first, fx.second - fs.second, Fl_Color(0));
+	fl_color(Fl_Color(0x1A1A1A00));
+	fl_line(fs.first, fs.second, fs.first, fx.second);
+	fl_line(fs.first, fs.second, fx.first, fs.second);
+
 	fl_font(FL_SCREEN, min(xu, yu)-2);
 	
 	for(int cy = 0; cy < ch; cy++) {
 		for(int cx = 0; cx < cw; cx++) {
 			char tile = cnk->tile(cx, cy);
-			auto dp = map(cx, cy);
-			draw_tile(tile, dp.first, dp.second, xu, yu);			
+			//'0' = air
+			if(tile != '0') { 
+				auto dp = map(cx, cy);
+				draw_tile(tile, dp.first, dp.second, xu, yu);		
+			}
 		}
 	}
 
