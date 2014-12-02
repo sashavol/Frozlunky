@@ -34,6 +34,7 @@ GameHooks::GameHooks(std::shared_ptr<Spelunky> spel, std::shared_ptr<Derandomize
 	DISCOVERY_FUNC(discover_run_switch_offs);
 	DISCOVERY_FUNC(discover_menu_data);
 	DISCOVERY_FUNC(discover_gfx_options);
+	DISCOVERY_FUNC(discover_level_flags);
 }
 
 Address GameHooks::game_state_offs() {
@@ -721,4 +722,140 @@ bool GameHooks::fullscreen() {
 	Address ext = ext_object();
 	spel->read_mem(ext + ext_fs_offset, &wut, sizeof(BYTE));
 	return !!wut;
+}
+
+
+//////////
+// level flags
+//////////
+
+//+7
+static BYTE lvl_worm_find[] = {0xE9,0xCC,0xCC,0xCC,0xCC,0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x74,0xCC,0x8D,0xCC,0xCC,0xCC,0x8B,0xCC,0x8B,0xCC,0xE8};
+static std::string lvl_worm_mask = "x....x......x.x...x.x.x";
+
+//+4
+static BYTE lvl_blackmkt_find[] = {0x7F,0xCC,0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x74,0xCC,0x8D,0xCC,0xCC,0xCC,0x8B,0xCC,0x8B,0xCC,0xE8};
+static std::string lvl_blackmkt_mask = "x.x......x.x...x.x.x";
+
+//+4
+static BYTE lvl_hmansion_find[] = {0x7F,0xCC,0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x74,0xCC,0x8B,0xCC,0x8D,0xCC,0xCC,0xCC,0x8B,0xCC,0x8B,0xCC,0xE8};
+static std::string lvl_hmansion_mask = "x.x......x.x.x...x.x.x";
+
+//+4
+static BYTE lvl_yeti_find[] = {0x74,0xCC,0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x74,0xCC,0x8D,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0x8B,0xCC,0x8B};
+static std::string lvl_yeti_mask = "x.x......x.x....x.x.x";
+
+//+2
+static BYTE lvl_cog_find[] = {0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x74,0xCC,0x33,0xCC,0x83,0xCC,0xCC,0x0F};
+static std::string lvl_cog_mask = "x......x.x.x..x";
+
+//+2
+static BYTE lvl_mothership_find[] = {0xE9,0xCC,0xCC,0xCC,0xCC,0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x74,0xCC,0x8D,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0x8B,0xCC,0x8B,0xCC,0xE8};
+static std::string lvl_mothership_mask = "x....x......x.x....x.x.x.x";
+
+bool GameHooks::discover_level_flags() {
+	lvl_hmansion_offset = 0;
+	lvl_worm_offset = 0;
+	lvl_cog_offset = 0;
+	lvl_yeti_offset = 0;
+	lvl_blackmkt_offset = 0;
+	lvl_mothership_offset = 0;
+
+	lvl_worm_offset = spel->get_stored_hook("lvl_worm_offset");
+	if(!lvl_worm_offset) {
+		Address worm_cont = spel->find_mem(lvl_worm_find, lvl_worm_mask);
+		if(!worm_cont) {
+			DBG_EXPR(std::cout << "[GameHooks] Failed to find worm level flag." << std::endl);
+			return false;
+		}
+		spel->read_mem(worm_cont + 7, &lvl_worm_offset, sizeof(signed int));
+		spel->store_hook("lvl_worm_offset", lvl_worm_offset);
+		DBG_EXPR(std::cout << "[GameHooks] lvl_worm_offset = " << lvl_worm_offset << std::endl);
+	}
+
+	lvl_blackmkt_offset = spel->get_stored_hook("lvl_blackmkt_offset");
+	if(!lvl_blackmkt_offset) {
+		Address blackmkt_cont = spel->find_mem(lvl_blackmkt_find, lvl_blackmkt_mask);
+		if(!blackmkt_cont) {
+			DBG_EXPR(std::cout << "[GameHooks] Failed to find black market flag." << std::endl);
+			return false;
+		}
+		spel->read_mem(blackmkt_cont + 4, &lvl_blackmkt_offset, sizeof(signed int));
+		spel->store_hook("lvl_blackmkt_offset", lvl_blackmkt_offset);
+		DBG_EXPR(std::cout << "[GameHooks] lvl_blackmkt_offset = " << lvl_blackmkt_offset << std::endl);
+	}
+
+	lvl_hmansion_offset = spel->get_stored_hook("lvl_hmansion_offset");
+	if(!lvl_hmansion_offset) {
+		Address hmansion_cont = spel->find_mem(lvl_hmansion_find, lvl_hmansion_mask);
+		if(!hmansion_cont) {
+			DBG_EXPR(std::cout << "[GameHooks] Failed to find haunted mansion flag." << std::endl);
+			return false;
+		}
+		spel->read_mem(hmansion_cont + 4, &lvl_hmansion_offset, sizeof(signed int));
+		spel->store_hook("lvl_hmansion_offset", lvl_hmansion_offset);
+		DBG_EXPR(std::cout << "[GameHooks] lvl_hmansion_offset = " << lvl_hmansion_offset << std::endl);
+	}
+
+	lvl_yeti_offset = spel->get_stored_hook("lvl_yeti_offset");
+	if(!lvl_yeti_offset) {
+		Address yeti_cont = spel->find_mem(lvl_yeti_find, lvl_yeti_mask);
+		if(!yeti_cont) {
+			DBG_EXPR(std::cout << "[GameHooks] Failed to find yeti level flag." << std::endl);
+			return false;
+		}
+		spel->read_mem(yeti_cont + 4, &lvl_yeti_offset, sizeof(signed int));
+		spel->store_hook("lvl_yeti_offset", lvl_yeti_offset);
+		DBG_EXPR(std::cout << "[GameHooks] lvl_yeti_offset = " << lvl_yeti_offset << std::endl);
+	}
+
+	lvl_cog_offset = spel->get_stored_hook("lvl_cog_offset");
+	if(!lvl_cog_offset) {
+		Address cog_cont = spel->find_mem(lvl_cog_find, lvl_cog_mask);
+		if(!cog_cont) {
+			DBG_EXPR(std::cout << "[GameHooks] Failed to find city of gold level flag." << std::endl);
+			return false;
+		}
+		spel->read_mem(cog_cont + 2, &lvl_cog_offset, sizeof(signed int));
+		spel->store_hook("lvl_cog_offset", lvl_cog_offset);
+		DBG_EXPR(std::cout << "[GameHooks] lvl_cog_offset = " << lvl_cog_offset << std::endl);
+	}
+
+	lvl_mothership_offset = spel->get_stored_hook("lvl_mothership_offset");
+	if(!lvl_mothership_offset) {
+		Address ms_cont = spel->find_mem(lvl_mothership_find, lvl_mothership_mask);
+		if(!ms_cont) {
+			DBG_EXPR(std::cout << "[GameHooks] Failed to find mothership flag." << std::endl);
+			return false;
+		}
+		spel->read_mem(ms_cont + 7, &lvl_mothership_offset, sizeof(signed int));
+		spel->store_hook("lvl_mothership_offset", lvl_mothership_offset);
+		DBG_EXPR(std::cout << "[GameHooks] lvl_mothership_offset = " << lvl_mothership_offset << std::endl);
+	}
+
+	return true;
+}
+
+signed GameHooks::worm_offset() {
+	return lvl_worm_offset;
+}
+
+signed GameHooks::blackmkt_offset() {
+	return lvl_blackmkt_offset;
+}
+
+signed GameHooks::haunted_mansion_offset() {
+	return lvl_hmansion_offset;
+}
+
+signed GameHooks::yeti_offset() {
+	return lvl_yeti_offset;
+}
+
+signed GameHooks::cog_offset() {
+	return lvl_cog_offset;
+}
+
+signed GameHooks::mothership_offset() {
+	return lvl_mothership_offset;
 }

@@ -9,15 +9,8 @@
 #include <functional>
 #include <vector>
 
-#define BUTTON_CLASS(NAME, LABEL) \
-class NAME : public Fl_Button { \
-public: \
-	NAME(int x, int y, int w, int h) : Fl_Button(x,y,w,h,LABEL) {} \
-	virtual int handle(int evt) override; \
-}
-
 namespace TileEditing {
-	bool Initialize(std::shared_ptr<Seeder> seeder, std::shared_ptr<StaticChunkPatch> scp);
+	bool Initialize(std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<GameHooks> gh, std::shared_ptr<Seeder> seeder, std::shared_ptr<StaticChunkPatch> scp);
 	bool Valid();
 	bool Visible();
 	void DisplayStateCallback(std::function<void(bool)> cb);

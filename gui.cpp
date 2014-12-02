@@ -99,6 +99,11 @@ std::shared_ptr<RemoteCallPatch> CurrentRCP() {
 	return rcp;
 }
 
+void request_soft_seed_lock() {
+	change_every_level->value(0);
+	change_every_level->redraw();
+}
+
 /////
 //Special Mods
 /////
@@ -350,6 +355,11 @@ int DailyButton::handle(int evt) {
 				return Fl_Button::handle(evt);
 			}
 
+			if(seeder->is_locked()) {
+				MessageBox(NULL, "A daily cannot be started due to a conflicting active mod.", "Frozboards", MB_OK);
+				return Fl_Button::handle(evt);
+			}
+
 			this->label("...");
 			this->deactivate();
 
@@ -523,14 +533,12 @@ bool netplay_visible = false;
 
 int NetplayButton::handle(int evt) {
 	if(evt == 2) {
-		std::cout << "Netplay called!" << " netplay is " << netplay_visible << std::endl; //DEBUG
 		if(netplay_visible) {
 			NetplayGUI::HideNetplayGUI();
 		}
 		else {
 			NetplayGUI::DisplayNetplayGUI();
 		}
-		//netplay_visible ? NetplayGUI::HideNetplayGUI() : NetplayGUI::DisplayNetplayGUI();	
 	}
 	return Fl_Button::handle(evt);
 }
@@ -736,7 +744,7 @@ DWORD __stdcall loop(void* wind)
 			window_init_state = init_state;
 		}
 
-		if(init_state == 1 && !daily_gui_update(window) && allow_seed_change) 
+		if(init_state == 1 && !daily_gui_update(window) && allow_seed_change && !seeder->is_locked()) 
 		{
 			if(change_every_level->value() == 1 && gcd->game_changed()) 
 			{

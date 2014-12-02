@@ -40,6 +40,7 @@ public:
 
 	bool lock();
 	void unlock();
+	bool is_locked();
 
 	void on_seed_change(seed_change_cb cb);
 

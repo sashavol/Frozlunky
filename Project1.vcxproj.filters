@@ -231,6 +231,15 @@
     <ClCompile Include="static_area_patch.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="level_forcer.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
+    <ClCompile Include="yeti_remove_patch.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
+    <ClCompile Include="tile_draw.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -438,6 +447,21 @@
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
     <ClInclude Include="static_area_patch.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="level_forcer.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="yeti_remove_patch.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="chunk_timeline.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="tile_picker.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="tile_draw.h">
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
   </ItemGroup>

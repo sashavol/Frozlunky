@@ -74,6 +74,13 @@ private:
 	unsigned ext_prohud_offset;
 	unsigned ext_fs_offset;
 
+	signed int lvl_hmansion_offset;
+	signed int lvl_worm_offset;
+	signed int lvl_cog_offset;
+	signed int lvl_yeti_offset;
+	signed int lvl_blackmkt_offset;
+	signed int lvl_mothership_offset;
+
 	BYTE game_damsel_offset;
 
 	std::shared_ptr<DerandomizePatch> dp;
@@ -87,12 +94,13 @@ private:
 	bool discover_ctrl_size();
 	bool discover_menu_data();
 	bool discover_gfx_options();
+	bool discover_level_flags();
 
 public:
 	GameHooks(std::shared_ptr<Spelunky> spel, std::shared_ptr<DerandomizePatch> dp);
 	int game_state();
 	int current_level();
-	
+
 	//first player_id = 0
 	int bombs(int player_id);
 	int health(int player_id);
@@ -141,4 +149,12 @@ public:
 	void set_pro_hud(bool v);
 
 	bool fullscreen();
+
+
+	signed worm_offset();
+	signed blackmkt_offset();
+	signed haunted_mansion_offset();
+	signed yeti_offset();
+	signed cog_offset();
+	signed mothership_offset();
 };

@@ -23,6 +23,10 @@ void Seeder::crazy_seed(int crazy, const std::string& seed, int crazyval)
 	dp->spel->write_mem(bytes, bytes_data, size*sizeof(int));
 }
 
+bool Seeder::is_locked() {
+	return locked;
+}
+
 std::string Seeder::get_seed() {
 	return *current_str_seed;
 }

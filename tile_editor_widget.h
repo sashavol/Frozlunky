@@ -1,23 +1,33 @@
 #pragma once
 
-#include "tile_chunk.h"
 #include "static_chunk_patch.h"
+#include "chunk_timeline.h"
+#include "tile_chunk.h"
+#include "tile_draw.h"
+#include "tile_picker.h"
+
 #include <FL/Fl_Widget.H>
 #include <FL/fl_draw.H>
 #include <FL/Fl_Scrollbar.H>
 #include <FL/Fl.H>
+
 #include <cmath>
 #include <map>
 #include <algorithm>
 #include <functional>
 #include <chrono>
 
-//TODO worm support
-//TODO force seed option
-//TODO redo title bar notifications
-//TODO fix scroll-bar up button not working
-//TODO make Save To File behave as save-as, make Ctrl+S behave as save + apply chunk
-//TODO sane testing environment for area levels > 1 (force level)
+//OPT separate city of gold support
+//OPT save force-level attribute to level exports for single-level challenges
+
+//TODO sidebar on the right for selecting tile types, 
+	//left click to select tile,
+    //right click to place tile,
+	//middle-click to fill
+//TODO be able to hold mouse
+//TODO verify jungle does not crash
+//TODO hints bar for displaying useful information on hover, i.e. sidebar
+//TODO fix worm UI
 //TODO default templates for chunks
 
 enum Direction {
@@ -104,10 +114,16 @@ private:
 	std::shared_ptr<StaticChunkPatch> tp;
 	std::function<void(unsigned)> status_cb;
 
+	ChunkTimeline timeline;
+	TilePicker picker;
+
 	std::vector<Chunk*> chunks;
 	std::map<Chunk*, ChunkEnv*> envs;
 	ChunkEnv* active_env;
 
+	bool extended_mode; //extended mode (applicable to Worm, derived from chunks size)
+
+	bool mouse_down[3];
 	bool ctrl_down;
 	bool shift_down;
 	bool alt_down;
@@ -125,9 +141,37 @@ private:
 			status_cb(state);
 	}
 
+//outside interface
 public:
+	std::vector<Chunk*> get_chunks() {
+		return chunks;
+	}
+
 	void status_callback(std::function<void(unsigned)> cb) {
 		this->status_cb = cb;
+	}
+
+private:
+	void clear_chunk(Chunk* cnk) {
+		if(cnk->type() == ChunkType::Single) {
+			SingleChunk* sc = static_cast<SingleChunk*>(cnk);
+			std::string d = sc->get_data();
+			std::fill(d.begin(), d.end(), '0');
+			sc->set_data(d);
+		}
+		else {
+			for(Chunk* c : static_cast<GroupChunk*>(cnk)->get_chunks()) {
+				clear_chunk(c);
+			}
+		}
+	}
+
+public:
+	void clear_chunks() {
+		for(Chunk* c : chunks) {
+			clear_chunk(c);
+		}
+		timeline.push_state();
 	}
 
 private:
@@ -135,6 +179,9 @@ private:
 
 	//OPT issue: chunk render width/height scanning are unsafe assumptions for non-uniform chunk sizes (not applicable currently)
 	void shift_env_left(int u) {
+		if(!active_env)
+			return;
+		
 		if(!active_env->try_dx(-u)) {
 			int lcy = active_env->cy;
 			auto rpos = get_chunk_render_pos(active_env->cnk);
@@ -149,6 +196,9 @@ private:
 	}
 
 	void shift_env_right(int u) {
+		if(!active_env)
+			return;
+		
 		if(!active_env->try_dx(u)) {
 			int lcy = active_env->cy;
 			auto rpos = get_chunk_render_pos(active_env->cnk);
@@ -163,6 +213,9 @@ private:
 	}
 
 	void shift_env_up(int u) {
+		if(!active_env)
+			return;
+		
 		if(!active_env->try_dy(-u)) {
 			int lcx = active_env->cx;
 			auto rpos = get_chunk_render_pos(active_env->cnk);
@@ -177,6 +230,9 @@ private:
 	}
 
 	void shift_env_down(int u) {
+		if(!active_env)
+			return;
+		
 		if(!active_env->try_dy(u)) {
 			int lcx = active_env->cx;
 			auto rpos = get_chunk_render_pos(active_env->cnk);
@@ -208,30 +264,116 @@ private:
 		}
 	}
 
+private:
+	int mouse_event_id() {
+		switch(Fl::event_state()) {
+		case FL_BUTTON1:
+			return 0;
+		case FL_BUTTON2:
+			return 1;
+		case FL_BUTTON3:
+			return 2;
+		default:
+			return 0;
+		}
+	}
+
+	std::pair<int, int> cursor_rpos;
+	void cursor_move(int rx, int ry) {
+		Chunk* c = find_chunk(rx, ry);
+		if(c) {
+			active_env = envs[c];
+					
+			auto spos = get_chunk_render_pos(c);
+			active_env->cx = c->get_width() * (rx - spos.first) / cnk_render_w;
+			active_env->cy = c->get_height() * (ry - spos.second) / cnk_render_h;
+			picker.unselect();
+		}
+		else {
+			active_env = nullptr;
+		}
+
+		char ptile = picker.tile(rx, ry);
+		if(ptile != 0) {
+			picker.select(ptile);
+		}
+
+		cursor_rpos.first = rx;
+		cursor_rpos.second = ry;
+	
+		parent()->redraw();
+	}
+
+	char cursor_tile() {
+		if(cursor_rpos.first >= 0 && cursor_rpos.second >= 0) {
+			Chunk* c = find_chunk(cursor_rpos.first, cursor_rpos.second);
+			if(c) {
+				return c->tile(active_env->cx, active_env->cy);
+			}
+			
+			char ptile = picker.tile(cursor_rpos.first, cursor_rpos.second);
+			if(ptile != 0) {
+				return ptile;
+			}
+		}
+
+		return 0;
+	}
+	
+	std::pair<int, int> last_build;
+	void cursor_build(int rx, int ry, bool drag) {
+		char tile = cursor_tile();
+		auto affect = [=](int x, int y) {
+			Chunk* c = find_chunk(x, y);
+			if(c && tile != 0) {
+				auto spos = get_chunk_render_pos(c);
+				c->tile(c->get_width() * (x - spos.first) / cnk_render_w, c->get_height() * (y - spos.second) / cnk_render_h, tile);
+			}
+		};
+
+		if(drag) {
+			double vx = rx - last_build.first, vy = ry - last_build.second;
+			double len = sqrt(vx*vx + vy*vy);
+			vx /= len; vy /= len;
+			
+			for(double x = last_build.first, y = last_build.second; x <= rx && y <= ry; x += vx, y += vy) {
+				affect((int)x, (int)y);
+			}
+		}
+		else {
+			affect(rx, ry);
+		}
+
+		last_build = std::pair<int, int>(rx, ry);
+		parent()->redraw();
+	}
+
 public:
 	virtual int handle(int evt) override {
-		//TODO handle swapping between chunkenvs, editing chunks using envs, etc.
 		switch(evt) {
-		case 0x1:
-			if(Fl::event_state() == FL_BUTTON1) {
-				Chunk* c = find_chunk(Fl::event_x(), Fl::event_y());
-				if(c) {
-					active_env = envs[c];
-					
-					auto spos = get_chunk_render_pos(c);
-					active_env->cx = c->get_width() * (Fl::event_x() - spos.first) / cnk_render_w;
-					active_env->cy = c->get_height() * (Fl::event_y() - spos.second) / cnk_render_h;
+		case FL_PUSH: //mouse presed
+			mouse_down[mouse_event_id()] = true;
+			
+			if(Fl::event_state() & FL_BUTTON1)
+				cursor_move(Fl::event_x(), Fl::event_y());
+			else if(Fl::event_state() & FL_BUTTON3)
+				cursor_build(Fl::event_x(), Fl::event_y(), false);
 
-					parent()->redraw();
-				}
-			}
-			this->take_focus();
-			break;
-		case 0x2:
-			//mouse btn released
-			break;
+			return 1;
 
-		case 0xC:
+		case FL_RELEASE: //mouse btn released
+			mouse_down[mouse_event_id()] = false;
+			return 1;
+
+		case FL_DRAG:
+			if(Fl::event_state() & FL_BUTTON1)
+				cursor_move(Fl::event_x(), Fl::event_y());
+			else if(Fl::event_state() & FL_BUTTON3)
+				cursor_build(Fl::event_x(), Fl::event_y(), true);
+
+			return 1;
+
+		case 0xC: //key typed
 			{
 				int key = Fl::event_key();
 
@@ -268,76 +410,98 @@ public:
 							}
 						}
 					}
-					break;
-
+					return 1;
+					
 				case 65361:
 					shift_env_left(ctrl_down ? 2 : 1);
 					parent()->redraw();
-					break;
+					return 1;
 
 				case 65362: //up
 					shift_env_up(ctrl_down ? 2 : 1);
 					parent()->redraw();
-					break;
+					return 1;
 
 				case 65363:
 					shift_env_right(ctrl_down ? 2 : 1);
 					parent()->redraw();
-					break;
+					return 1;
 
 				case 65364: //down
 					shift_env_down(ctrl_down ? 2 : 1);
 					parent()->redraw();
-					break;
+					timeline.push_state();
+					return 1;
 
 				case 32:    //space
 					active_env->put('0');
 					if(!ctrl_down)
 						shift_env_right(1);
 					parent()->redraw();
-					break;
+					timeline.push_state();
+					return 1;
 
 				case 65288: //backspace
 					active_env->put('0');
 					if(!ctrl_down)
 						shift_env_left(1);
 					parent()->redraw();
-					break;
+					timeline.push_state();
+					return 1;
 
 				case 65505: //shift
 					shift_down = true;
-					break;
+					return 1;
 
 				case 65507: //ctrl
 				case 65508:
 					ctrl_down = true;
-					break;
+					return 1;
 
-				case 65513:
+				case 65513: //alt
 				case 65514:
 					alt_down = true;
-					break;
+					return 1;
 
 				case 65535: //delete
 					active_env->put('0');
 					parent()->redraw();
-					break;
+					timeline.push_state();
+					return 1;
 
 				case 115: //s
 					if(ctrl_down) {
 						tp->apply_chunks();
 						status(STATE_CHUNK_APPLY);
-						break;
+						return 1;
+					}
+
+				case 122: //z: undo
+					this->take_focus();
+					if(ctrl_down) {
+						timeline.rewind();
+						parent()->redraw();
+						return 1;
+					}
+					
+				case 121: //y: redo
+					this->take_focus();
+					if(ctrl_down) {
+						timeline.forward();
+						parent()->redraw();
+						return 1;
 					}
 
 				case 99: //c
+					this->take_focus();
 					if(ctrl_down && active_env) {
 						clipboard = active_env->cnk;
 						status(STATE_CHUNK_COPY);
-						break;
+						return 1;
 					}
 					
 				case 110: //n
+					this->take_focus();
 					if(ctrl_down && active_env) {
 						int w = active_env->cnk->get_width();
 						int h = active_env->cnk->get_height();
@@ -350,10 +514,12 @@ public:
 						}
 
 						parent()->redraw();
-						break;
+						timeline.push_state();
+						return 1;
 					}
 
 				case 118: //v
+					this->take_focus();
 					if(ctrl_down && active_env && clipboard) {
 						if(clipboard->get_width() == active_env->cnk->get_width()
 							&& clipboard->get_height() == active_env->cnk->get_height()) 
@@ -380,14 +546,16 @@ public:
 
 							status(STATE_CHUNK_PASTE);
 							parent()->redraw();
-							break;
+							return 1;
 						}
+						timeline.push_state();
 					}
 
 				default:
 					{
+						this->take_focus();
 						char tile = Fl::event_text()[0];
-						if(tp->valid_tile(tile)) {
+						if(active_env && tp->valid_tile(tile)) {
 							active_env->put(tile);
 							if(alt_down)
 								shift_env_last(1);
@@ -396,31 +564,36 @@ public:
 							status(STATE_CHUNK_WRITE);
 							parent()->redraw();
 						}
+						timeline.push_state();
+						return 1;
 					}
 				}
 			}
 			//key pressed
-			break;
-		case 0x9:
+			return 1;
+
+		case FL_KEYUP:
 			key_press = nullptr;
 
 			switch(Fl::event_key()) {
 			case 65505:
 				shift_down = false;
-				break;
+				return 1;
 			case 65507:
 			case 65508:
 				ctrl_down = false;
-				break;
+				return 1;
 			case 65513:
 			case 65514:
 				alt_down = false;
-				break;
+				return 1;
 			}
 			//key released
-			break;
+			return 1;
 
 		case FL_FOCUS:
+			return 1;
+		case FL_UNFOCUS:
 			return 1;
 		}
 
@@ -436,7 +609,7 @@ public:
 		active_env = nullptr;
 	}
 
-	EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks) : 
+	EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks, bool extended_mode=false) : 
 		Fl_Widget(x,y,w,h,""),
 		chunks(chunks),
 		sidebar_scrollbar(scrollbar),
@@ -448,8 +621,17 @@ public:
 		shift_down(false),
 		alt_down(false),
 		tp(tp),
-		last_dir(Direction::UP)
+		extended_mode(extended_mode),
+		last_dir(Direction::UP),
+		timeline(chunks),
+		cursor_rpos(-1, -1),
+		picker(tp->valid_tiles(), x + w - 87, y, 45, h, 15, 15)
 	{
+		//allocate width for sidebar
+		w -= 60;
+
+		std::fill(mouse_down, mouse_down+sizeof(mouse_down), false);
+
 		if(chunks.empty()) {
 			this->deactivate();
 			return;
@@ -482,7 +664,8 @@ private:
 	Chunk* find_chunk(int rx, int ry) {
 		int w = this->w();
 		int x = this->x(), y = this->y();
-		
+		int hc = 0;
+
 		ry += sidebar_scrollbar->value();
 
 		for(Chunk* c : chunks) {
@@ -492,10 +675,12 @@ private:
 				return c;
 			}
 
+			hc++;
 			x += cnk_render_w + hv_gap;
-			if(x > w + cnk_render_w) {
+			if(hc == 4 || (extended_mode && hc == 2)) {
 				x = this->x();
 				y += cnk_render_h + hv_gap;
+				hc = 0;
 			}
 		}
 
@@ -507,31 +692,22 @@ private:
 		int x = this->x();
 		int y = this->y();
 
+		int hc = 0;
+
 		for(Chunk* c : chunks) {
 			if(c == cnk)
 				return std::pair<int, int>(x, y - sidebar_scrollbar->value());
 
+			hc++;
 			x += cnk_render_w + hv_gap;
-			if(x > w + cnk_render_w) { //TODO this is not very accurate, fix this check.
+			if(hc == 4 || (extended_mode && hc == 2)) { //TODO this is not very accurate, fix this check.
 				x = this->x();
 				y += cnk_render_h + hv_gap;
+				hc = 0;
 			}
 		}
 
 		throw std::runtime_error("Chunk from non-native editor.");
-	}
-
-	static inline Fl_Color tile_color(const Chunk* cnk, char tile) {
-		switch(tile) {
-		case 'w': //water
-			return 0xAAAAFF00;
-		case 'e': //bee-hive inner
-			return 0xFFFF2000;
-		case 'z': //bee-hive outer
-			return 0xFF905000;
-		default:
-			return ((tile - '0')*0x23456721) & 0xFFFFFF00;
-		}
 	}
 
 	static void fit_chunk_aspect(Chunk* cnk, int& maxw, int& maxh) {
@@ -566,17 +742,12 @@ private:
 		for(int cy = 0; cy < ch; cy++) {
 			for(int cx = 0; cx < cw; cx++) {
 				char tile = cnk->tile(cx, cy);
-				Fl_Color ctile = tile_color(cnk, tile);
 				auto dp = map(cx, cy);
-				char str[] = {tile, 0};
-				
-				fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, dp.first, dp.second, xu, yu, fl_darker(ctile));
-				fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, dp.first, dp.second, xu-1, yu-1, ctile);
-
-				fl_color(0);
-				fl_draw(str, dp.first, dp.second, xu, yu, FL_ALIGN_INSIDE);
+				draw_tile(tile, dp.first, dp.second, xu, yu);			
 			}
 		}
+
+		picker.draw();
 	}
 
 	void render_env(int rx, int ry) {
@@ -598,6 +769,7 @@ private:
 public:
 	virtual void draw() override {
 		int x = this->x(), y = this->y();
+		int hc = 0;
 
 		for(Chunk* c : chunks) {
 			int rx = x, ry = y - sidebar_scrollbar->value();
@@ -606,10 +778,12 @@ public:
 				render_chunk(c, rx, ry, cnk_render_w, cnk_render_h);
 			}
 			
+			hc++;
 			x += cnk_render_w + hv_gap;
-			if(x > this->w() + cnk_render_w) {
+			if(hc == 4 || (extended_mode && hc == 2)) {
 				x = this->x();
 				y += cnk_render_h + hv_gap;
+				hc = 0;
 			}
 
 			//active chunk

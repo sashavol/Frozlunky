@@ -3,8 +3,6 @@
 #ifndef gui_h
 #define gui_h
 
-#define WIN32
-
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Input.H>
@@ -40,6 +38,7 @@ int gui_operate(std::shared_ptr<Spelunky> spelunk, char* icon);
 void set_toggle_callback(std::function<void(bool)> callback);
 void set_seed_change_callback(std::function<bool(const std::string&)> callback);
 void undo_patches();
+void request_soft_seed_lock();
 
 std::shared_ptr<RemoteCallPatch> CurrentRCP();
 

@@ -357,11 +357,15 @@ namespace Mods {
 		} // Fl_Group* o
 
 		{
-			new ModCheckbox("stcp", 5, 308, 255, 25, "Enable Custom Levels");
-
+			ModCheckbox* mc = new ModCheckbox("stcp", 5, 308, 255, 25, "Enable Custom Levels");
 			Fl_Button* o = new ChunkEditorButton(5, 338, 255, 25, "Level Editor");
 			if(TileEditing::Visible()) {
 				o->deactivate();
+			}
+
+			if(!TileEditing::Valid()) {
+				mc->deactivate();
+				o->label("Editing Unavailable");
 			}
 
 			TileEditing::DisplayStateCallback([=](bool vis) {
@@ -395,7 +399,7 @@ namespace Mods {
 			std::shared_ptr<StaticChunkPatch> stcp(new StaticChunkPatch(dp, tp, seeder));
 			mods->add("stcp", stcp);
 
-			TileEditing::Initialize(seeder, stcp);
+			TileEditing::Initialize(dp, gh, seeder, stcp);
 		}
 	}
 

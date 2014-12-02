@@ -8,6 +8,13 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 	tp(tp),
 	is_valid(true)
 {
+	yrp = std::make_shared<YetiRemovePatch>(dp->spel);
+	if(!yrp->valid()) {
+		is_valid = false;
+		DBG_EXPR(std::cout << "[StaticChunkPatch] Dependency on Yeti remove patch unsatisfied." << std::endl);
+		return;
+	}
+
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Tutorial", dp, tp->get_gen_fn("LevelGen_TutorialCnk"), 1, 3+1, true)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Mines", dp, tp->get_gen_fn("LevelGen_MinesCnk"), 1, 4+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Jungle", dp, tp->get_gen_fn("LevelGen_JungleGeneralCnk"), 5, 8+1)));
@@ -15,8 +22,8 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("JungleHauntedCastle", dp, tp->get_gen_fn("LevelGen_JungleHauntedMansionCnk"), 5, 8+1, true)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCaves", dp, tp->get_gen_fn("LevelGen_IceCavesGeneralCnk"), 9, 12+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesSpaceship", dp, tp->get_gen_fn("LevelGen_IceCavesSpaceshipCnk"), 9, 12+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesYeti", dp, tp->get_gen_fn("LevelGen_IceCavesYetiCnk"), 9, 12+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", dp, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 16))); //TODO worm is not 16 chunks
+	//saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesYeti", dp, tp->get_gen_fn("LevelGen_IceCavesYetiCnk"), 9, 12+1, true)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", dp, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 46))); //TODO worm is not 16 chunks
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Temple", dp, tp->get_gen_fn("LevelGen_TempleCnk"), 13, 15+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("TempleOlmec", dp, tp->get_gen_fn("LevelGen_OlmecCnk"), 16, 16+1, true)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Hell", dp, tp->get_gen_fn("LevelGen_HellCnk"), 17, 19+1)));
@@ -48,6 +55,7 @@ bool StaticChunkPatch::valid() {
 }
 
 bool StaticChunkPatch::_perform() {
+	yrp->perform();
 	for(auto&& sap : saps) {
 		sap->perform();
 		if(!sap->is_active()) {
@@ -63,6 +71,7 @@ bool StaticChunkPatch::_perform() {
 }
 
 bool StaticChunkPatch::_undo() {
+	yrp->undo();
 	for(auto&& sap : saps) {
 		sap->undo();
 	}
@@ -109,4 +118,8 @@ std::vector<SingleChunk*> StaticChunkPatch::root_chunks() {
 	}
 
 	return out;
+}
+
+const std::set<char>& StaticChunkPatch::valid_tiles() {
+	return tp->possible_tiles();
 }
