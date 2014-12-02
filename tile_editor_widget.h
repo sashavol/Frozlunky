@@ -21,11 +21,9 @@
 //OPT separate city of gold support
 //OPT save force-level attribute to level exports for single-level challenges
 
-//TODO sidebar on the right for selecting tile types, 
-	//left click to select tile,
-    //right click to place tile,
-	//middle-click to fill
-//TODO be able to hold mouse
+//TODO shift-arrows selection key shortcut
+//TODO grid for chunks
+//TODO middle-click to fill
 //TODO verify jungle does not crash
 //TODO hints bar for displaying useful information on hover, i.e. sidebar
 //TODO fix worm UI

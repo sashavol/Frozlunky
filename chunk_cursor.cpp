@@ -17,8 +17,8 @@ ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw) :
 		return;
 	}
 
-	width = chunks[0]->get_width()*tw + 1;
-	height = chunks.size()/tw * chunks[0]->get_height() + 1;
+	width = chunks[0]->get_width()*tw;
+	height = chunks.size()/tw * chunks[0]->get_height();
 }
 
 void ChunkCursor::tileref(int x, int y, std::function<void(Chunk* c, int cx, int cy)> ref) {

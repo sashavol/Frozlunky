@@ -102,14 +102,14 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 	if(c != nullptr) {
 		auto ccpos = chunkcoord_pos(rx, ry);
 
-		if(!drag || move_drag_start.first == -1) {
+		if(!drag) {
 			move_drag_start = std::pair<int, int>(ccpos.first, ccpos.second);
 			cursor.sx = ccpos.first;
 			cursor.sy = ccpos.second;
 			cursor.ex = ccpos.first + 1;
 			cursor.ey = ccpos.second + 1;
 		}
-		else {
+		else if(move_drag_start.first > -1) {
 			int ex = ccpos.first, ey = ccpos.second;
 			int sx = move_drag_start.first, sy = move_drag_start.second;
 
@@ -226,6 +226,8 @@ int EditorWidget::handle(int evt) {
 				key_press = std::make_shared<clock::time_point>(clock::now());
 			}
 
+			cursor_finish_move();
+
 			switch(key) {
 			case 65361:
 				shift_env_left(ctrl_down ? 2 : 1);
@@ -336,6 +338,7 @@ int EditorWidget::handle(int evt) {
 					char tile = Fl::event_text()[0];
 					if(cursor.in_bounds() && tp->valid_tile(tile)) {
 						cursor.put(tile);
+						picker.select(tile);
 						if(alt_down)
 							shift_env_last(1);
 						else
@@ -593,7 +596,9 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 }
 
 void EditorWidget::render_cursor() {
-	std::pair<int, int> s = render_pos(cursor.sx, cursor.sy), e = render_pos(cursor.ex, cursor.ey);
+	std::pair<int, int> s = render_pos(cursor.sx, cursor.sy), e = render_pos(cursor.ex-1, cursor.ey-1);
+	e.first += xu; e.second += yu;
+
 	fl_rect(s.first, s.second, e.first - s.first, e.second - s.second, 0xFF000000);
 }
 
