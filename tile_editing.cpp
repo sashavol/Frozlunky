@@ -556,6 +556,7 @@ namespace TileEditing {
 
 		new ClearButton(170, 425, 120, 20);
 		flcb_force = new NF_CheckButton(165, 450, 100, 20, "Force level to game");
+		flcb_force->value(0);
 		
 		if(!level_forcer->valid()) {
 			flcb_force->deactivate();

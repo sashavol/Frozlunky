@@ -81,6 +81,7 @@
     <ClCompile Include="antipause_patch.cpp" />
     <ClCompile Include="append_ai.cpp" />
     <ClCompile Include="async_input_grab.cpp" />
+    <ClCompile Include="chunk_cursor.cpp" />
     <ClCompile Include="constant_random_patch.cpp" />
     <ClCompile Include="custom_hud.cpp" />
     <ClCompile Include="daily.cpp" />
@@ -129,6 +130,7 @@
     <ClCompile Include="tile_chunk.cpp" />
     <ClCompile Include="tile_draw.cpp" />
     <ClCompile Include="tile_editing.cpp" />
+    <ClCompile Include="tile_editor_widget.cpp" />
     <ClCompile Include="tile_patch.cpp" />
     <ClCompile Include="tile_util.cpp" />
     <ClCompile Include="timer99.cpp" />
@@ -141,6 +143,7 @@
     <ClInclude Include="anticrash.h" />
     <ClInclude Include="antipause_patch.h" />
     <ClInclude Include="async_input_grab.h" />
+    <ClInclude Include="chunk_cursor.h" />
     <ClInclude Include="chunk_timeline.h" />
     <ClInclude Include="level_forcer.h" />
     <ClInclude Include="static_area_patch.h" />

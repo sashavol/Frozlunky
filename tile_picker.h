@@ -56,6 +56,10 @@ public:
 		return 0;
 	}
 
+	char tile() {
+		return selected;
+	}
+
 	void select(char tile) {
 		selected = tile;
 	}
