@@ -34,6 +34,10 @@ public:
 	bool in_bounds();
 	bool try_dx(int dx);
 	bool try_dy(int dy);
+	bool try_dex(int dx);
+	bool try_dey(int dy);
+	bool try_dsx(int dx);
+	bool try_dsy(int dy);
 
 	cursor_store encode();
 

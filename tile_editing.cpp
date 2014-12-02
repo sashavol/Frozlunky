@@ -554,7 +554,7 @@ namespace TileEditing {
 		new LoadButton(5, y += 30, 150, 25);
 		new RevertButton(5, y += 30, 150, 25);
 
-		new ClearButton(165, 435, 120, 20);
+		new ClearButton(165, 425, 135, 20);
 		flcb_force = new NF_CheckButton(165, 450, 100, 20, "Force level to game");
 		flcb_force->value(0);
 		

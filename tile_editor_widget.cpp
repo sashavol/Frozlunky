@@ -42,23 +42,39 @@ void EditorWidget::clear_chunks() {
 	timeline.push_state();
 }
 
-void EditorWidget::shift_env_left(int u) {
-	cursor.try_dx(-u);
+void EditorWidget::shift_env_left(int u, bool box_change) {
+	if(!box_change)
+		cursor.try_dx(-u);
+	else
+		cursor.try_dsx(-u);
+		
 	last_dir = Direction::LEFT;
 }
 
-void EditorWidget::shift_env_right(int u) {
-	cursor.try_dx(u);
+void EditorWidget::shift_env_right(int u, bool box_change) {
+	if(!box_change)
+		cursor.try_dx(u);
+	else
+		cursor.try_dex(u);
+		
 	last_dir = Direction::RIGHT;
 }
 
-void EditorWidget::shift_env_up(int u) {
-	cursor.try_dy(-u);
+void EditorWidget::shift_env_up(int u, bool box_change) {
+	if(!box_change)
+		cursor.try_dy(-u);
+	else
+		cursor.try_dsy(-u);
+
 	last_dir = Direction::UP;
 }
 
-void EditorWidget::shift_env_down(int u) {
-	cursor.try_dy(u);
+void EditorWidget::shift_env_down(int u, bool box_change) {
+	if(!box_change)
+		cursor.try_dy(u);
+	else
+		cursor.try_dey(u);
+
 	last_dir = Direction::DOWN;
 }
 
@@ -230,22 +246,22 @@ int EditorWidget::handle(int evt) {
 
 			switch(key) {
 			case 65361:
-				shift_env_left(ctrl_down ? 2 : 1);
+				shift_env_left(ctrl_down ? 2 : 1, shift_down);
 				parent()->redraw();
 				return 1;
 
 			case 65362: //up
-				shift_env_up(ctrl_down ? 2 : 1);
+				shift_env_up(ctrl_down ? 2 : 1, shift_down);
 				parent()->redraw();
 				return 1;
 
 			case 65363:
-				shift_env_right(ctrl_down ? 2 : 1);
+				shift_env_right(ctrl_down ? 2 : 1, shift_down);
 				parent()->redraw();
 				return 1;
 
 			case 65364: //down
-				shift_env_down(ctrl_down ? 2 : 1);
+				shift_env_down(ctrl_down ? 2 : 1, shift_down);
 				parent()->redraw();
 				timeline.push_state();
 				return 1;
@@ -300,7 +316,6 @@ int EditorWidget::handle(int evt) {
 				}
 
 			case 122: //z: undo
-				this->take_focus();
 				if(ctrl_down) {
 					timeline.rewind();
 					parent()->redraw();
@@ -308,7 +323,6 @@ int EditorWidget::handle(int evt) {
 				}
 					
 			case 121: //y: redo
-				this->take_focus();
 				if(ctrl_down) {
 					timeline.forward();
 					parent()->redraw();
@@ -316,9 +330,16 @@ int EditorWidget::handle(int evt) {
 				}
 
 			case 99: //c
-				this->take_focus();
 				if(ctrl_down && cursor.in_bounds()) {
 					clipboard = cursor.encode();
+					status(STATE_CHUNK_COPY);
+					return 1;
+				}
+			
+			case 120: //x
+				if(ctrl_down) {
+					clipboard = cursor.encode();
+					cursor.put('0');
 					status(STATE_CHUNK_COPY);
 					return 1;
 				}
@@ -331,6 +352,7 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					timeline.push_state();
 				}
+
 
 			default:
 				{
@@ -620,11 +642,11 @@ void EditorWidget::draw() {
 			y += cnk_render_h + hv_gap;
 			hc = 0;
 		}
+	}
 
-		//active chunk
-		if(cursor.in_bounds()) {
-			render_cursor();
-		}
+	//active chunk
+	if(cursor.in_bounds()) {
+		render_cursor();
 	}
 }
 

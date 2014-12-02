@@ -127,3 +127,51 @@ void ChunkCursor::decode(const cursor_store& store) {
 		write(p.second, at.first - edge.first + sx, at.second - edge.second + sy);
 	}
 }
+
+bool ChunkCursor::try_dex(int dx) {
+	int rex = ex + dx;
+	if(rex < 0 || rex > width)
+		return false;
+
+	ex = rex;
+	if(ex < sx)
+		std::swap(sx, ex);
+	
+	return true;
+}
+
+bool ChunkCursor::try_dey(int dy) {
+	int rey = ey + dy;
+	if(rey < 0 || rey > height)
+		return false;
+
+	ey = rey;
+	if(ey < sy)
+		std::swap(sy, ey);
+
+	return true;;
+}
+
+bool ChunkCursor::try_dsx(int dx) {
+	int rsx = sx + dx;
+	if(rsx < 0 || rsx > width)
+		return false;
+
+	sx = rsx;
+	if(ex < sx)
+		std::swap(sx, ex);
+
+	return true;
+}
+
+bool ChunkCursor::try_dsy(int dy) {
+	int rsy = sy + dy;
+	if(rsy < 0 || rsy > height)
+		return false;
+
+	sy = rsy;
+	if(ey < sy)
+		std::swap(sy, ey);
+
+	return true;
+}

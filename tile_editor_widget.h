@@ -82,10 +82,10 @@ private:
 	Direction last_dir;
 
 	//OPT issue: chunk render width/height scanning are unsafe assumptions for non-uniform chunk sizes (not applicable currently)
-	void shift_env_left(int u);
-	void shift_env_right(int u);
-	void shift_env_up(int u);
-	void shift_env_down(int u);
+	void shift_env_left(int u, bool bc=false);
+	void shift_env_right(int u, bool bc=false);
+	void shift_env_up(int u, bool bc=false);
+	void shift_env_down(int u, bool bc=false);
 	void shift_env_last(int u);
 
 private:
