@@ -200,6 +200,17 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 	parent()->redraw();
 }
 
+void EditorWidget::cursor_fill(int x, int y) {
+	if(x >= 0 && y >= 0) {
+		cursor.sx = x; cursor.sy = y;
+		cursor.ex = x; cursor.ey = y;
+		timeline.push_state();
+		cursor.fill(picker.tile());
+		status(STATE_CHUNK_PASTE);
+		parent()->redraw();
+	}
+}
+
 
 static cursor_store clipboard;
 
@@ -231,14 +242,7 @@ int EditorWidget::handle(int evt) {
 		}
 		else if(Fl::event_state() & FL_BUTTON2) {
 			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
-			if(cpos.first >= 0 && cpos.second >= 0) {
-				cursor.sx = cpos.first; cursor.sy = cpos.second;
-				cursor.ex = cpos.first; cursor.ey = cpos.second;
-				timeline.push_state();
-				cursor.fill(picker.tile());
-				status(STATE_CHUNK_PASTE);
-				parent()->redraw();
-			}
+			cursor_fill(cpos.first, cpos.second);
 		}
 
 		return 1;
@@ -334,6 +338,14 @@ int EditorWidget::handle(int evt) {
 				}
 				return 1;
 
+			case 65535: //delete
+				if(cursor.in_bounds()) {
+					timeline.push_state();
+					cursor.put('0');
+					parent()->redraw();
+				}
+				return 1;
+
 			case 65505: //shift
 				shift_down = true;
 				return 1;
@@ -348,6 +360,12 @@ int EditorWidget::handle(int evt) {
 				alt_down = true;
 				return 1;
 
+			case 102: //f: fill
+				if(ctrl_down) {
+					cursor_fill(cursor.sx, cursor.sy);
+					return 1;
+				}
+
 			case 97: //a
 				if(ctrl_down) {
 					cursor.sx = 0;
@@ -357,15 +375,6 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					return 1;
 				}
-				break;
-
-			case 65535: //delete
-				if(cursor.in_bounds()) {
-					timeline.push_state();
-					cursor.put('0');
-					parent()->redraw();
-				}
-				return 1;
 
 			case 115: //s
 				if(ctrl_down) {
@@ -373,7 +382,6 @@ int EditorWidget::handle(int evt) {
 					status(STATE_CHUNK_APPLY);
 					return 1;
 				}
-				break;
 
 			case 122: //z: undo
 				if(ctrl_down) {
@@ -381,7 +389,6 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					return 1;
 				}
-				break;
 					
 			case 121: //y: redo
 				if(ctrl_down) {
@@ -389,7 +396,6 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					return 1;
 				}
-				break;
 
 			case 99: //c
 				if(ctrl_down && cursor.in_bounds()) {
@@ -397,7 +403,6 @@ int EditorWidget::handle(int evt) {
 					status(STATE_CHUNK_COPY);
 					return 1;
 				}
-				break;
 			
 			case 120: //x
 				if(ctrl_down) {
@@ -408,7 +413,6 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					return 1;
 				}
-				break;
 
 			case 118: //v
 				this->take_focus();
@@ -418,7 +422,6 @@ int EditorWidget::handle(int evt) {
 					status(STATE_CHUNK_PASTE);
 					parent()->redraw();
 				}
-				break;
 
 
 			default:
@@ -591,7 +594,7 @@ std::pair<int, int> EditorWidget::render_pos(int tx, int ty) {
 	int xc = 0, yc = 0;
 	int hc = 0;
 
-	y += sidebar_scrollbar->value();
+	y -= sidebar_scrollbar->value();
 	
 	for(Chunk* c : chunks) {
 		if((tx >= xc && tx < xc + c->get_width())

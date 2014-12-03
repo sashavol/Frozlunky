@@ -95,6 +95,7 @@ private:
 	void cursor_move(int rx, int ry, bool drag);
 	void cursor_finish_move();
 	char cursor_tile();
+	void cursor_fill(int x, int y);
 	
 	std::pair<int, int> last_build;
 	void cursor_build(int rx, int ry, bool drag);

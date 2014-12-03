@@ -1,8 +1,9 @@
 #pragma once
 
-#include <map>
 #include <set>
 #include <functional>
+#include <vector>
+#include <map>
 #include "tile_chunk.h"
 
 typedef std::map<std::pair<int, int>, char> cursor_store;

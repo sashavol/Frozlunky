@@ -1,6 +1,7 @@
 #include "chunk_cursor.h"
 #include "debug.h"
 #include <iostream>
+#include <algorithm>
 
 ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw) : 
 	tile('1'), 
@@ -126,18 +127,45 @@ int ChunkCursor::rsy() {
 	return std::min(sy, ey);
 }
 
+static void trim_enc(cursor_store& enc, int h) {
+	std::pair<int, int> f(INT_MAX, INT_MAX), s(-1, -1);
+
+	for(auto& p : enc) {
+		auto pos = p.first;
+		if(p.second != '0') {
+			f.first = std::min(pos.first, f.first);
+			f.second = std::min(pos.second, f.second);
+			s.first = std::max(pos.first, s.first);
+			s.second = std::max(pos.second, s.second);
+		}
+	}
+	
+	for(auto i = enc.begin(); i != enc.end();) {
+		auto pos = i->first;
+		if((pos.first < f.first || pos.second < f.second) 
+		|| (pos.first > s.first || pos.second > s.second))
+		{
+			i = enc.erase(i);
+		}
+		else
+			++i;
+	}
+}
+
 cursor_store ChunkCursor::encode() {
 	int sx = rsx(), sy = rsy(), ex = rex(), ey = rey();
 	
-	std::map<std::pair<int, int>, char> out;
+	cursor_store out;
 	for(int x = sx; x <= ex; x++) {
 		for(int y = sy; y <= ey; y++) {
 			char tile = get(x, y);
 			if(tile != 0) {
 				out[std::pair<int, int>(x, y)] = tile;
-			}
+			}	
 		}
 	}
+
+	trim_enc(out, ey - sy);
 	return out;
 }
 
