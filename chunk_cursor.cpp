@@ -21,6 +21,14 @@ ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw) :
 	height = chunks.size()/tw * chunks[0]->get_height();
 }
 
+int ChunkCursor::cc_width() {
+	return width;
+}
+
+int ChunkCursor::cc_height() {
+	return height;
+}
+
 void ChunkCursor::tileref(int x, int y, std::function<void(Chunk* c, int cx, int cy)> ref) {
 	int px = 0;
 	int py = 0;
@@ -61,9 +69,11 @@ void ChunkCursor::put(char tile) {
 		return;
 	}
 
+	int sx = rsx(), sy = rsy(), ex = rex(), ey = rey();
+
 	try {
-		for(int x = sx; x < ex; x++) {
-			for(int y = sy; y < ey; y++) {
+		for(int x = sx; x <= ex; x++) {
+			for(int y = sy; y <= ey; y++) {
 				write(tile, x, y);
 			}
 		}
@@ -74,11 +84,14 @@ void ChunkCursor::put(char tile) {
 }
 
 bool ChunkCursor::in_bounds() {
-	return sx >= 0 && ex <= width && sy >= 0 && ey <= height;
+	return sx >= 0 && sx < width 
+		&& ex >= 0 && ex < width 
+		&& sy >= 0 && sy < height 
+		&& ey >= 0 && ey < height;
 }
 
 bool ChunkCursor::try_dx(int dx) {
-	if(ex + dx > width || sx + dx < 0)
+	if(ex + dx >= width || sx + dx < 0 || sx + dx >= width || ex + dx < 0)
 		return false;
 	
 	sx += dx;
@@ -88,7 +101,7 @@ bool ChunkCursor::try_dx(int dx) {
 }
 
 bool ChunkCursor::try_dy(int dy) {
-	if(sy + dy < 0 || ey + dy > height)
+	if(sy + dy < 0 || ey + dy >= height || sy + dy >= height || ey + dy < 0)
 		return false;
 	
 	sy += dy;
@@ -97,10 +110,28 @@ bool ChunkCursor::try_dy(int dy) {
 	return true;
 }
 
+int ChunkCursor::rex() {
+	return std::max(sx, ex);
+}
+
+int ChunkCursor::rsx() {
+	return std::min(sx, ex);
+}
+
+int ChunkCursor::rey() {
+	return std::max(sy, ey);
+}
+
+int ChunkCursor::rsy() {
+	return std::min(sy, ey);
+}
+
 cursor_store ChunkCursor::encode() {
+	int sx = rsx(), sy = rsy(), ex = rex(), ey = rey();
+	
 	std::map<std::pair<int, int>, char> out;
-	for(int x = sx; x < ex; x++) {
-		for(int y = sy; y < ey; y++) {
+	for(int x = sx; x <= ex; x++) {
+		for(int y = sy; y <= ey; y++) {
 			char tile = get(x, y);
 			if(tile != 0) {
 				out[std::pair<int, int>(x, y)] = tile;
@@ -114,6 +145,8 @@ void ChunkCursor::decode(const cursor_store& store) {
 	if(!in_bounds()) {
 		return;
 	}
+
+	int sx = rsx(), sy = rsy(), ex = rex(), ey = rey();
 
 	std::pair<int, int> edge(INT_MAX, INT_MAX);
 	for(auto&& p : store) {
@@ -130,48 +163,66 @@ void ChunkCursor::decode(const cursor_store& store) {
 
 bool ChunkCursor::try_dex(int dx) {
 	int rex = ex + dx;
-	if(rex < 0 || rex > width)
+	if(rex < 0 || rex >= width)
 		return false;
 
 	ex = rex;
-	if(ex < sx)
-		std::swap(sx, ex);
-	
+
 	return true;
 }
 
 bool ChunkCursor::try_dey(int dy) {
 	int rey = ey + dy;
-	if(rey < 0 || rey > height)
+	if(rey < 0 || rey >= height)
 		return false;
 
 	ey = rey;
-	if(ey < sy)
-		std::swap(sy, ey);
 
-	return true;;
+	return true;
 }
 
 bool ChunkCursor::try_dsx(int dx) {
 	int rsx = sx + dx;
-	if(rsx < 0 || rsx > width)
+	if(rsx < 0 || rsx >= width)
 		return false;
 
 	sx = rsx;
-	if(ex < sx)
-		std::swap(sx, ex);
 
 	return true;
 }
 
 bool ChunkCursor::try_dsy(int dy) {
 	int rsy = sy + dy;
-	if(rsy < 0 || rsy > height)
+	if(rsy < 0 || rsy >= height)
 		return false;
 
 	sy = rsy;
-	if(ey < sy)
-		std::swap(sy, ey);
 
 	return true;
+}
+
+void ChunkCursor::fill_recurse(int x, int y, fill_history& history, char tile) {
+	if(history.find(std::pair<int,int>(x-1,y)) == history.end() && x > 0 && get(x-1, y) == '0') {
+		history.insert(std::pair<int,int>(x-1,y));
+		fill_recurse(x-1, y, history, tile);
+	}
+	if(history.find(std::pair<int,int>(x+1,y)) == history.end() && x < width - 1 && get(x+1, y) == '0') {
+		history.insert(std::pair<int,int>(x+1,y));
+		fill_recurse(x+1, y, history, tile);
+	}
+	if(history.find(std::pair<int,int>(x,y-1)) == history.end() && y > 0 && get(x, y-1) == '0') {
+		history.insert(std::pair<int,int>(x,y-1));
+		fill_recurse(x, y-1, history, tile);
+	}
+	if(history.find(std::pair<int,int>(x,y+1)) == history.end() && y < height - 1 && get(x, y+1) == '0') {
+		history.insert(std::pair<int,int>(x,y+1));
+		fill_recurse(x, y+1, history, tile);
+	}
+
+	write(tile, x, y);
+}
+
+void ChunkCursor::fill(char tile) {
+	fill_history history;
+	fill_recurse(sx, sy, history, tile);
 }

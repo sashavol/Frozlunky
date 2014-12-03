@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <functional>
 #include "tile_chunk.h"
 
@@ -39,7 +40,22 @@ public:
 	bool try_dsx(int dx);
 	bool try_dsy(int dy);
 
+	int rsx();
+	int rsy();
+	int rex();
+	int rey();
+
+	int cc_width();
+	int cc_height();
+
 	cursor_store encode();
+
+private:
+	typedef std::set<std::pair<int, int>> fill_history;
+	void fill_recurse(int x, int y, fill_history& history, char tile);
+public:
+	void fill(char tile);
+
 
 	void decode(const cursor_store& store);
 };

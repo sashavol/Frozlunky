@@ -36,17 +36,17 @@ void EditorWidget::clear_chunk(Chunk* cnk) {
 }
 
 void EditorWidget::clear_chunks() {
+	timeline.push_state();
 	for(Chunk* c : chunks) {
 		clear_chunk(c);
 	}
-	timeline.push_state();
 }
 
 void EditorWidget::shift_env_left(int u, bool box_change) {
 	if(!box_change)
 		cursor.try_dx(-u);
 	else
-		cursor.try_dsx(-u);
+		cursor.try_dex(-u);
 		
 	last_dir = Direction::LEFT;
 }
@@ -64,7 +64,7 @@ void EditorWidget::shift_env_up(int u, bool box_change) {
 	if(!box_change)
 		cursor.try_dy(-u);
 	else
-		cursor.try_dsy(-u);
+		cursor.try_dey(-u);
 
 	last_dir = Direction::UP;
 }
@@ -122,17 +122,12 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 			move_drag_start = std::pair<int, int>(ccpos.first, ccpos.second);
 			cursor.sx = ccpos.first;
 			cursor.sy = ccpos.second;
-			cursor.ex = ccpos.first + 1;
-			cursor.ey = ccpos.second + 1;
+			cursor.ex = ccpos.first;
+			cursor.ey = ccpos.second;
 		}
 		else if(move_drag_start.first > -1) {
-			int ex = ccpos.first + 1, ey = ccpos.second + 1;
+			int ex = ccpos.first, ey = ccpos.second;
 			int sx = move_drag_start.first, sy = move_drag_start.second;
-
-			if(ex < sx)
-				std::swap(sx, ex);
-			if(ey < sy)
-				std::swap(sy, ey);
 
 			cursor.sx = sx;
 			cursor.sy = sy;
@@ -209,13 +204,41 @@ static cursor_store clipboard;
 
 int EditorWidget::handle(int evt) {
 	switch(evt) {
+	case FL_FOCUS:
+		return 1;
+	case FL_UNFOCUS:
+		cursor.sx = -1;
+		cursor.sy = -1;
+		cursor.ex = -1;
+		cursor.ey = -1;
+		return 1;
+
 	case FL_PUSH: //mouse pressed
+		this->take_focus();
 		mouse_down[mouse_event_id()] = true;
 			
 		if(Fl::event_state() & FL_BUTTON1)
 			cursor_move(Fl::event_x(), Fl::event_y(), false);
-		else if(Fl::event_state() & FL_BUTTON3)
-			cursor_build(Fl::event_x(), Fl::event_y(), false);
+		else if(Fl::event_state() & FL_BUTTON3) {
+			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
+			if(cpos.first >= 0 && cpos.second >= 0) {
+				timeline.push_state();
+				cursor_build(Fl::event_x(), Fl::event_y(), false);
+				cursor.sx = cpos.first; cursor.sy = cpos.second;
+				cursor.ex = cpos.first; cursor.ey = cpos.second;
+			}
+		}
+		else if(Fl::event_state() & FL_BUTTON2) {
+			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
+			if(cpos.first >= 0 && cpos.second >= 0) {
+				cursor.sx = cpos.first; cursor.sy = cpos.second;
+				cursor.ex = cpos.first; cursor.ey = cpos.second;
+				timeline.push_state();
+				cursor.fill(picker.tile());
+				status(STATE_CHUNK_PASTE);
+				parent()->redraw();
+			}
+		}
 
 		return 1;
 
@@ -229,13 +252,22 @@ int EditorWidget::handle(int evt) {
 	case FL_DRAG:
 		if(Fl::event_state() & FL_BUTTON1)
 			cursor_move(Fl::event_x(), Fl::event_y(), true);
-		else if(Fl::event_state() & FL_BUTTON3)
-			cursor_build(Fl::event_x(), Fl::event_y(), true);
+		else if(Fl::event_state() & FL_BUTTON3) {
+			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
+			if(cpos.first >= 0 && cpos.second >= 0) {
+				cursor_build(Fl::event_x(), Fl::event_y(), true);
+				cursor.sx = cpos.first; cursor.sy = cpos.second;
+				cursor.ex = cpos.first; cursor.ey = cpos.second;
+			}
+		}
 
 		return 1;
 
 	case 0xC: //key typed
 		{
+			if(Fl::focus() != this)
+				return 0;
+
 			int key = Fl::event_key();
 
 			if(!allow_input())
@@ -249,6 +281,17 @@ int EditorWidget::handle(int evt) {
 			cursor_finish_move();
 
 			switch(key) {
+			case 65307: //esc: reset cursor size
+				{
+					int sx = cursor.rsx(), sy = cursor.rsy();
+					cursor.sx = sx;
+					cursor.sy = sy;
+					cursor.ex = sx;
+					cursor.ey = sy;
+					parent()->redraw();
+				}
+				return 1;
+
 			case 65361:
 				shift_env_left(ctrl_down ? 2 : 1, shift_down);
 				parent()->redraw();
@@ -265,28 +308,28 @@ int EditorWidget::handle(int evt) {
 				return 1;
 
 			case 65364: //down
+				timeline.push_state();
 				shift_env_down(ctrl_down ? 2 : 1, shift_down);
 				parent()->redraw();
-				timeline.push_state();
 				return 1;
 
 			case 32:    //space
 				if(cursor.in_bounds()) {
+					timeline.push_state();
 					cursor.put('0');
 					if(!ctrl_down)
 						shift_env_right(1);
 					parent()->redraw();
-					timeline.push_state();
 				}
 				return 1;
 
 			case 65288: //backspace
 				if(cursor.in_bounds()) {
+					timeline.push_state();
 					cursor.put('0');
 					if(!ctrl_down)
 						shift_env_left(1);
 					parent()->redraw();
-					timeline.push_state();
 				}
 				return 1;
 
@@ -304,11 +347,21 @@ int EditorWidget::handle(int evt) {
 				alt_down = true;
 				return 1;
 
+			case 97: //a
+				if(ctrl_down) {
+					cursor.sx = 0;
+					cursor.sy = 0;
+					cursor.ex = cursor.cc_width() - 1;
+					cursor.ey = cursor.cc_height() - 1;
+					parent()->redraw();
+					return 1;
+				}
+
 			case 65535: //delete
 				if(cursor.in_bounds()) {
+					timeline.push_state();
 					cursor.put('0');
 					parent()->redraw();
-					timeline.push_state();
 				}
 				return 1;
 
@@ -342,21 +395,21 @@ int EditorWidget::handle(int evt) {
 			
 			case 120: //x
 				if(ctrl_down) {
+					timeline.push_state();
 					clipboard = cursor.encode();
 					cursor.put('0');
 					status(STATE_CHUNK_COPY);
 					parent()->redraw();
-					timeline.push_state();
 					return 1;
 				}
 
 			case 118: //v
 				this->take_focus();
 				if(ctrl_down && cursor.in_bounds() && !clipboard.empty()) {
+					timeline.push_state();
 					cursor.decode(clipboard);
 					status(STATE_CHUNK_PASTE);
 					parent()->redraw();
-					timeline.push_state();
 				}
 
 
@@ -364,17 +417,16 @@ int EditorWidget::handle(int evt) {
 				{
 					this->take_focus();
 					char tile = Fl::event_text()[0];
-					if(cursor.in_bounds() && tp->valid_tile(tile)) {
-						cursor.put(tile);
+					if(tp->valid_tile(tile)) {
 						picker.select(tile);
-						if(alt_down)
-							shift_env_last(1);
-						else
+						if(cursor.in_bounds()) {
+							timeline.push_state();
+							cursor.put(tile);
 							shift_env_right(1);
-						status(STATE_CHUNK_WRITE);
+							status(STATE_CHUNK_WRITE);
+						}
 						parent()->redraw();
 					}
-					timeline.push_state();
 					return 1;
 				}
 			}
@@ -399,11 +451,6 @@ int EditorWidget::handle(int evt) {
 			return 1;
 		}
 		//key released
-		return 1;
-
-	case FL_FOCUS:
-		return 1;
-	case FL_UNFOCUS:
 		return 1;
 	}
 
@@ -635,10 +682,10 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 }
 
 void EditorWidget::render_cursor() {
-	std::pair<int, int> s = render_pos(cursor.sx, cursor.sy), e = render_pos(cursor.ex-1, cursor.ey-1);
-	e.first += xu; e.second += yu;
-
-	fl_rect(s.first, s.second, e.first - s.first, e.second - s.second, 0xFF000000);
+	int sx = cursor.rsx(), sy = cursor.rsy(), ex = cursor.rex(), ey = cursor.rey();
+	std::pair<int, int> s = render_pos(sx, sy), e = render_pos(ex, ey);
+	
+	fl_rect(s.first, s.second, e.first - s.first + xu, e.second - s.second + yu, 0xFF000000);
 }
 
 void EditorWidget::draw() {

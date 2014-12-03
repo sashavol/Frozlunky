@@ -16,6 +16,9 @@ private:
 	std::shared_ptr<YetiRemovePatch> yrp;
 	std::vector<std::shared_ptr<StaticAreaPatch>> saps;
 	
+	Address jngl_anticrash_addr;
+	BYTE* jngl_anticrash_orig;
+
 	bool is_valid;
 
 public:

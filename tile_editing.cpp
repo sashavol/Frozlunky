@@ -3,17 +3,21 @@
 #include "tile_editor_widget.h"
 #include "level_forcer.h"
 #include "gui.h"
+#include "syllabic.h"
 
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Scrollbar.H>
 #include <FL/Fl_Check_Button.H>
+#include <FL/Fl_Input.H>
 
+#include <mutex>
 #include <map>
 #include <unordered_map>
 #include <fstream>
 #include <functional>
+#include <thread>
 
 #include <boost/assign.hpp> 
 #include <pugixml.hpp>
@@ -33,6 +37,9 @@ static Fl_Window* window = nullptr;
 static std::shared_ptr<StaticChunkPatch> tp;	
 static std::shared_ptr<LevelForcer> level_forcer;
 static std::shared_ptr<Seeder> seeder;
+static std::shared_ptr<DerandomizePatch> dp;
+static std::shared_ptr<GameHooks> gh;
+static std::thread worker_thread;
 static std::function<void(bool)> display_cb;
 static bool initialized = false;
 
@@ -135,10 +142,43 @@ static std::map<std::string, std::function<void()>> level_force_oper = boost::as
 	("5-2",			std::function<void()>([](){level_forcer->force(18);}))
 	("5-3",			std::function<void()>([](){level_forcer->force(19);}))
 	("Black Market", std::function<void()>([](){level_forcer->force(5, LF_BLACK_MARKET);}))
-	("Haunted Mansion", std::function<void()>([](){level_forcer->force(5, LF_HAUNTED_MANSION);}))
+	("Haunted Castle", std::function<void()>([](){level_forcer->force(5, LF_HAUNTED_MANSION);}))
 	("Worm",		std::function<void()>([](){level_forcer->force(5, LF_WORM);}))
 	//("Yeti Level",  std::function<void()>([](){level_forcer->force(9, LF_YETI);}))
 	("The Mothership", std::function<void()>([](){level_forcer->force(12, LF_MOTHERSHIP);}));
+
+static std::string current_game_level() {
+	Address game;
+	dp->spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
+
+	bool black_market;
+	dp->spel->read_mem(game + gh->blackmkt_offset(), &black_market, 1);
+	if(black_market)
+		return "Black Market";
+
+	bool worm;
+	dp->spel->read_mem(game + gh->worm_offset(), &worm, 1);
+	if(worm)
+		return "Worm";
+	
+	bool haunted_mansion;
+	dp->spel->read_mem(game + gh->haunted_mansion_offset(), &haunted_mansion, 1);
+	if(haunted_mansion)
+		return "Haunted Castle";
+
+	bool mothership;
+	dp->spel->read_mem(game + gh->mothership_offset(), &mothership, 1);
+	if(mothership)
+		return "The Mothership";
+
+	int level = dp->current_level();
+	switch(level) {
+	case 16:
+		return "Olmec (4-4)";
+	default:
+		return std::to_string(1 + (level-1) / 4) + "-" + std::to_string(((level - 1) % 4) + 1);
+	}
+}
 
 static std::string area_group(const std::string& area) {
 	for(auto&& p : grouping) {
@@ -157,7 +197,6 @@ static const std::pair<KeyType, ValueType>& mget(const std::vector<std::pair<Key
 	
 	throw std::runtime_error("Key not found.");
 }
-
 
 struct AreaControls {
 	std::string group;
@@ -186,15 +225,70 @@ struct AreaControls {
 	}
 };
 
-static std::map<std::string, AreaControls*> controls;
+struct SeedInput : public Fl_Input {
+private:
+	std::function<void(std::string)> seed_update;
 
+public:
+	SeedInput(int x, int y, int w, int h, decltype(seed_update) update) : Fl_Input(x,y,w,h, "Level Seed: "), seed_update(update) {
+		this->textfont(4);
+	}
+
+	void update() {
+		seed_update(std::string(this->value()));
+	}
+
+	virtual int handle(int evt) override {
+		if(evt == 0xC) {
+			update();
+		}
+		else if(evt == FL_FOCUS) {
+			return 0;
+		}
+
+		return Fl_Input::handle(evt);
+	}
+};
+
+struct SeedRandomize : public Fl_Button {
+	SeedInput* input;
+	
+	SeedRandomize(SeedInput* input, int x, int y, int w, int h) : Fl_Button(x, y, w, h, "Randomize"), input(input) {}
+
+	virtual int handle(int evt) override {
+		if(evt == 2) {
+			std::string current = input->value();
+			std::string prefix = "";
+			auto prefp = current.find(":");
+			if(prefp != std::string::npos) {
+				prefix = current.substr(0, prefp);
+			}
+			else {
+				prefix = current;
+			}
+
+			input->value((prefix + ":" + Syllabic::MakePhoneticString(2)).c_str());
+			input->update();
+		}
+		else if(evt == FL_FOCUS) {
+			return 0;
+		}
+
+		return Fl_Button::handle(evt);
+	}
+};
+
+static std::map<std::string, AreaControls*> controls;
 
 namespace TileEditing {
 	static std::string current_area_editor;
 	static std::map<std::string, EditorWidget*> editors;
 	static Fl_Check_Button* flcb_force;
-	static Fl_Check_Button* flcb_save_seed;
-	static std::string saved_seed;
+	static std::mutex mut_level_seeds;
+	static std::map<std::string, std::string> level_seeds;
+
+	static SeedInput* input_seed;
+	static SeedRandomize* btn_randomize;
 
 	namespace IO 
 	{
@@ -212,21 +306,56 @@ namespace TileEditing {
 			tp->apply_chunks(); //apply chunks upon setting active file to guarantee newly active file is not unapplied
 		}
 
-		static void NewFile() { 
+		static void InitializeEmptySeeds() {
+			srand((unsigned int)time(0));
+			mut_level_seeds.lock();
+			for(auto&& seed : level_seeds) {
+				if(seed.second.empty()) {
+					seed.second = std::string(":") + Syllabic::MakePhoneticString(2);
+				}
+			}
+			mut_level_seeds.unlock();
+		}
+
+		static void NewFile() {
+			mut_level_seeds.lock();
+			for(auto&& area : area_lookup) {
+				level_seeds[area.first] = std::string();
+			}
+			mut_level_seeds.unlock();
+
+			InitializeEmptySeeds();
+
 			IO::SetActiveFile("");
 			unsaved_changes = false;
 		}
 
+		static std::string SafeXMLName(const std::string& level) {
+			return std::string("s") + std::to_string(std::hash<std::string>()(level));
+		}
+
+		static std::string AreaName(const std::string& safe) {
+			for(auto&& level : area_lookup) {
+				if(SafeXMLName(level.first) == safe) {
+					return level.first;
+				}
+			}
+			return "";
+		}
+
 		static void EncodeToFile() {
 			pugi::xml_document xmld;
+			pugi::xml_node seeds = xmld.append_child("seeds");
 
-			if(flcb_save_seed->value()) {
-				pugi::xml_node seed = xmld.append_child("seed");
-				pugi::xml_node data = seed.append_child(pugi::xml_node_type::node_pcdata);
-				data.set_value(saved_seed.c_str());
-				flcb_save_seed->value(1);
-				flcb_save_seed->redraw();
+			mut_level_seeds.lock();
+			for(auto&& seed : level_seeds) {
+				if(!seed.second.empty()) {
+					pugi::xml_node level = seeds.append_child(SafeXMLName(seed.first).c_str());
+					pugi::xml_node data = level.append_child(pugi::xml_node_type::node_pcdata);
+					data.set_value(seed.second.c_str());
+				}
 			}
+			mut_level_seeds.unlock();
 
 			pugi::xml_node node = xmld.append_child("chunks");
 			if(!node) { 
@@ -246,41 +375,6 @@ namespace TileEditing {
 			SetActiveFile(current_file);
 
 			unsaved_changes = false;
-		}
-
-		static void SaveAs() {
-			try {
-				std::string file = TileUtil::QueryTileFile(true);
-				try {
-					IO::SetActiveFile(file);
-					IO::EncodeToFile();
-				}
-				catch(std::exception& e) {
-					MessageBox(NULL, (std::string("Error saving file: ") + e.what()).c_str(), "Error", MB_OK);
-				}
-			}
-			catch(std::exception&) {}
-		}
-
-		static void status_handler(unsigned state) {
-			if(state == STATE_CHUNK_WRITE || state == STATE_CHUNK_PASTE) {
-				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file + "*").c_str());
-				unsaved_changes = true;
-			}
-			else if(state == STATE_CHUNK_APPLY) {
-				try {
-					if(!current_file.empty()) {
-						IO::EncodeToFile();
-						window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file).c_str());
-					}
-					else {
-						IO::SaveAs();
-					}
-				}
-				catch(std::exception& e) {
-					MessageBox(NULL, (std::string("Error saving file: ") + e.what()).c_str(), "Error", MB_OK);
-				}
-			}
 		}
 
 		static void LoadFile(const std::string& file) {
@@ -303,21 +397,47 @@ namespace TileEditing {
 					throw std::runtime_error("XML Parser failed to load file.");
 				}			
 
-				pugi::xml_node seed = xmld.child("seed");
-				if(!seed.empty() && seed.children().begin() != seed.children().end()) {
-					pugi::xml_node data = *seed.children().begin();
-					if(data.type() == pugi::xml_node_type::node_pcdata) {
-						request_soft_seed_lock();
+				request_soft_seed_lock();
 
-						std::string seed = data.value();
-						seeder->seed(seed);
-						saved_seed = seed;
-						flcb_save_seed->value(1);
+				mut_level_seeds.lock();
+				for(auto&& level : level_seeds) {
+					level.second = "";
+				}
+
+				pugi::xml_node seeds = xmld.child("seeds");
+				if(!seeds.empty()) {
+					for(pugi::xml_node child : seeds.children()) {
+						if(std::distance(child.children().begin(), child.children().end()) == 0)
+							throw std::runtime_error(std::string("Invalid seed format for ") + child.name());
+
+						pugi::xml_node data = *child.children().begin();
+						if(data.type() != pugi::xml_node_type::node_pcdata) {
+							throw std::runtime_error(std::string("Invalid seed format, expected node_pcdata as child of ") + child.name());
+						}
+
+						std::string area = AreaName(child.name());
+						if(!area.empty() && level_seeds.find(area) != level_seeds.end()) {
+							level_seeds[area] = data.value();
+						
+							if(area == current_area_editor) {
+								input_seed->value(data.value());
+							}
+						}
+						else {
+							DBG_EXPR(std::cout << "[TileEditing] Warning: Level seeds contained unknown level: " << child.name() << std::endl);
+						}
 					}
 				}
+				mut_level_seeds.unlock();
+
+				InitializeEmptySeeds();
 
 				std::vector<SingleChunk*> scs = tp->root_chunks();
 				pugi::xml_node chunks = xmld.child("chunks");
+				if(chunks.empty()) {
+					throw std::runtime_error("Invalid format.");
+				}
+
 				for(pugi::xml_node cnk : chunks) {
 					if(std::distance(cnk.children().begin(), cnk.children().end()) != 1)
 						throw std::runtime_error("Invalid format.");
@@ -340,6 +460,41 @@ namespace TileEditing {
 				}
 
 				SetActiveFile(file);
+			}
+		}
+
+		static void SaveAs() {
+			try {
+				std::string file = TileUtil::QueryTileFile(true);
+				try {
+					IO::SetActiveFile(file);
+					IO::EncodeToFile();
+				}
+				catch(std::exception& e) {
+					MessageBox(NULL, (std::string("Error saving file: ") + e.what()).c_str(), "Error", MB_OK);
+				}
+			}
+			catch(std::exception&) {}
+		}
+
+		static void status_handler(unsigned state) {
+			if(state == STATE_CHUNK_WRITE || state == STATE_CHUNK_PASTE || state == STATE_RESERVED1) {
+				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file + "*").c_str());
+				unsaved_changes = true;
+			}
+			else if(state == STATE_CHUNK_APPLY) {
+				try {
+					if(!current_file.empty()) {
+						IO::EncodeToFile();
+						window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file).c_str());
+					}
+					else {
+						IO::SaveAs();
+					}
+				}
+				catch(std::exception& e) {
+					MessageBox(NULL, (std::string("Error saving file: ") + e.what()).c_str(), "Error", MB_OK);
+				}
 			}
 		}
 		
@@ -386,6 +541,7 @@ namespace TileEditing {
 		}
 
 		controls[area_group(area)]->btns[area]->deactivate();
+		input_seed->value(level_seeds[area].c_str());
 
 		auto ed = editors[area];
 		
@@ -531,8 +687,30 @@ namespace TileEditing {
 		controls[group]->update();
 	}
 
-	static void construct_window() {
-		Fl_Window* cons = new Fl_Double_Window(780, 480, "Level Editor Overview");
+	//worker thread: currently used for setting level seed
+	static void construct_worker_thread() {
+		worker_thread = std::thread([=]() {
+			while(true) {
+				if(tp->is_active()) {
+					std::string area = current_game_level();
+
+					mut_level_seeds.lock();
+					auto it = level_seeds.find(area);
+					if(it != level_seeds.end()) {
+						if(seeder->get_seed() != it->second) {
+							seeder->seed(it->second);
+						}
+					}
+					mut_level_seeds.unlock();
+				}
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(2));
+			}
+		});
+	}
+
+	static std::string construct_window() {
+		Fl_Window* cons = new Fl_Double_Window(780, 480, WINDOW_BASE_TITLE);
 		window = cons;
 
 		cons->begin();
@@ -554,7 +732,7 @@ namespace TileEditing {
 		new LoadButton(5, y += 30, 150, 25);
 		new RevertButton(5, y += 30, 150, 25);
 
-		new ClearButton(165, 425, 135, 20);
+		new ClearButton(165, 425, 135, 25);
 		flcb_force = new NF_CheckButton(165, 450, 100, 20, "Force level to game");
 		flcb_force->value(0);
 		
@@ -566,27 +744,15 @@ namespace TileEditing {
 			ForceCurrentLevel(!!static_cast<Fl_Check_Button*>(cbox)->value());
 		});
 
-
-		flcb_save_seed = new NF_CheckButton(320, 450, 100, 20, "Save current seed");
-		flcb_save_seed->callback([](Fl_Widget*) {
-			std::string seed = seeder->get_seed();
-			if(seed.empty()) {
-				MessageBox(NULL, "Empty seed cannot be saved.", "Editor", MB_OK);
-				flcb_save_seed->value(0);
-				flcb_save_seed->redraw();
+		
+		input_seed = new SeedInput(400, 425, 170, 25, [=](std::string seed) {
+			if(!current_area_editor.empty()) {
+				IO::status_handler(STATE_RESERVED1);
+				level_seeds[current_area_editor] = seed;
 			}
-			request_soft_seed_lock();
-			saved_seed = seeder->get_seed();
 		});
 
-		seeder->on_seed_change([](const std::string& seed) -> bool {
-			if(!saved_seed.empty() && saved_seed != seed) {
-				flcb_save_seed->value(0);
-				flcb_save_seed->redraw();
-				saved_seed = "";
-			}
-			return true;
-		});
+		btn_randomize = new SeedRandomize(input_seed, 400, 455, 120, 20);
 
 		cons->end();
 
@@ -619,9 +785,7 @@ namespace TileEditing {
 			}
 		}
 
-		if(!valid_editor.empty()) {
-			SetCurrentEditor(valid_editor);
-		}
+		return valid_editor;
 	}
 
 	bool Initialize(std::shared_ptr<DerandomizePatch> dp, 
@@ -631,10 +795,12 @@ namespace TileEditing {
 	{
 		tp = scp;
 		::seeder = seeder;
+		::dp = dp;
+		::gh = gh;
 
 		level_forcer = std::make_shared<LevelForcer>(dp, gh);
 
-		construct_window();
+		std::string first_editor = construct_window();
 		window->callback([](Fl_Widget* widget) {
 			display_cb(false);
 			flcb_force->value(0);
@@ -654,8 +820,17 @@ namespace TileEditing {
 			return false;
 		}
 
-		initialized = true;
-		return true;
+		construct_worker_thread();
+		IO::NewFile();
+
+		if(!first_editor.empty()) {
+			SetCurrentEditor(first_editor);
+			initialized = true;
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
 	void ShowUI() {

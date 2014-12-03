@@ -21,12 +21,9 @@
 //OPT separate city of gold support
 //OPT save force-level attribute to level exports for single-level challenges
 
-//TODO shift-arrows selection key shortcut
-//TODO grid for chunks
-//TODO middle-click to fill
-//TODO verify jungle does not crash
+//TODO fix jungle crashes
+//TODO fix worm / tutorial selection + UI
 //TODO hints bar for displaying useful information on hover, i.e. sidebar
-//TODO fix worm UI
 //TODO default templates for chunks
 
 enum Direction {
@@ -37,6 +34,7 @@ enum Direction {
 #define STATE_CHUNK_WRITE (1 << 1)
 #define STATE_CHUNK_COPY  (1 << 2)
 #define STATE_CHUNK_PASTE (1 << 3)
+#define STATE_RESERVED1   (1 << 4)
 
 class EditorWidget : public Fl_Widget {
 public:

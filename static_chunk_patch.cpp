@@ -1,12 +1,26 @@
 #include "static_chunk_patch.h"
 
-StaticChunkPatch::~StaticChunkPatch() {}
+//+0
+static BYTE jngl_anticrash_find[] = {0x81,0xCC,0xCC,0xCC,0xCC,0xCC,0x7F,0xCC,0x85,0xCC,0x74,0xCC,0x39,0xCC,0xCC,0x74,0xCC,0xD8,0xCC,0xCC,0xDF};
+static std::string jngl_anticrash_mask = "x.....x.x.x.x..x.x..x";
+
+//force jmp away from rushing water levels
+static BYTE jngl_anticrash_mod[] = {0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90}; 
+
+StaticChunkPatch::~StaticChunkPatch() {
+	if(jngl_anticrash_orig) {
+		delete[] jngl_anticrash_orig;
+		jngl_anticrash_orig = nullptr;
+	}
+}
 
 StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<TilePatch> tp, std::shared_ptr<Seeder> seeder) : 
 	Patch(dp->spel),
 	seeder(seeder),
 	tp(tp),
-	is_valid(true)
+	is_valid(true),
+	jngl_anticrash_orig(nullptr),
+	jngl_anticrash_addr(0)
 {
 	yrp = std::make_shared<YetiRemovePatch>(dp->spel);
 	if(!yrp->valid()) {
@@ -15,7 +29,18 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 		return;
 	}
 
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Tutorial", dp, tp->get_gen_fn("LevelGen_TutorialCnk"), 1, 3+1, true)));
+	jngl_anticrash_addr = spel->find_mem(jngl_anticrash_find, jngl_anticrash_mask);
+	if(!jngl_anticrash_addr) {
+		is_valid = false;
+		DBG_EXPR(std::cout << "[StaticChunkPatch] Failed to find jungle anticrash address." << std::endl);
+		return;
+	}
+	DBG_EXPR(std::cout << "[StaticChunkPatch] Writing anticrash patch at " << jngl_anticrash_addr << std::endl);
+
+	jngl_anticrash_orig = new BYTE[sizeof(jngl_anticrash_mod)];
+	spel->read_mem(jngl_anticrash_addr, jngl_anticrash_orig, sizeof(jngl_anticrash_mod));
+
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Tutorial", dp, tp->get_gen_fn("LevelGen_TutorialCnk"), 1, 3+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Mines", dp, tp->get_gen_fn("LevelGen_MinesCnk"), 1, 4+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Jungle", dp, tp->get_gen_fn("LevelGen_JungleGeneralCnk"), 5, 8+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("JungleBlackMarket", dp, tp->get_gen_fn("LevelGen_JungleBlackMarketCnk"), 5, 8+1, true)));
@@ -23,7 +48,7 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCaves", dp, tp->get_gen_fn("LevelGen_IceCavesGeneralCnk"), 9, 12+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesSpaceship", dp, tp->get_gen_fn("LevelGen_IceCavesSpaceshipCnk"), 9, 12+1, true)));
 	//saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesYeti", dp, tp->get_gen_fn("LevelGen_IceCavesYetiCnk"), 9, 12+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", dp, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 46))); //TODO worm is not 16 chunks
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", dp, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 46)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Temple", dp, tp->get_gen_fn("LevelGen_TempleCnk"), 13, 15+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("TempleOlmec", dp, tp->get_gen_fn("LevelGen_OlmecCnk"), 16, 16+1, true)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Hell", dp, tp->get_gen_fn("LevelGen_HellCnk"), 17, 19+1)));
@@ -56,6 +81,9 @@ bool StaticChunkPatch::valid() {
 
 bool StaticChunkPatch::_perform() {
 	yrp->perform();
+
+	spel->write_mem(jngl_anticrash_addr, jngl_anticrash_mod, sizeof(jngl_anticrash_mod));
+
 	for(auto&& sap : saps) {
 		sap->perform();
 		if(!sap->is_active()) {
@@ -72,6 +100,9 @@ bool StaticChunkPatch::_perform() {
 
 bool StaticChunkPatch::_undo() {
 	yrp->undo();
+
+	spel->write_mem(jngl_anticrash_addr, jngl_anticrash_orig, sizeof(jngl_anticrash_mod));
+
 	for(auto&& sap : saps) {
 		sap->undo();
 	}
