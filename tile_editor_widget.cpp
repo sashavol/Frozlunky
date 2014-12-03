@@ -169,23 +169,24 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 	};
 
 	if(drag) {
-		int from_x = last_build.first, from_y = last_build.second;
+		double x = last_build.first, y = last_build.second;
 		int to_x = rx, to_y = ry;
-			
-		if(from_x > to_x)
-			std::swap(from_x, to_x);
-		if(from_y > to_y)
-			std::swap(from_y, to_y);
 
-		double vx = to_x - from_x, vy = to_y - from_y;
+		double vx = to_x - x, vy = to_y - y;
 		double len = sqrt(vx*vx + vy*vy);
 		if(len >= 1) {
 			vx /= len; vy /= len;
-			
-			double x = from_x, y = from_y;
-			while(x <= to_x && y <= to_y) {
+
+			while(abs(to_x - x) > 0.1 || abs(to_y - y) > 0.1) {
 				affect((int)x, (int)y);
 				
+				vx = to_x - x, vy = to_y - y;
+				len = sqrt(vx*vx + vy*vy);
+				if(len > 0.9) {
+					vx /= len;
+					vy /= len;
+				}
+
 				x += vx;
 				y += vy;
 			}
@@ -356,6 +357,7 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					return 1;
 				}
+				break;
 
 			case 65535: //delete
 				if(cursor.in_bounds()) {
@@ -371,6 +373,7 @@ int EditorWidget::handle(int evt) {
 					status(STATE_CHUNK_APPLY);
 					return 1;
 				}
+				break;
 
 			case 122: //z: undo
 				if(ctrl_down) {
@@ -378,6 +381,7 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					return 1;
 				}
+				break;
 					
 			case 121: //y: redo
 				if(ctrl_down) {
@@ -385,6 +389,7 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					return 1;
 				}
+				break;
 
 			case 99: //c
 				if(ctrl_down && cursor.in_bounds()) {
@@ -392,6 +397,7 @@ int EditorWidget::handle(int evt) {
 					status(STATE_CHUNK_COPY);
 					return 1;
 				}
+				break;
 			
 			case 120: //x
 				if(ctrl_down) {
@@ -402,6 +408,7 @@ int EditorWidget::handle(int evt) {
 					parent()->redraw();
 					return 1;
 				}
+				break;
 
 			case 118: //v
 				this->take_focus();
@@ -411,6 +418,7 @@ int EditorWidget::handle(int evt) {
 					status(STATE_CHUNK_PASTE);
 					parent()->redraw();
 				}
+				break;
 
 
 			default:

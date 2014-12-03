@@ -21,6 +21,8 @@
 //OPT separate city of gold support
 //OPT save force-level attribute to level exports for single-level challenges
 
+//TODO fix capital A not being usable
+//TODO move clear level button away from Force level, and move Force level checkbox up
 //TODO fix jungle crashes
 //TODO fix worm / tutorial selection + UI
 //TODO hints bar for displaying useful information on hover, i.e. sidebar
