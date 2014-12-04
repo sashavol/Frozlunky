@@ -103,9 +103,9 @@ static area_map area_lookup = boost::assign::map_list_of
 			("5-3", "Hell-19")
 			("Worm", "Worm")
 			("Black Market", "JungleBlackMarket")
-			("Haunted Castle", "JungleHauntedCastle")
+			("Haunted Castle", "JungleHauntedCastle");
 			//("Yeti Level", "IceCavesYeti")
-			("The Mothership", "IceCavesSpaceship");
+			//("The Mothership", "IceCavesSpaceship");
 
 static grouping_map grouping = boost::assign::map_list_of
 	("Tutorial", area_grouping("Tutorial"))
@@ -117,9 +117,17 @@ static grouping_map grouping = boost::assign::map_list_of
 	("Hell", area_grouping("5-1", "5-2", "5-3"))
 	("Black Market", area_grouping("Black Market"))
 	("Haunted Castle", area_grouping("Haunted Castle"))
-	("Worm", area_grouping("Worm"))
+	("Worm", area_grouping("Worm"));
 	//("Yeti Level", area_grouping("Yeti Level"))
-	("The Mothership", area_grouping("The Mothership"));
+	//("The Mothership", area_grouping("The Mothership"));
+
+static void area_order(std::vector<std::string>& areas) {
+	for(auto&& p : grouping) {
+		for(const std::string& s : p.second.areas) {
+			areas.push_back(s);
+		}
+	}
+}
 
 static std::map<std::string, std::function<void()>> level_force_oper = boost::assign::map_list_of
 	("1-1",			std::function<void()>([](){level_forcer->force(1);}))
@@ -143,9 +151,9 @@ static std::map<std::string, std::function<void()>> level_force_oper = boost::as
 	("5-3",			std::function<void()>([](){level_forcer->force(19);}))
 	("Black Market", std::function<void()>([](){level_forcer->force(5, LF_BLACK_MARKET);}))
 	("Haunted Castle", std::function<void()>([](){level_forcer->force(5, LF_HAUNTED_MANSION);}))
-	("Worm",		std::function<void()>([](){level_forcer->force(5, LF_WORM);}))
+	("Worm",		std::function<void()>([](){level_forcer->force(5, LF_WORM);}));
 	//("Yeti Level",  std::function<void()>([](){level_forcer->force(9, LF_YETI);}))
-	("The Mothership", std::function<void()>([](){level_forcer->force(12, LF_MOTHERSHIP);}));
+	//("The Mothership", std::function<void()>([](){level_forcer->force(12, LF_MOTHERSHIP);}));
 
 static std::string current_game_level() {
 	Address game;
@@ -289,6 +297,9 @@ namespace TileEditing {
 
 	static SeedInput* input_seed;
 	static SeedRandomize* btn_randomize;
+	static Fl_Button* open_file;
+
+	static void SetCurrentEditor(const std::string& area);
 
 	namespace IO 
 	{
@@ -496,6 +507,33 @@ namespace TileEditing {
 					MessageBox(NULL, (std::string("Error saving file: ") + e.what()).c_str(), "Error", MB_OK);
 				}
 			}
+			else if(state == STATE_REQ_OPEN) {
+				open_file->handle(2);
+			}
+			else if(state == STATE_REQ_TAB || state == STATE_REQ_TAB_REVERSE) {
+				std::vector<std::string> areas;
+				area_order(areas);
+
+				auto p = std::find(areas.begin(), areas.end(), current_area_editor);
+
+				if(p != areas.end()) {
+					if(state == STATE_REQ_TAB) {
+						if(p+1 == areas.end())
+							return;
+
+						SetCurrentEditor(*(p+1));
+					}
+					else {
+						if(p == areas.begin())
+							return;
+						
+						SetCurrentEditor(*(p-1));
+					}
+				}
+			}
+			else if(state == STATE_REQ_RANDOMIZE) {
+				btn_randomize->handle(2);
+			}
 		}
 		
 		static void _singlechunks(Chunk* c, std::function<void(Chunk*)> cb) {
@@ -535,7 +573,7 @@ namespace TileEditing {
 	static void SetCurrentEditor(const std::string& area) {
 		if(area == current_area_editor)
 			return;
-
+		
 		if(!current_area_editor.empty()) {
 			controls[area_group(current_area_editor)]->btns[current_area_editor]->activate();
 		}
@@ -547,9 +585,15 @@ namespace TileEditing {
 		
 		if(ed) {
 			if(current_area_editor != "") {
-				window->remove(editors[current_area_editor]);
+				EditorWidget* last = editors[current_area_editor];
+				EditorWidget* curr = editors[area];
+				curr->shift_down = last->shift_down;
+				curr->alt_down = last->alt_down;
+				curr->ctrl_down = last->ctrl_down;
+				std::memcpy(curr->mouse_down, last->mouse_down, sizeof(curr->mouse_down));
+				window->remove(last);
 			}
-
+			
 			EditorWidget* ew = editors[current_area_editor = area];
 			window->add(ew);
 			window->add(ew->sidebar_scrollbar);
@@ -729,7 +773,7 @@ namespace TileEditing {
 		}
 
 		new SaveButton(5, y += 30, 150, 25);
-		new LoadButton(5, y += 30, 150, 25);
+		open_file = new LoadButton(5, y += 30, 150, 25);
 		new RevertButton(5, y += 30, 150, 25);
 
 		new ClearButton(165, 425, 135, 25);

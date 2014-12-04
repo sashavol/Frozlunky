@@ -20,7 +20,6 @@ void EditorWidget::status_callback(std::function<void(unsigned)> cb) {
 	this->status_cb = cb;
 }
 
-
 void EditorWidget::clear_chunk(Chunk* cnk) {
 	if(cnk->type() == ChunkType::Single) {
 		SingleChunk* sc = static_cast<SingleChunk*>(cnk);
@@ -211,7 +210,6 @@ void EditorWidget::cursor_fill(int x, int y) {
 	}
 }
 
-
 static cursor_store clipboard;
 
 int EditorWidget::handle(int evt) {
@@ -219,10 +217,11 @@ int EditorWidget::handle(int evt) {
 	case FL_FOCUS:
 		return 1;
 	case FL_UNFOCUS:
-		cursor.sx = -1;
+		/*cursor.sx = -1;
 		cursor.sy = -1;
 		cursor.ex = -1;
 		cursor.ey = -1;
+		parent()->redraw();*/
 		return 1;
 
 	case FL_PUSH: //mouse pressed
@@ -286,6 +285,14 @@ int EditorWidget::handle(int evt) {
 			cursor_finish_move();
 
 			switch(key) {
+			case 65289: //tab
+				if(shift_down)
+					status(STATE_REQ_TAB_REVERSE);
+				else
+					status(STATE_REQ_TAB);
+
+				return 1;
+
 			case 65307: //esc: reset cursor size
 				{
 					int sx = cursor.rsx(), sy = cursor.rsy();
@@ -421,8 +428,20 @@ int EditorWidget::handle(int evt) {
 					cursor.decode(clipboard);
 					status(STATE_CHUNK_PASTE);
 					parent()->redraw();
+					return 1;
 				}
 
+			case 'o':
+				if(ctrl_down) {
+					status(STATE_REQ_OPEN);
+					return 1;
+				}
+
+			case 'r':
+				if(ctrl_down) {
+					status(STATE_REQ_RANDOMIZE);
+					return 1;
+				}
 
 			default:
 				{

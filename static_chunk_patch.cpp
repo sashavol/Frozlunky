@@ -1,11 +1,11 @@
 #include "static_chunk_patch.h"
 
-//+0
+//+6
 static BYTE jngl_anticrash_find[] = {0x81,0xCC,0xCC,0xCC,0xCC,0xCC,0x7F,0xCC,0x85,0xCC,0x74,0xCC,0x39,0xCC,0xCC,0x74,0xCC,0xD8,0xCC,0xCC,0xDF};
 static std::string jngl_anticrash_mask = "x.....x.x.x.x..x.x..x";
 
 //force jmp away from rushing water levels
-static BYTE jngl_anticrash_mod[] = {0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90}; 
+static BYTE jngl_anticrash_mod[] = {0xEB}; 
 
 StaticChunkPatch::~StaticChunkPatch() {
 	if(jngl_anticrash_orig) {
@@ -35,6 +35,7 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 		DBG_EXPR(std::cout << "[StaticChunkPatch] Failed to find jungle anticrash address." << std::endl);
 		return;
 	}
+	jngl_anticrash_addr += 6;
 	DBG_EXPR(std::cout << "[StaticChunkPatch] Writing anticrash patch at " << jngl_anticrash_addr << std::endl);
 
 	jngl_anticrash_orig = new BYTE[sizeof(jngl_anticrash_mod)];
@@ -46,7 +47,8 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("JungleBlackMarket", dp, tp->get_gen_fn("LevelGen_JungleBlackMarketCnk"), 5, 8+1, true)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("JungleHauntedCastle", dp, tp->get_gen_fn("LevelGen_JungleHauntedMansionCnk"), 5, 8+1, true)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCaves", dp, tp->get_gen_fn("LevelGen_IceCavesGeneralCnk"), 9, 12+1)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesSpaceship", dp, tp->get_gen_fn("LevelGen_IceCavesSpaceshipCnk"), 9, 12+1, true)));
+	//OPT add support for mothership
+	//saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesSpaceship", dp, tp->get_gen_fn("LevelGen_IceCavesSpaceshipCnk"), 9, 12+1, true)));
 	//saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesYeti", dp, tp->get_gen_fn("LevelGen_IceCavesYetiCnk"), 9, 12+1, true)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", dp, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 46)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Temple", dp, tp->get_gen_fn("LevelGen_TempleCnk"), 13, 15+1)));

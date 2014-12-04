@@ -53,7 +53,7 @@ public:
 
 private:
 	typedef std::set<std::pair<int, int>> fill_history;
-	void fill_recurse(int x, int y, fill_history& history, char tile);
+	void fill_recurse(int x, int y, fill_history& history, char tile, char target);
 public:
 	void fill(char tile);
 

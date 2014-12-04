@@ -23,7 +23,7 @@ namespace Mods {
 	Fl_Double_Window* mods_window = nullptr;
 
 	std::map<int, unsigned> choice_entity_map;
-
+	std::map<std::string, ModCheckbox*> mod_checkboxes;
 
 	int DoneButton::handle(int evt) {
 		if(evt == 2) {
@@ -52,6 +52,10 @@ namespace Mods {
 	ModCheckbox::ModCheckbox(const std::string& target, int x, int y, int w, int h, const char* label) 
 		: Fl_Check_Button(x,y,w,h,label), target(target)
 	{
+		//OPT make this construction non-global state.
+		//		(this decision is influenced by the global nature of FLTK window construction)
+		mod_checkboxes[target] = this;
+
 		this->callback(ModCheckbox_callback);
 		std::shared_ptr<Patch> patch = mods->get(target);
 		if(patch && patch->valid()) {
@@ -274,11 +278,11 @@ namespace Mods {
 	int ChunkEditorButton::handle(int evt) {
 		if(evt == 2) {
 			if(!mods->get("stcp")->is_active()) {
-				MessageBox(NULL, "Please enable Custom Levels before opening the editor.", "Level Editor", MB_OK);
+				mods->get("stcp")->perform();
+				mod_checkboxes["stcp"]->value(1);
 			}
-			else {
-				TileEditing::ShowUI();
-			}
+		
+			TileEditing::ShowUI();
 		}
 		return Fl_Button::handle(evt);
 	}
@@ -358,7 +362,7 @@ namespace Mods {
 
 		{
 			ModCheckbox* mc = new ModCheckbox("stcp", 5, 308, 255, 25, "Enable Custom Levels");
-			Fl_Button* o = new ChunkEditorButton(5, 338, 255, 25, "Level Editor");
+			Fl_Button* o = new ChunkEditorButton(5, 338, 255, 25, "Level Editor (Beta)");
 			if(TileEditing::Visible()) {
 				o->deactivate();
 			}

@@ -37,6 +37,10 @@ enum Direction {
 #define STATE_CHUNK_COPY  (1 << 2)
 #define STATE_CHUNK_PASTE (1 << 3)
 #define STATE_RESERVED1   (1 << 4)
+#define STATE_REQ_TAB (1 << 5)
+#define STATE_REQ_TAB_REVERSE (1 << 6)
+#define STATE_REQ_RANDOMIZE (1 << 7)
+#define STATE_REQ_OPEN (1 << 8)
 
 class EditorWidget : public Fl_Widget {
 public:
@@ -44,6 +48,11 @@ public:
 	int xu, yu;
 	int hv_gap;
 	Fl_Scrollbar* sidebar_scrollbar;
+
+	bool mouse_down[3];
+	bool ctrl_down;
+	bool shift_down;
+	bool alt_down;
 
 private:
 	typedef std::chrono::high_resolution_clock clock;
@@ -58,11 +67,6 @@ private:
 	ChunkCursor cursor;
 
 	bool extended_mode; //extended mode (applicable to Worm, derived from chunks size)
-
-	bool mouse_down[3];
-	bool ctrl_down;
-	bool shift_down;
-	bool alt_down;
 	std::shared_ptr<clock::time_point> key_press;
 
 	bool EditorWidget::allow_input();
