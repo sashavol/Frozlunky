@@ -3,7 +3,8 @@
 #include <iostream>
 #include <algorithm>
 
-ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw) : 
+ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw, bool read_only) :
+	read_only(read_only),
 	tile('1'), 
 	sx(-1), 
 	sy(-1), 
@@ -76,7 +77,7 @@ char ChunkCursor::get(int x, int y) const {
 
 
 void ChunkCursor::put(char tile) {
-	if(!in_bounds()) {
+	if(!in_bounds() || read_only) {
 		return;
 	}
 
@@ -261,7 +262,7 @@ cursor_store ChunkCursor::encode() {
 }
 
 void ChunkCursor::decode(const cursor_store& store) {
-	if(!in_bounds()) {
+	if(!in_bounds() || read_only) {
 		return;
 	}
 
@@ -303,6 +304,9 @@ void ChunkCursor::fill_recurse(int x, int y, fill_history& history, char tile, c
 }
 
 void ChunkCursor::fill(char tile) {
+	if(read_only)
+		return;
+
 	fill_history history;
 	fill_recurse(sx, sy, history, tile, get(sx, sy));
 }

@@ -44,6 +44,8 @@ enum Direction {
 
 class EditorWidget : public Fl_Widget {
 public:
+	bool read_only;
+
 	int cnk_render_w, cnk_render_h;
 	int xu, yu;
 	int hv_gap;
@@ -111,7 +113,7 @@ public:
 
 public:
 	~EditorWidget();
-	EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks, bool extended_mode=false);
+	EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks, bool extended_mode=false, bool read_only=false);
 
 
 private:

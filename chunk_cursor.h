@@ -14,6 +14,8 @@ private:
 	typedef std::function<void(int dsx, int dsy, int dex, int dey)> pos_fn;
 
 private:
+	bool read_only;
+
 	pos_fn pos_change_cb;
 
 	std::vector<Chunk*> chunks;
@@ -29,7 +31,7 @@ private:
 public:
 	char tile;
 	
-	ChunkCursor(const std::vector<Chunk*>& chunks, int tw);
+	ChunkCursor(const std::vector<Chunk*>& chunks, int tw, bool read_only=false);
 	void pos_callback(pos_fn fn);
 	
 private:

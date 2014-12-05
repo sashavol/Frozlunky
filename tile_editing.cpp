@@ -81,7 +81,10 @@ typedef std::vector<std::pair<std::string, std::string>> area_map;
 typedef std::vector<std::pair<std::string, area_grouping>> grouping_map;
 
 static area_map area_lookup = boost::assign::map_list_of
-			("Tutorial", "Tutorial")		
+			("Default (Read-Only)", "%")
+			("Tut-1", "Tutorial-1")
+			("Tut-2", "Tutorial-2")
+			("Tut-3", "Tutorial-3")
 			("1-1", "Mines-1")
 			("1-2", "Mines-2")
 			("1-3", "Mines-3")
@@ -108,7 +111,8 @@ static area_map area_lookup = boost::assign::map_list_of
 			//("The Mothership", "IceCavesSpaceship");
 
 static grouping_map grouping = boost::assign::map_list_of
-	("Tutorial", area_grouping("Tutorial"))
+	("Default (Read-Only)", area_grouping("Default (Read-Only)"))
+	("Tutorial", area_grouping("Tut-1", "Tut-2", "Tut-3"))
 	("Mines", area_grouping("1-1", "1-2", "1-3", "1-4"))
 	("Jungle", area_grouping("2-1", "2-2", "2-3", "2-4"))
 	("Ice Caves", area_grouping("3-1", "3-2", "3-3", "3-4"))
@@ -221,11 +225,15 @@ struct AreaControls {
 			Fl_Button* edit_btn = btn.second;
 
 			const std::string& rarea = mget(area_lookup, btn.first).second;
-			std::vector<Chunk*> chunks = tp->query_chunks(rarea);
+			
+			//% -> default read-only
+			if(rarea != "%") {
+				std::vector<Chunk*> chunks = tp->query_chunks(rarea);
 		
-			if(!tp->valid() || chunks.empty()) {
-				edit_btn->deactivate();
-				continue;
+				if(!tp->valid() || chunks.empty()) {
+					edit_btn->deactivate();
+					continue;
+				}
 			}
 
 			edit_btn->activate();
@@ -360,7 +368,7 @@ namespace TileEditing {
 
 			mut_level_seeds.lock();
 			for(auto&& seed : level_seeds) {
-				if(!seed.second.empty()) {
+				if(!seed.second.empty() && !editors[seed.first]->read_only) {
 					pugi::xml_node level = seeds.append_child(SafeXMLName(seed.first).c_str());
 					pugi::xml_node data = level.append_child(pugi::xml_node_type::node_pcdata);
 					data.set_value(seed.second.c_str());
@@ -418,11 +426,14 @@ namespace TileEditing {
 				pugi::xml_node seeds = xmld.child("seeds");
 				if(!seeds.empty()) {
 					for(pugi::xml_node child : seeds.children()) {
-						if(std::distance(child.children().begin(), child.children().end()) == 0)
+						if(std::distance(child.children().begin(), child.children().end()) == 0) {
+							mut_level_seeds.unlock();
 							throw std::runtime_error(std::string("Invalid seed format for ") + child.name());
+						}
 
 						pugi::xml_node data = *child.children().begin();
 						if(data.type() != pugi::xml_node_type::node_pcdata) {
+							mut_level_seeds.unlock();
 							throw std::runtime_error(std::string("Invalid seed format, expected node_pcdata as child of ") + child.name());
 						}
 
@@ -772,7 +783,7 @@ namespace TileEditing {
 			}
 		}
 
-		new SaveButton(5, y += 30, 150, 25);
+		new SaveButton(5, y += 5, 150, 25);
 		open_file = new LoadButton(5, y += 30, 150, 25);
 		new RevertButton(5, y += 30, 150, 25);
 
@@ -804,8 +815,10 @@ namespace TileEditing {
 		for(auto&& area : area_lookup) {
 			EditorScrollbar* es = new EditorScrollbar(690, 5, 15, 420);
 			std::vector<Chunk*> chunks = tp->query_chunks(area.second);
-			if(!chunks.empty()) {
-				if(valid_editor.empty() || valid_editor == "Tutorial") {
+
+			// % -> default read-only
+			if(area.second == "%" || !chunks.empty()) {
+				if(valid_editor.empty() || valid_editor.find("Tut") == 0 || valid_editor == "Default (Read-Only)") {
 					valid_editor = area.first;
 				}
 
@@ -819,6 +832,14 @@ namespace TileEditing {
 						}
 					}
 					ew = new EditorWidget(tp, 165, 5, 545 + 90, 420, es, edited, true);
+				}
+				else if(area.second == "%") { //default read-only
+					std::vector<Chunk*> relevant;
+					for(SingleChunk* c : tp->tile_patch()->root_chunks()) {
+						if(c->get_width() == CHUNK_WIDTH && c->get_height() == CHUNK_HEIGHT)
+							relevant.push_back(c);
+					}
+					ew = new EditorWidget(tp, 165, 5, 545 + 90, 420, es, relevant, false, true);
 				}
 				else {
 					ew = new EditorWidget(tp, 165, 5, 545 + 90, 420, es, chunks);

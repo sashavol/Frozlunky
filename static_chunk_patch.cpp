@@ -156,3 +156,7 @@ std::vector<SingleChunk*> StaticChunkPatch::root_chunks() {
 const std::set<char>& StaticChunkPatch::valid_tiles() {
 	return tp->possible_tiles();
 }
+
+const std::shared_ptr<TilePatch> StaticChunkPatch::tile_patch() const {
+	return tp;
+}

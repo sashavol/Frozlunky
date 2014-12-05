@@ -37,6 +37,8 @@ public:
 
 	//returns all chunks.
 	std::vector<Chunk*> get_chunks();
+
+	const std::shared_ptr<TilePatch> tile_patch() const;
 	
 	void apply_chunks();
 	bool valid_tile(char tile);

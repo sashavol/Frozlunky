@@ -825,7 +825,7 @@ int gui_operate(std::shared_ptr<Spelunky> spelunk, char* icon)
 				if(!daily && input_seed != nullptr) {
 					input_seed->value(seed.c_str());
 
-					window->label((std::string(FROZLUNKY_TITLE " - ") + seed).c_str());
+					window->copy_label((std::string(FROZLUNKY_TITLE " - ") + seed).c_str());
 					
 					input_seed->redraw();
 					window->redraw();

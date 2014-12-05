@@ -349,5 +349,10 @@ std::vector<SingleChunk*> TilePatch::root_chunks() {
 	for(Chunk* c : chunks) {
 		root_cnk(c, out);
 	}
+
+	std::sort(out.begin(), out.end(), [=](const SingleChunk* a, const SingleChunk* b) {
+		return chunk_refs[a->get_name()] < chunk_refs[b->get_name()];
+	});
+
 	return out;
 }

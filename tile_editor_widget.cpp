@@ -21,6 +21,9 @@ void EditorWidget::status_callback(std::function<void(unsigned)> cb) {
 }
 
 void EditorWidget::clear_chunk(Chunk* cnk) {
+	if(read_only)
+		return;
+
 	if(cnk->type() == ChunkType::Single) {
 		SingleChunk* sc = static_cast<SingleChunk*>(cnk);
 		std::string d = sc->get_data();
@@ -35,6 +38,9 @@ void EditorWidget::clear_chunk(Chunk* cnk) {
 }
 
 void EditorWidget::clear_chunks() {
+	if(read_only)
+		return;
+
 	timeline.push_state();
 	for(Chunk* c : chunks) {
 		clear_chunk(c);
@@ -384,14 +390,14 @@ int EditorWidget::handle(int evt) {
 				}
 
 			case 122: //z: undo
-				if(ctrl_down) {
+				if(!read_only && ctrl_down) {
 					timeline.rewind();
 					parent()->redraw();
 					return 1;
 				}
 					
 			case 121: //y: redo
-				if(ctrl_down) {
+				if(!read_only && ctrl_down) {
 					timeline.forward();
 					parent()->redraw();
 					return 1;
@@ -499,8 +505,13 @@ static Numeric_ clamp_(Numeric_ s, Numeric_ e, Numeric_ v) {
 
 EditorWidget::~EditorWidget() {}
 
-EditorWidget::EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks, bool extended_mode) : 
+EditorWidget::EditorWidget(std::shared_ptr<StaticChunkPatch> tp, 
+						   int x, int y, int w, int h, 
+						   Fl_Scrollbar* scrollbar, 
+						   std::vector<Chunk*> chunks, 
+						   bool extended_mode, bool read_only) : 
 	Fl_Widget(x,y,w,h,""),
+	read_only(read_only),
 	chunks(chunks),
 	sidebar_scrollbar(scrollbar),
 	cnk_render_w(130),
@@ -517,7 +528,7 @@ EditorWidget::EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, i
 	timeline(chunks),
 	move_drag_start(-1, -1),
 	picker(tp->valid_tiles(), x + w - 87, y, 45, h, 15, 15),
-	cursor(chunks, extended_mode ? 2 : 4)
+	cursor(chunks, extended_mode ? 2 : 4, read_only)
 {
 	//allocate width for sidebar
 	w -= 60;
