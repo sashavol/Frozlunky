@@ -10,7 +10,8 @@ ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw) :
 	ex(-1), 
 	ey(-1),
 	chunks(chunks),
-	tw(tw)
+	tw(tw),
+	pos_change_cb([](int,int,int,int){})
 {
 	if(chunks.empty()) {
 		width = 0;
@@ -25,6 +26,10 @@ ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw) :
 	sy = 0;
 	ex = sx;
 	ey = sy;
+}
+
+void ChunkCursor::pos_callback(pos_fn fn) {
+	pos_change_cb = fn;
 }
 
 int ChunkCursor::cc_width() {
@@ -97,23 +102,49 @@ bool ChunkCursor::in_bounds() {
 }
 
 bool ChunkCursor::try_dx(int dx) {
+	int osx = rsx(), oex = rex();
+
 	if(ex + dx >= width || sx + dx < 0 || sx + dx >= width || ex + dx < 0)
 		return false;
 	
 	sx += dx;
 	ex += dx;
 
+	pos_change_cb(rsx() - osx, 0, rex() - oex, 0);
 	return true;
 }
 
 bool ChunkCursor::try_dy(int dy) {
+	int osy = rsy(), oey = rey();
+
 	if(sy + dy < 0 || ey + dy >= height || sy + dy >= height || ey + dy < 0)
 		return false;
 	
 	sy += dy;
 	ey += dy;
 
+	pos_change_cb(0, rsy() - osy, 0, rey() - oey);
 	return true;
+}
+
+void ChunkCursor::s(int x, int y) {
+	int osx = rsx(), osy = rsy(), oex = rex(), oey = rey();
+
+	int dx = x - sx, dy = y - sy;
+	
+	sx = x;
+	sy = y;
+
+	pos_change_cb(rsx() - osx, rsy() - osy, rex() - oex, rey() - oey);
+}
+
+void ChunkCursor::e(int x, int y) {
+	int osx = rsx(), osy = rsy(), oex = rex(), oey = rey();
+
+	ex = x;
+	ey = y;
+
+	pos_change_cb(rsx() - osx, rsy() - osy, rex() - oex, rey() - oey);
 }
 
 int ChunkCursor::rex() {
@@ -130,6 +161,59 @@ int ChunkCursor::rey() {
 
 int ChunkCursor::rsy() {
 	return std::min(sy, ey);
+}
+
+
+bool ChunkCursor::try_dex(int dx) {
+	int osx = rsx(), oex = rex();
+
+	int rex = ex + dx;
+	if(rex < 0 || rex >= width)
+		return false;
+
+	ex = rex;
+	
+	pos_change_cb(this->rsx() - osx, 0, this->rex() - oex, 0);
+	return true;
+}
+
+bool ChunkCursor::try_dey(int dy) {
+	int osy = rsy(), oey = rey();
+
+	int rey = ey + dy;
+	if(rey < 0 || rey >= height)
+		return false;
+
+	ey = rey;
+	
+	pos_change_cb(0, this->rsy() - osy, 0, this->rey() - oey);
+	return true;
+}
+
+bool ChunkCursor::try_dsx(int dx) {
+	int osx = rsx(), oex = rex();
+
+	int rsx = sx + dx;
+	if(rsx < 0 || rsx >= width)
+		return false;
+
+	sx = rsx;
+	
+	pos_change_cb(this->rsx() - osx, 0, this->rex() - oex, 0);
+	return true;
+}
+
+bool ChunkCursor::try_dsy(int dy) {
+	int osy = rsy(), oey = rey();
+
+	int rsy = sy + dy;
+	if(rsy < 0 || rsy >= height)
+		return false;
+
+	sy = rsy;
+	
+	pos_change_cb(0, this->rsy() - osy, 0, this->rey() - oey);
+	return true;
 }
 
 /*
@@ -196,45 +280,6 @@ void ChunkCursor::decode(const cursor_store& store) {
 	}
 }
 
-bool ChunkCursor::try_dex(int dx) {
-	int rex = ex + dx;
-	if(rex < 0 || rex >= width)
-		return false;
-
-	ex = rex;
-
-	return true;
-}
-
-bool ChunkCursor::try_dey(int dy) {
-	int rey = ey + dy;
-	if(rey < 0 || rey >= height)
-		return false;
-
-	ey = rey;
-
-	return true;
-}
-
-bool ChunkCursor::try_dsx(int dx) {
-	int rsx = sx + dx;
-	if(rsx < 0 || rsx >= width)
-		return false;
-
-	sx = rsx;
-
-	return true;
-}
-
-bool ChunkCursor::try_dsy(int dy) {
-	int rsy = sy + dy;
-	if(rsy < 0 || rsy >= height)
-		return false;
-
-	sy = rsy;
-
-	return true;
-}
 
 void ChunkCursor::fill_recurse(int x, int y, fill_history& history, char tile, char target) {
 	if(history.find(std::pair<int,int>(x-1,y)) == history.end() && x > 0 && get(x-1, y) == target) {

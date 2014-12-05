@@ -11,20 +11,27 @@ typedef std::map<std::pair<int, int>, char> cursor_store;
 //works with constant-size chunks as a cursor
 struct ChunkCursor {
 private:
+	typedef std::function<void(int dsx, int dsy, int dex, int dey)> pos_fn;
+
+private:
+	pos_fn pos_change_cb;
+
 	std::vector<Chunk*> chunks;
 	int tw;
 	int width;
 	int height;
 
-public:
-	char tile;
 	int sx;
 	int sy;
 	int ex;
 	int ey;
 
+public:
+	char tile;
+	
 	ChunkCursor(const std::vector<Chunk*>& chunks, int tw);
-
+	void pos_callback(pos_fn fn);
+	
 private:
 	void tileref(int x, int y, std::function<void(Chunk* c, int cx, int cy)> ref);
 
@@ -46,6 +53,9 @@ public:
 	int rex();
 	int rey();
 
+	void s(int x, int y);
+	void e(int x, int y);
+	
 	int cc_width();
 	int cc_height();
 

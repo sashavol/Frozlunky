@@ -119,19 +119,16 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 
 		if(!drag) {
 			move_drag_start = std::pair<int, int>(ccpos.first, ccpos.second);
-			cursor.sx = ccpos.first;
-			cursor.sy = ccpos.second;
-			cursor.ex = ccpos.first;
-			cursor.ey = ccpos.second;
+
+			cursor.s(ccpos.first, ccpos.second);
+			cursor.e(ccpos.first, ccpos.second);
 		}
 		else if(move_drag_start.first > -1) {
 			int ex = ccpos.first, ey = ccpos.second;
 			int sx = move_drag_start.first, sy = move_drag_start.second;
 
-			cursor.sx = sx;
-			cursor.sy = sy;
-			cursor.ex = ex;
-			cursor.ey = ey;
+			cursor.s(sx, sy);
+			cursor.e(ex, ey);
 		}
 	}
 	else {
@@ -201,8 +198,8 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 
 void EditorWidget::cursor_fill(int x, int y) {
 	if(x >= 0 && y >= 0) {
-		cursor.sx = x; cursor.sy = y;
-		cursor.ex = x; cursor.ey = y;
+		cursor.s(x, y);
+		cursor.e(x, y);
 		timeline.push_state();
 		cursor.fill(picker.tile());
 		status(STATE_CHUNK_PASTE);
@@ -235,8 +232,8 @@ int EditorWidget::handle(int evt) {
 			if(cpos.first >= 0 && cpos.second >= 0) {
 				timeline.push_state();
 				cursor_build(Fl::event_x(), Fl::event_y(), false);
-				cursor.sx = cpos.first; cursor.sy = cpos.second;
-				cursor.ex = cpos.first; cursor.ey = cpos.second;
+				cursor.s(cpos.first, cpos.second);
+				cursor.e(cpos.first, cpos.second);
 			}
 		}
 		else if(Fl::event_state() & FL_BUTTON2) {
@@ -260,8 +257,8 @@ int EditorWidget::handle(int evt) {
 			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
 			if(cpos.first >= 0 && cpos.second >= 0) {
 				cursor_build(Fl::event_x(), Fl::event_y(), true);
-				cursor.sx = cpos.first; cursor.sy = cpos.second;
-				cursor.ex = cpos.first; cursor.ey = cpos.second;
+				cursor.s(cpos.first, cpos.second);
+				cursor.e(cpos.first, cpos.second);
 			}
 		}
 
@@ -296,10 +293,8 @@ int EditorWidget::handle(int evt) {
 			case 65307: //esc: reset cursor size
 				{
 					int sx = cursor.rsx(), sy = cursor.rsy();
-					cursor.sx = sx;
-					cursor.sy = sy;
-					cursor.ex = sx;
-					cursor.ey = sy;
+					cursor.s(sx, sy);
+					cursor.e(sx, sy);
 					parent()->redraw();
 				}
 				return 1;
@@ -369,16 +364,14 @@ int EditorWidget::handle(int evt) {
 
 			case 102: //f: fill
 				if(ctrl_down) {
-					cursor_fill(cursor.sx, cursor.sy);
+					cursor_fill(cursor.rsx(), cursor.rsy());
 					return 1;
 				}
 
 			case 97: //a
 				if(ctrl_down) {
-					cursor.sx = 0;
-					cursor.sy = 0;
-					cursor.ex = cursor.cc_width() - 1;
-					cursor.ey = cursor.cc_height() - 1;
+					cursor.s(0, 0);
+					cursor.e(cursor.cc_width() - 1, cursor.cc_height() - 1);
 					parent()->redraw();
 					return 1;
 				}
@@ -499,6 +492,11 @@ void EditorWidget::compute_u() {
 	yu = maxh / ch;
 }
 
+template <typename Numeric_>
+static Numeric_ clamp_(Numeric_ s, Numeric_ e, Numeric_ v) {
+	return min(e, max(s, v));
+}
+
 EditorWidget::~EditorWidget() {}
 
 EditorWidget::EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks, bool extended_mode) : 
@@ -549,6 +547,32 @@ EditorWidget::EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, i
 			wid->redraw();
 		});
 	}
+
+	//adjust scrollbar if cursor off screen
+	cursor.pos_callback([=](int dsx, int dsy, int dex, int dey) {
+		auto affect = [=](int amt) {
+			int t = sidebar_scrollbar->value() + amt;
+			sidebar_scrollbar->value(clamp_((int)sidebar_scrollbar->minimum(), (int)sidebar_scrollbar->maximum(), t));
+			parent()->redraw();	
+		};
+
+		auto handle_pos = [=](int cx, int cy) {
+			auto rpos = render_pos(cx, cy);
+			if(rpos.second >= this->h()) {
+				std::pair<int, int> bottom = chunkcoord_pos(this->x(), this->y() + this->h() - 1);
+				affect(yu*(cy - bottom.second + 10));
+			}
+			else if(rpos.second < 0) {
+				std::pair<int, int> zero = chunkcoord_pos(this->x(), this->y());
+				affect(yu*(cy - zero.second - 10));
+			}
+		};
+
+		if((dsy != 0 && dey != 0) || dsy != 0)
+			handle_pos(cursor.rsx(), cursor.rsy());
+		else if(dey != 0)
+			handle_pos(cursor.rex(), cursor.rey());
+	});
 }
 
 Chunk* EditorWidget::find_chunk(int rx, int ry) {
@@ -603,6 +627,9 @@ std::pair<int, int> EditorWidget::chunkcoord_pos(int rx, int ry) {
 		auto rpos = get_chunk_render_pos(base);
 		auto cpos = chunkcoord_pos(base);
 		return std::pair<int, int>((rx - rpos.first)/xu + cpos.first, (ry - rpos.second)/yu + cpos.second);
+	}
+	else {
+		DBG_EXPR(std::cout << "[EditorWidget] Warning: Failed to find chunk for r(" << std::setbase(10) << rx << ", " << ry << std::setbase(16) << ")" << std::endl);
 	}
 	return std::pair<int, int>(-1, -1);
 }
