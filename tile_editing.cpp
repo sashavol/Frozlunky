@@ -814,6 +814,13 @@ namespace TileEditing {
 				}
 				return 1;
 			}
+			else if(evt == FL_KEYBOARD) {
+				int key = Fl::event_key();
+				if(key == 65307) { //esc override to prevent window close
+					return 0;
+				}
+			}
+
 			return Fl_Double_Window::handle(evt);
 		}
 	};

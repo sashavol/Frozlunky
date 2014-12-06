@@ -16,7 +16,7 @@ namespace TileUtil {
 		ofn.lpstrFilter = "XML Chunk Format (.xml)\0*.xml\0";
 		
 		ofn.Flags  = OFN_PATHMUSTEXIST;
-		if(save) {
+		if(!save) {
 			ofn.Flags |= OFN_FILEMUSTEXIST;
 		}
 
