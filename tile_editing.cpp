@@ -257,7 +257,11 @@ public:
 
 	virtual int handle(int evt) override {
 		if(evt == 0xC || evt == FL_KEYBOARD) {
-			update();
+			if(Fl::focus() == this) {
+				update();
+			}
+			else
+				return 0;
 		}
 		else if(evt == FL_FOCUS) {
 			return 0;
