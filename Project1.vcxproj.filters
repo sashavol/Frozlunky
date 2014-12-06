@@ -246,6 +246,9 @@
     <ClCompile Include="chunk_cursor.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="tile_default.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -471,6 +474,9 @@
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
     <ClInclude Include="chunk_cursor.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="tile_default.h">
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
   </ItemGroup>

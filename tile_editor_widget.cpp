@@ -442,18 +442,27 @@ int EditorWidget::handle(int evt) {
 					return 1;
 				}
 
+			case 'd':
+				if(ctrl_down) {
+					status(STATE_REQ_DEFAULT_SWAP);
+					return 1;
+				}
+
 			default:
 				{
 					this->take_focus();
 					char tile = Fl::event_text()[0];
 					if(tp->valid_tile(tile)) {
 						picker.select(tile);
-						if(cursor.in_bounds()) {
+						
+						//do not put down tile if alt. Alt+Tile = pick tile only
+						if(!alt_down && cursor.in_bounds()) {
 							timeline.push_state();
 							cursor.put(tile);
 							shift_env_right(1);
 							status(STATE_CHUNK_WRITE);
 						}
+
 						parent()->redraw();
 					}
 					return 1;
@@ -728,13 +737,20 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 	
 	//chunk bg + bounds
 	auto fs = map(0, 0), fx = map(cw, ch);
+	auto render_bounds = [=]() {
+		fl_color(Fl_Color(0x1A1A1A00));
+		fl_line(fs.first, fs.second - 1, fs.first, fx.second - 1);
+		fl_line(fs.first, fs.second, fx.first, fs.second);
+	};
+
 	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, fs.first, fs.second, fx.first - fs.first, fx.second - fs.second, Fl_Color(0));
-	fl_color(Fl_Color(0x1A1A1A00));
-	fl_line(fs.first, fs.second, fs.first, fx.second);
-	fl_line(fs.first, fs.second, fx.first, fs.second);
+
+	//render bounds behind scene if not in read-only mode
+	if(!read_only) {
+		render_bounds();
+	}
 
 	fl_font(FL_SCREEN, min(xu, yu)-2);
-	
 	for(int cy = 0; cy < ch; cy++) {
 		for(int cx = 0; cx < cw; cx++) {
 			char tile = cnk->tile(cx, cy);
@@ -744,6 +760,11 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 				draw_tile(tile, dp.first, dp.second, xu, yu);		
 			}
 		}
+	}
+
+	//render bounds in front of scene for chunk clarity in read-only mode
+	if(read_only) {
+		render_bounds();
 	}
 
 	picker.draw();

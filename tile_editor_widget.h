@@ -41,6 +41,7 @@ enum Direction {
 #define STATE_REQ_TAB_REVERSE (1 << 6)
 #define STATE_REQ_RANDOMIZE (1 << 7)
 #define STATE_REQ_OPEN (1 << 8)
+#define STATE_REQ_DEFAULT_SWAP (1 << 9)
 
 class EditorWidget : public Fl_Widget {
 public:

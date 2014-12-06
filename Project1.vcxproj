@@ -128,6 +128,7 @@
     <ClCompile Include="syllabic.cpp" />
     <ClCompile Include="temple_anticrash.cpp" />
     <ClCompile Include="tile_chunk.cpp" />
+    <ClCompile Include="tile_default.cpp" />
     <ClCompile Include="tile_draw.cpp" />
     <ClCompile Include="tile_editing.cpp" />
     <ClCompile Include="tile_editor_widget.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="dark_possible.h" />
     <ClInclude Include="disable_ctrlmenu_patch.h" />
     <ClInclude Include="tile_chunk.h" />
+    <ClInclude Include="tile_default.h" />
     <ClInclude Include="tile_draw.h" />
     <ClInclude Include="tile_editing.h" />
     <ClInclude Include="force_controller_attrs.h" />

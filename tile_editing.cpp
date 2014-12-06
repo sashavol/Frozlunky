@@ -1,5 +1,6 @@
 #include "tile_editing.h"
 #include "tile_util.h"
+#include "tile_default.h"
 #include "tile_editor_widget.h"
 #include "level_forcer.h"
 #include "gui.h"
@@ -297,6 +298,7 @@ struct SeedRandomize : public Fl_Button {
 static std::map<std::string, AreaControls*> controls;
 
 namespace TileEditing {
+	static std::string prior_nondefault_editor;
 	static std::string current_area_editor;
 	static std::map<std::string, EditorWidget*> editors;
 	static Fl_Check_Button* flcb_force;
@@ -342,6 +344,8 @@ namespace TileEditing {
 				level_seeds[area.first] = std::string();
 			}
 			mut_level_seeds.unlock();
+
+			TileDefault::SetToDefault(tp->get_chunks());
 
 			InitializeEmptySeeds();
 
@@ -545,6 +549,14 @@ namespace TileEditing {
 			else if(state == STATE_REQ_RANDOMIZE) {
 				btn_randomize->handle(2);
 			}
+			else if(state == STATE_REQ_DEFAULT_SWAP) {
+				if(mget(area_lookup, current_area_editor).second == "%") {
+					SetCurrentEditor(prior_nondefault_editor);
+				}
+				else {
+					SetCurrentEditor("Default (Read-Only)");
+				}
+			}
 		}
 		
 		static void _singlechunks(Chunk* c, std::function<void(Chunk*)> cb) {
@@ -565,6 +577,12 @@ namespace TileEditing {
 
 	static void ForceCurrentLevel(bool r) {
 		if(r) {
+			//if default levels, no operation required, just setting checkbox
+			if(mget(area_lookup, current_area_editor).second == "%") {
+				level_forcer->set_enabled(true);
+				return;
+			}
+
 			auto oper = level_force_oper[current_area_editor];
 			if(oper) {
 				oper();
@@ -585,6 +603,11 @@ namespace TileEditing {
 		if(area == current_area_editor)
 			return;
 		
+		//check if not default
+		if(mget(area_lookup, area).second != "%") {
+			prior_nondefault_editor = area;
+		}
+
 		if(!current_area_editor.empty()) {
 			controls[area_group(current_area_editor)]->btns[current_area_editor]->activate();
 		}
@@ -623,15 +646,11 @@ namespace TileEditing {
 		display_cb = cb;
 	}
 
-	void revert_chunks() {
-		//TODO
-	}
-
 	BUTTON_CLASS(RevertButton, "New File");
 	int RevertButton::handle(int evt) {
 		if(evt == 2) {
 			IO::NewFile();
-			revert_chunks();
+			::window->redraw();
 		}
 		else if(evt == FL_FOCUS)
 			return 0;
@@ -642,6 +661,7 @@ namespace TileEditing {
 	int SaveButton::handle(int evt) {
 		if(evt == 2) {
 			IO::SaveAs();
+			::window->redraw();
 		}
 		else if(evt == FL_FOCUS)
 			return 0;
@@ -764,8 +784,27 @@ namespace TileEditing {
 		});
 	}
 
+
+	struct TileEditingWindow : public Fl_Double_Window {
+		TileEditingWindow(int x, int y, const char* L) : Fl_Double_Window(x, y, L) {}
+
+		virtual int handle(int evt) override {
+			//make sure we don't have lingering key-presses on unfocus
+			if(evt == FL_UNFOCUS) {
+				for(auto&& e : editors) {
+					EditorWidget* editor = e.second;
+					editor->alt_down = false;
+					editor->shift_down = false;
+					editor->ctrl_down = false;
+				}
+				return 1;
+			}
+			return Fl_Double_Window::handle(evt);
+		}
+	};
+
 	static std::string construct_window() {
-		Fl_Window* cons = new Fl_Double_Window(780, 480, WINDOW_BASE_TITLE);
+		Fl_Window* cons = new TileEditingWindow(780, 480, WINDOW_BASE_TITLE);
 		window = cons;
 
 		cons->begin();
@@ -783,7 +822,7 @@ namespace TileEditing {
 			}
 		}
 
-		new SaveButton(5, y += 5, 150, 25);
+		new SaveButton(5, y += 8, 150, 25);
 		open_file = new LoadButton(5, y += 30, 150, 25);
 		new RevertButton(5, y += 30, 150, 25);
 
@@ -870,7 +909,7 @@ namespace TileEditing {
 			display_cb(false);
 			flcb_force->value(0);
 			level_forcer->set_enabled(false);
-			static_cast<Fl_Window*>(widget)->hide();
+			window->hide();
 		});
 
 		if(!tp->valid()) {
