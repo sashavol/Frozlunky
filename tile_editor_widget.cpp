@@ -20,6 +20,10 @@ void EditorWidget::status_callback(std::function<void(unsigned)> cb) {
 	this->status_cb = cb;
 }
 
+void EditorWidget::clear_state() {
+	timeline = ChunkTimeline(chunks);
+}
+
 void EditorWidget::clear_chunk(Chunk* cnk) {
 	if(read_only)
 		return;
@@ -333,6 +337,7 @@ int EditorWidget::handle(int evt) {
 					if(!ctrl_down)
 						shift_env_right(1);
 					parent()->redraw();
+					status(STATE_CHUNK_WRITE);
 				}
 				return 1;
 
@@ -343,6 +348,7 @@ int EditorWidget::handle(int evt) {
 					if(!ctrl_down)
 						shift_env_left(1);
 					parent()->redraw();
+					status(STATE_CHUNK_WRITE);
 				}
 				return 1;
 
@@ -351,6 +357,7 @@ int EditorWidget::handle(int evt) {
 					timeline.push_state();
 					cursor.put('0');
 					parent()->redraw();
+					status(STATE_CHUNK_WRITE);
 				}
 				return 1;
 
@@ -371,6 +378,7 @@ int EditorWidget::handle(int evt) {
 			case 102: //f: fill
 				if(ctrl_down) {
 					cursor_fill(cursor.rsx(), cursor.rsy());
+					status(STATE_CHUNK_WRITE);
 					return 1;
 				}
 
@@ -393,6 +401,7 @@ int EditorWidget::handle(int evt) {
 				if(!read_only && ctrl_down) {
 					timeline.rewind();
 					parent()->redraw();
+					status(STATE_CHUNK_PASTE);
 					return 1;
 				}
 					
@@ -400,6 +409,7 @@ int EditorWidget::handle(int evt) {
 				if(!read_only && ctrl_down) {
 					timeline.forward();
 					parent()->redraw();
+					status(STATE_CHUNK_WRITE);
 					return 1;
 				}
 
@@ -415,7 +425,7 @@ int EditorWidget::handle(int evt) {
 					timeline.push_state();
 					clipboard = cursor.encode();
 					cursor.put('0');
-					status(STATE_CHUNK_COPY);
+					status(STATE_CHUNK_WRITE);
 					parent()->redraw();
 					return 1;
 				}

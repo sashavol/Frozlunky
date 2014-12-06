@@ -409,6 +409,11 @@ namespace TileEditing {
 					throw std::runtime_error("Failed to create file.");
 				}
 				else {
+					//clear undos
+					for(auto&& ep : editors) {
+						ep.second->clear_state();
+					}
+
 					SetActiveFile(file);
 					ofs.close();
 				}
@@ -418,7 +423,12 @@ namespace TileEditing {
 				pugi::xml_document xmld;
 				if(!xmld.load_file(file.c_str())) {
 					throw std::runtime_error("XML Parser failed to load file.");
-				}			
+				}
+
+				//clear undos
+				for(auto&& ep : editors) {
+					ep.second->clear_state();
+				}
 
 				request_soft_seed_lock();
 
@@ -648,7 +658,12 @@ namespace TileEditing {
 
 	BUTTON_CLASS(RevertButton, "New File");
 	int RevertButton::handle(int evt) {
-		if(evt == 2) {
+		if(evt == 2) {			
+			//clear undos
+			for(auto&& ep : editors) {
+				ep.second->clear_state();
+			}
+
 			IO::NewFile();
 			::window->redraw();
 		}

@@ -79,6 +79,7 @@ private:
 public:
 	std::vector<Chunk*> get_chunks();
 	void status_callback(std::function<void(unsigned)> cb);
+	void clear_state(); //clear state (undos)
 
 private:
 	void clear_chunk(Chunk* cnk);
