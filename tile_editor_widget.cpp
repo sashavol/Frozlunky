@@ -398,29 +398,35 @@ int EditorWidget::handle(int evt) {
 				}
 
 			case 122: //z: undo
-				if(!read_only && ctrl_down) {
-					timeline.rewind();
-					parent()->redraw();
-					status(STATE_CHUNK_PASTE);
+				if(ctrl_down) {
+					if(!read_only) {
+						timeline.rewind();
+						parent()->redraw();
+						status(STATE_CHUNK_PASTE);
+					}
 					return 1;
 				}
 					
 			case 121: //y: redo
-				if(!read_only && ctrl_down) {
-					timeline.forward();
-					parent()->redraw();
-					status(STATE_CHUNK_WRITE);
+				if(ctrl_down) {
+					if(!read_only) {
+						timeline.forward();
+						parent()->redraw();
+						status(STATE_CHUNK_WRITE);
+					}
 					return 1;
 				}
 
-			case 99: //c
-				if(ctrl_down && cursor.in_bounds()) {
-					clipboard = cursor.encode();
-					status(STATE_CHUNK_COPY);
+			case 99: //c: copy
+				if(ctrl_down) {
+					if(cursor.in_bounds()) {
+						clipboard = cursor.encode();
+						status(STATE_CHUNK_COPY);
+					}
 					return 1;
 				}
 			
-			case 120: //x
+			case 120: //x: cut
 				if(ctrl_down) {
 					timeline.push_state();
 					clipboard = cursor.encode();
@@ -432,11 +438,13 @@ int EditorWidget::handle(int evt) {
 
 			case 118: //v
 				this->take_focus();
-				if(ctrl_down && cursor.in_bounds() && !clipboard.empty()) {
-					timeline.push_state();
-					cursor.decode(clipboard);
-					status(STATE_CHUNK_PASTE);
-					parent()->redraw();
+				if(ctrl_down) {
+					if(cursor.in_bounds() && !clipboard.empty()) {
+						timeline.push_state();
+						cursor.decode(clipboard);
+						status(STATE_CHUNK_PASTE);
+						parent()->redraw();
+					}
 					return 1;
 				}
 
