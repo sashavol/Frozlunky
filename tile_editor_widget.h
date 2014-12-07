@@ -23,7 +23,6 @@
 
 //TODO add menu bar
 //TODO move clear level button away from Force level, and move Force level checkbox up
-//TODO fix worm / tutorial selection + UI
 //TODO hints bar for displaying useful information on hover, i.e. sidebar
 //TODO default templates for chunks
 
@@ -41,6 +40,9 @@ enum Direction {
 #define STATE_REQ_RANDOMIZE (1 << 7)
 #define STATE_REQ_OPEN (1 << 8)
 #define STATE_REQ_DEFAULT_SWAP (1 << 9)
+#define STATE_REQ_SAVE	       (1 << 10)
+#define STATE_REQ_SAVE_AS	   (1 << 11)
+#define STATE_REQ_NEW_FILE	   (1 << 12)
 
 class EditorWidget : public Fl_Widget {
 public:
@@ -112,6 +114,8 @@ private:
 	void compute_u();
 
 public:
+	//throws std::invalid_argument if key does nothing.
+	int handle_key(int key);
 	virtual int handle(int evt) override;
 
 public:

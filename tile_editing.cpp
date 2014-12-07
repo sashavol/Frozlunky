@@ -2,6 +2,7 @@
 #include "tile_util.h"
 #include "tile_default.h"
 #include "tile_editor_widget.h"
+#include "tile_editing_menubar.h"
 #include "level_forcer.h"
 #include "gui.h"
 #include "syllabic.h"
@@ -517,27 +518,46 @@ namespace TileEditing {
 			catch(std::exception&) {}
 		}
 
+		static void Save() {
+			try {
+				if(!current_file.empty()) {
+					IO::EncodeToFile();
+					window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file).c_str());
+				}
+				else {
+					IO::SaveAs();
+				}
+			}
+			catch(std::exception& e) {
+				MessageBox(NULL, (std::string("Error saving file: ") + e.what()).c_str(), "Error", MB_OK);
+			}
+		}
+
 		static void status_handler(unsigned state) {
 			if(state == STATE_CHUNK_WRITE || state == STATE_CHUNK_PASTE || state == STATE_RESERVED1) {
 				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file + "*").c_str());
 				unsaved_changes = true;
 			}
-			else if(state == STATE_CHUNK_APPLY) {
-				try {
-					if(!current_file.empty()) {
-						IO::EncodeToFile();
-						window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file).c_str());
-					}
-					else {
-						IO::SaveAs();
-					}
-				}
-				catch(std::exception& e) {
-					MessageBox(NULL, (std::string("Error saving file: ") + e.what()).c_str(), "Error", MB_OK);
-				}
+			else if(state == STATE_REQ_SAVE) {
+				IO::Save();
+			}
+			else if(state == STATE_REQ_SAVE_AS) {
+				IO::SaveAs();
 			}
 			else if(state == STATE_REQ_OPEN) {
 				open_file->handle(2);
+			}
+			else if(state == STATE_REQ_NEW_FILE) {
+				if(unsaved_changes) {
+					int res = MessageBox(NULL, "You have unsaved changes, save before making a new file?", "New File", MB_YESNOCANCEL);
+					if(res != IDCANCEL) {
+						if(res == IDYES) {
+							IO::Save();
+						}
+						
+						IO::NewFile();
+					}
+				}
 			}
 			else if(state == STATE_REQ_TAB || state == STATE_REQ_TAB_REVERSE) {
 				std::vector<std::string> areas;
@@ -829,13 +849,31 @@ namespace TileEditing {
 		}
 	};
 
+//menu bar y offset
+#define MB_Y_OFFSET 27
 	static std::string construct_window() {
-		Fl_Window* cons = new TileEditingWindow(780, 480, WINDOW_BASE_TITLE);
+		Fl_Window* cons = new TileEditingWindow(780, 510, WINDOW_BASE_TITLE);
 		window = cons;
 
 		cons->begin();
 
-		int y = 5;
+		//construct menu bar, callback is executed when key event needs execution
+		new TileEditingMenuBar(0, 0, 780, 25, [=](TileEditingMenuBar::KeyTrigger trigger) {
+			EditorWidget* editor = editors[current_area_editor];
+			if(editor) {
+				editor->shift_down = trigger.shift;
+				editor->alt_down = trigger.alt;
+				editor->ctrl_down = trigger.ctrl;
+				
+				editor->handle_key(trigger.key);
+				
+				editor->shift_down = false;
+				editor->alt_down = false;
+				editor->ctrl_down = false;
+			}
+		});
+
+		int y = 5+MB_Y_OFFSET;
 		for(auto it = grouping.begin(); it != grouping.end(); ++it) {
 			create_controls(5, y, it->first);
 			if(it->second.areas.size() == 4 || it->second.areas.size() == 3)
@@ -852,8 +890,8 @@ namespace TileEditing {
 		open_file = new LoadButton(5, y += 30, 150, 25);
 		new RevertButton(5, y += 30, 150, 25);
 
-		new ClearButton(165, 425, 135, 25);
-		flcb_force = new NF_CheckButton(165, 455, 100, 20, "Force level to game");
+		new ClearButton(165, 425+MB_Y_OFFSET, 135, 25);
+		flcb_force = new NF_CheckButton(165, 455+MB_Y_OFFSET, 100, 20, "Force level to game");
 		flcb_force->value(0);
 		
 		if(!level_forcer->valid()) {
@@ -865,20 +903,20 @@ namespace TileEditing {
 		});
 
 		
-		input_seed = new SeedInput(400, 425, 170, 25, [=](std::string seed) {
+		input_seed = new SeedInput(400, 425+MB_Y_OFFSET, 170, 25, [=](std::string seed) {
 			if(!current_area_editor.empty()) {
 				IO::status_handler(STATE_RESERVED1);
 				level_seeds[current_area_editor] = seed;
 			}
 		});
 
-		btn_randomize = new SeedRandomize(input_seed, 400, 455, 120, 20);
+		btn_randomize = new SeedRandomize(input_seed, 400, 455+MB_Y_OFFSET, 120, 20);
 
 		cons->end();
 
 		std::string valid_editor;
 		for(auto&& area : area_lookup) {
-			EditorScrollbar* es = new EditorScrollbar(690, 5, 15, 420);
+			EditorScrollbar* es = new EditorScrollbar(690, 5+MB_Y_OFFSET, 15, 420);
 			std::vector<Chunk*> chunks = tp->query_chunks(area.second);
 
 			// % -> default read-only
@@ -898,7 +936,7 @@ namespace TileEditing {
 							edited.push_back(chunks[i]);
 						}
 					}
-					ew = new EditorWidget(arm, tp, 165, 5, 545 + 90, 420, es, edited, true);
+					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, edited, true);
 				}
 				else if(area.second == "%") { //default read-only
 					std::vector<Chunk*> relevant;
@@ -906,10 +944,10 @@ namespace TileEditing {
 						if(c->get_width() == CHUNK_WIDTH && c->get_height() == CHUNK_HEIGHT)
 							relevant.push_back(c);
 					}
-					ew = new EditorWidget(arm, tp, 165, 5, 545 + 90, 420, es, relevant, false, true);
+					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, relevant, false, true);
 				}
 				else {
-					ew = new EditorWidget(arm, tp, 165, 5, 545 + 90, 420, es, chunks);
+					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, chunks);
 				}
 				es->set_parent_editor(ew);
 				ew->status_callback(IO::status_handler);
@@ -919,7 +957,9 @@ namespace TileEditing {
 
 		return valid_editor;
 	}
+#undef MB_Y_OFFSET
 
+	//entry point for tile editing UI
 	bool Initialize(std::shared_ptr<DerandomizePatch> dp, 
 			std::shared_ptr<GameHooks> gh, 
 			std::shared_ptr<Seeder> seeder, 

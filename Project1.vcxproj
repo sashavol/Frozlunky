@@ -131,6 +131,7 @@
     <ClCompile Include="tile_default.cpp" />
     <ClCompile Include="tile_draw.cpp" />
     <ClCompile Include="tile_editing.cpp" />
+    <ClCompile Include="tile_editing_menubar.cpp" />
     <ClCompile Include="tile_editor_widget.cpp" />
     <ClCompile Include="tile_patch.cpp" />
     <ClCompile Include="tile_util.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="shop_contents_patch.h" />
     <ClInclude Include="syllabic.h" />
     <ClInclude Include="temple_anticrash.h" />
+    <ClInclude Include="tile_editing_menubar.h" />
     <ClInclude Include="tile_editor_widget.h" />
     <ClInclude Include="tile_patch.h" />
     <ClInclude Include="tile_picker.h" />

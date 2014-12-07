@@ -219,6 +219,225 @@ void EditorWidget::cursor_fill(int x, int y) {
 
 static cursor_store clipboard;
 
+int EditorWidget::handle_key(int key) {
+	cursor_finish_move();
+
+	switch(key) {
+	case 65289: //tab
+		if(shift_down)
+			status(STATE_REQ_TAB_REVERSE);
+		else
+			status(STATE_REQ_TAB);
+
+		return 1;
+
+	case 65307: //esc: reset cursor size
+		{
+			int sx = cursor.rsx(), sy = cursor.rsy();
+			cursor.s(sx, sy);
+			cursor.e(sx, sy);
+			parent()->redraw();
+		}
+		return 1;
+
+	case 65361:
+		shift_env_left(ctrl_down ? 2 : 1, shift_down);
+		parent()->redraw();
+		return 1;
+
+	case 65362: //up
+		shift_env_up(ctrl_down ? 2 : 1, shift_down);
+		parent()->redraw();
+		return 1;
+
+	case 65363:
+		shift_env_right(ctrl_down ? 2 : 1, shift_down);
+		parent()->redraw();
+		return 1;
+
+	case 65364: //down
+		shift_env_down(ctrl_down ? 2 : 1, shift_down);
+		parent()->redraw();
+		return 1;
+
+	case 32:    //space
+		if(cursor.in_bounds()) {
+			timeline.push_state();
+			cursor.put('0');
+			if(!ctrl_down)
+				shift_env_right(1);
+			parent()->redraw();
+			status(STATE_CHUNK_WRITE);
+		}
+		return 1;
+
+	case 65288: //backspace
+		if(cursor.in_bounds()) {
+			timeline.push_state();
+			cursor.put('0');
+			if(!ctrl_down)
+				shift_env_left(1);
+			parent()->redraw();
+			status(STATE_CHUNK_WRITE);
+		}
+		return 1;
+
+	case 65535: //delete
+		if(cursor.in_bounds()) {
+			timeline.push_state();
+			cursor.put('0');
+			parent()->redraw();
+			status(STATE_CHUNK_WRITE);
+		}
+		return 1;
+
+	case 65505: //shift
+		shift_down = true;
+		return 1;
+
+	case 65507: //ctrl
+	case 65508:
+		ctrl_down = true;
+		return 1;
+
+	case 65513: //alt
+	case 65514:
+		alt_down = true;
+		return 1;
+
+	case 102: //f: fill
+		if(ctrl_down) {
+			cursor_fill(cursor.rsx(), cursor.rsy());
+			status(STATE_CHUNK_WRITE);
+			return 1;
+		}
+
+	case 97: //a
+		if(ctrl_down) {
+			cursor.s(0, 0);
+			cursor.e(cursor.cc_width() - 1, cursor.cc_height() - 1);
+			parent()->redraw();
+			return 1;
+		}
+
+	case 115: //s
+		if(ctrl_down) {
+			tp->apply_chunks();
+			
+			if(shift_down)
+				status(STATE_REQ_SAVE_AS);
+			else
+				status(STATE_REQ_SAVE);
+
+			return 1;
+		}
+
+	case 122: //z: undo
+		if(ctrl_down) {
+			if(!read_only) {
+				timeline.rewind();
+				parent()->redraw();
+				status(STATE_CHUNK_PASTE);
+			}
+			return 1;
+		}
+					
+	case 121: //y: redo
+		if(ctrl_down) {
+			if(!read_only) {
+				timeline.forward();
+				parent()->redraw();
+				status(STATE_CHUNK_WRITE);
+			}
+			return 1;
+		}
+
+	case 99: //c: copy
+		if(ctrl_down) {
+			if(cursor.in_bounds()) {
+				clipboard = cursor.encode();
+				status(STATE_CHUNK_COPY);
+			}
+			return 1;
+		}
+			
+	case 120: //x: cut
+		if(ctrl_down) {
+			timeline.push_state();
+			clipboard = cursor.encode();
+			cursor.put('0');
+			status(STATE_CHUNK_WRITE);
+			parent()->redraw();
+			return 1;
+		}
+
+	case 118: //v
+		if(ctrl_down) {
+			if(cursor.in_bounds() && !clipboard.empty()) {
+				timeline.push_state();
+				cursor.decode(clipboard);
+				status(STATE_CHUNK_PASTE);
+				parent()->redraw();
+			}
+			return 1;
+		}
+
+	case 'o':
+		if(ctrl_down) {
+			status(STATE_REQ_OPEN);
+			return 1;
+		}
+
+	case 'r':
+		if(ctrl_down) {
+			status(STATE_REQ_RANDOMIZE);
+			return 1;
+		}
+
+	case 'd':
+		if(ctrl_down) {
+			status(STATE_REQ_DEFAULT_SWAP);
+			return 1;
+		}
+
+	case 'n': //n: new file
+		if(ctrl_down && shift_down) {
+			status(STATE_REQ_NEW_FILE);
+			return 1;
+		}
+
+	case 'q': //q: clear level
+		if(ctrl_down && shift_down) {
+			if(!read_only) {
+				clear_chunks();
+				parent()->redraw();
+			}
+			return 1;
+		}
+
+	default:
+		{
+			char tile = Fl::event_text()[0];
+			if(tp->valid_tile(tile)) {
+				picker.select(tile);
+						
+				//do not put down tile if alt. Alt+Tile = pick tile only
+				if(!alt_down && cursor.in_bounds()) {
+					timeline.push_state();
+					cursor.put(tile);
+					shift_env_right(1);
+					status(STATE_CHUNK_WRITE);
+				}
+
+				parent()->redraw();
+			}
+			return 1;
+		}
+	}
+
+	throw std::invalid_argument("No input triggered.");
+}
+
 int EditorWidget::handle(int evt) {
 	switch(evt) {
 	case FL_FOCUS:
@@ -289,203 +508,11 @@ int EditorWidget::handle(int evt) {
 				key_press = std::make_shared<clock::time_point>(clock::now());
 			}
 
-			cursor_finish_move();
-
-			switch(key) {
-			case 65289: //tab
-				if(shift_down)
-					status(STATE_REQ_TAB_REVERSE);
-				else
-					status(STATE_REQ_TAB);
-
-				return 1;
-
-			case 65307: //esc: reset cursor size
-				{
-					int sx = cursor.rsx(), sy = cursor.rsy();
-					cursor.s(sx, sy);
-					cursor.e(sx, sy);
-					parent()->redraw();
-				}
-				return 1;
-
-			case 65361:
-				shift_env_left(ctrl_down ? 2 : 1, shift_down);
-				parent()->redraw();
-				return 1;
-
-			case 65362: //up
-				shift_env_up(ctrl_down ? 2 : 1, shift_down);
-				parent()->redraw();
-				return 1;
-
-			case 65363:
-				shift_env_right(ctrl_down ? 2 : 1, shift_down);
-				parent()->redraw();
-				return 1;
-
-			case 65364: //down
-				timeline.push_state();
-				shift_env_down(ctrl_down ? 2 : 1, shift_down);
-				parent()->redraw();
-				return 1;
-
-			case 32:    //space
-				if(cursor.in_bounds()) {
-					timeline.push_state();
-					cursor.put('0');
-					if(!ctrl_down)
-						shift_env_right(1);
-					parent()->redraw();
-					status(STATE_CHUNK_WRITE);
-				}
-				return 1;
-
-			case 65288: //backspace
-				if(cursor.in_bounds()) {
-					timeline.push_state();
-					cursor.put('0');
-					if(!ctrl_down)
-						shift_env_left(1);
-					parent()->redraw();
-					status(STATE_CHUNK_WRITE);
-				}
-				return 1;
-
-			case 65535: //delete
-				if(cursor.in_bounds()) {
-					timeline.push_state();
-					cursor.put('0');
-					parent()->redraw();
-					status(STATE_CHUNK_WRITE);
-				}
-				return 1;
-
-			case 65505: //shift
-				shift_down = true;
-				return 1;
-
-			case 65507: //ctrl
-			case 65508:
-				ctrl_down = true;
-				return 1;
-
-			case 65513: //alt
-			case 65514:
-				alt_down = true;
-				return 1;
-
-			case 102: //f: fill
-				if(ctrl_down) {
-					cursor_fill(cursor.rsx(), cursor.rsy());
-					status(STATE_CHUNK_WRITE);
-					return 1;
-				}
-
-			case 97: //a
-				if(ctrl_down) {
-					cursor.s(0, 0);
-					cursor.e(cursor.cc_width() - 1, cursor.cc_height() - 1);
-					parent()->redraw();
-					return 1;
-				}
-
-			case 115: //s
-				if(ctrl_down) {
-					tp->apply_chunks();
-					status(STATE_CHUNK_APPLY);
-					return 1;
-				}
-
-			case 122: //z: undo
-				if(ctrl_down) {
-					if(!read_only) {
-						timeline.rewind();
-						parent()->redraw();
-						status(STATE_CHUNK_PASTE);
-					}
-					return 1;
-				}
-					
-			case 121: //y: redo
-				if(ctrl_down) {
-					if(!read_only) {
-						timeline.forward();
-						parent()->redraw();
-						status(STATE_CHUNK_WRITE);
-					}
-					return 1;
-				}
-
-			case 99: //c: copy
-				if(ctrl_down) {
-					if(cursor.in_bounds()) {
-						clipboard = cursor.encode();
-						status(STATE_CHUNK_COPY);
-					}
-					return 1;
-				}
-			
-			case 120: //x: cut
-				if(ctrl_down) {
-					timeline.push_state();
-					clipboard = cursor.encode();
-					cursor.put('0');
-					status(STATE_CHUNK_WRITE);
-					parent()->redraw();
-					return 1;
-				}
-
-			case 118: //v
-				this->take_focus();
-				if(ctrl_down) {
-					if(cursor.in_bounds() && !clipboard.empty()) {
-						timeline.push_state();
-						cursor.decode(clipboard);
-						status(STATE_CHUNK_PASTE);
-						parent()->redraw();
-					}
-					return 1;
-				}
-
-			case 'o':
-				if(ctrl_down) {
-					status(STATE_REQ_OPEN);
-					return 1;
-				}
-
-			case 'r':
-				if(ctrl_down) {
-					status(STATE_REQ_RANDOMIZE);
-					return 1;
-				}
-
-			case 'd':
-				if(ctrl_down) {
-					status(STATE_REQ_DEFAULT_SWAP);
-					return 1;
-				}
-
-			default:
-				{
-					this->take_focus();
-					char tile = Fl::event_text()[0];
-					if(tp->valid_tile(tile)) {
-						picker.select(tile);
-						
-						//do not put down tile if alt. Alt+Tile = pick tile only
-						if(!alt_down && cursor.in_bounds()) {
-							timeline.push_state();
-							cursor.put(tile);
-							shift_env_right(1);
-							status(STATE_CHUNK_WRITE);
-						}
-
-						parent()->redraw();
-					}
-					return 1;
-				}
+			//handle_key throws invalid argument if key operation does nothing.
+			try {
+				return handle_key(key);
 			}
+			catch(std::invalid_argument&) {}
 		}
 		//key pressed
 		return 1;
@@ -598,7 +625,7 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 
 		auto handle_pos = [=](int cx, int cy) {
 			auto rpos = render_pos(cx, cy);
-			if(rpos.second >= this->h()) {
+			if(rpos.second >= this->y() + cnk_render_h*4) {
 				std::pair<int, int> bottom = chunkcoord_pos(this->x(), this->y() + this->h() - 1);
 				affect(yu*(cy - bottom.second + 10));
 			}
@@ -766,7 +793,7 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 		fl_line(fs.first, fs.second, fs.first, fx.second-1);
 		fl_line(fs.first, fs.second, fx.first-1, fs.second);
 	};
-	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, fs.first, fs.second, fx.first - fs.first + 1, fx.second - fs.second + 1, Fl_Color(0));
+	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, fs.first, fs.second, fx.first - fs.first, fx.second - fs.second, Fl_Color(0));
 
 	//render bounds behind scene if not in read-only mode
 	if(!read_only) {
@@ -782,6 +809,14 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 				auto dp = map(cx, cy);
 				if(dp.second >= ymin && dp.second+yu < ymax) {
 					draw_tile(tile, dp.first, dp.second, xu, yu, arm);
+				}
+				else if(dp.second + yu >= ymin || dp.second < ymax) {
+					std::pair<int,int> start = dp, end = std::pair<int,int>(dp.first+xu, dp.second+yu);
+					start.second = clamp_(ymin, ymax, dp.second);
+					end.second = clamp_(ymin, ymax, end.second);
+					if(end.second - start.second > 5) {
+						draw_tile(tile, start.first, start.second, end.first - start.first + 1, end.second - start.second + 1); 
+					}
 				}
 			}
 		}
