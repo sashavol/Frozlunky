@@ -532,7 +532,8 @@ static Numeric_ clamp_(Numeric_ s, Numeric_ e, Numeric_ v) {
 
 EditorWidget::~EditorWidget() {}
 
-EditorWidget::EditorWidget(std::shared_ptr<StaticChunkPatch> tp, 
+EditorWidget::EditorWidget(AreaRenderMode arm, 
+						   std::shared_ptr<StaticChunkPatch> tp, 
 						   int x, int y, int w, int h, 
 						   Fl_Scrollbar* scrollbar, 
 						   std::vector<Chunk*> chunks, 
@@ -554,7 +555,8 @@ EditorWidget::EditorWidget(std::shared_ptr<StaticChunkPatch> tp,
 	last_dir(Direction::UP),
 	timeline(chunks),
 	move_drag_start(-1, -1),
-	picker(tp->valid_tiles(), x + w - 87, y, 45, h, 15, 15),
+	arm(arm),
+	picker(arm, tp->valid_tiles(), x + w - 87, y, 45, h, 15, 15),
 	cursor(chunks, extended_mode ? 2 : 4, read_only)
 {
 	//allocate width for sidebar
@@ -757,7 +759,7 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 	auto fs = map(0, 0), fx = map(cw, ch);
 	auto render_bounds = [=]() {
 		fl_color(Fl_Color(0x1A1A1A00));
-		fl_line(fs.first, fs.second - 1, fs.first, fx.second - 1);
+		fl_line(fs.first, fs.second, fs.first, fx.second);
 		fl_line(fs.first, fs.second, fx.first, fs.second);
 	};
 
@@ -775,7 +777,7 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 			//'0' = air
 			if(tile != '0') { 
 				auto dp = map(cx, cy);
-				draw_tile(tile, dp.first, dp.second, xu, yu);		
+				draw_tile(tile, dp.first, dp.second, xu, yu, arm);		
 			}
 		}
 	}

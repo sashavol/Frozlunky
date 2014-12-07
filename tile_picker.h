@@ -10,9 +10,10 @@ private:
 	int x, y, w, h, xu, yu;
 	std::set<char> tiles;
 	char selected;
+	AreaRenderMode arm;
 
 public:
-	TilePicker(const std::set<char>& tiles, int x, int y, int w, int h, int xu, int yu)
+	TilePicker(AreaRenderMode arm, const std::set<char>& tiles, int x, int y, int w, int h, int xu, int yu)
 	:   tiles(tiles), 
 		x(x), 
 		y(y), 
@@ -20,13 +21,14 @@ public:
 		h(h), 
 		xu(xu), 
 		yu(yu), 
-		selected(0)
+		selected(0),
+		arm(arm)
 	{}
 
 	void draw() {
 		int px = x, py = y;
 		for(char c : tiles) {
-			draw_tile(c, px, py, xu, yu);
+			draw_tile(c, px, py, xu, yu, arm);
 
 			if(c == selected) {
 				fl_rect(px, py, xu, yu, 0xFF000000);

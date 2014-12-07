@@ -887,6 +887,8 @@ namespace TileEditing {
 					valid_editor = area.first;
 				}
 
+				AreaRenderMode arm = mode_from_name(area.first);
+
 				//special handling for worm editor construction
 				EditorWidget* ew;
 				if(area.first == "Worm") {
@@ -896,7 +898,7 @@ namespace TileEditing {
 							edited.push_back(chunks[i]);
 						}
 					}
-					ew = new EditorWidget(tp, 165, 5, 545 + 90, 420, es, edited, true);
+					ew = new EditorWidget(arm, tp, 165, 5, 545 + 90, 420, es, edited, true);
 				}
 				else if(area.second == "%") { //default read-only
 					std::vector<Chunk*> relevant;
@@ -904,10 +906,10 @@ namespace TileEditing {
 						if(c->get_width() == CHUNK_WIDTH && c->get_height() == CHUNK_HEIGHT)
 							relevant.push_back(c);
 					}
-					ew = new EditorWidget(tp, 165, 5, 545 + 90, 420, es, relevant, false, true);
+					ew = new EditorWidget(arm, tp, 165, 5, 545 + 90, 420, es, relevant, false, true);
 				}
 				else {
-					ew = new EditorWidget(tp, 165, 5, 545 + 90, 420, es, chunks);
+					ew = new EditorWidget(arm, tp, 165, 5, 545 + 90, 420, es, chunks);
 				}
 				es->set_parent_editor(ew);
 				ew->status_callback(IO::status_handler);

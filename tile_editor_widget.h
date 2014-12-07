@@ -21,9 +21,8 @@
 //OPT separate city of gold support
 //OPT save force-level attribute to level exports for single-level challenges
 
-//TODO fix capital A not being usable
+//TODO add menu bar
 //TODO move clear level button away from Force level, and move Force level checkbox up
-//TODO fix jungle crashes
 //TODO fix worm / tutorial selection + UI
 //TODO hints bar for displaying useful information on hover, i.e. sidebar
 //TODO default templates for chunks
@@ -46,6 +45,8 @@ enum Direction {
 class EditorWidget : public Fl_Widget {
 public:
 	bool read_only;
+
+	AreaRenderMode arm;
 
 	int cnk_render_w, cnk_render_h;
 	int xu, yu;
@@ -115,7 +116,7 @@ public:
 
 public:
 	~EditorWidget();
-	EditorWidget(std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks, bool extended_mode=false, bool read_only=false);
+	EditorWidget(AreaRenderMode arm, std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks, bool extended_mode=false, bool read_only=false);
 
 
 private:

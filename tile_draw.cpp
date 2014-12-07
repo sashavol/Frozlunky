@@ -1,5 +1,22 @@
 #include "tile_draw.h"
 
+AreaRenderMode mode_from_name(const std::string& area) {
+	if(area.find("1-") == 0 || area.find("Tut") == 0)
+		return AreaRenderMode::MINES;
+	else if(area.find("2-") == 0 || area == "Black Market" || area == "Haunted Castle") 
+		return AreaRenderMode::JUNGLE;
+	else if(area.find("3-") == 0)
+		return AreaRenderMode::ICE_CAVES;
+	else if(area.find("4-") == 0 || area == "Olmec (4-4)")
+		return AreaRenderMode::TEMPLE;
+	else if(area.find("5-") == 0)
+		return AreaRenderMode::HELL;
+	else if(area == "Worm")
+		return AreaRenderMode::WORM;
+	else
+		return AreaRenderMode::MINES;
+}
+
 Fl_Color tile_color(char tile) {
 	switch(tile) {
 	case 'w': //water
@@ -32,12 +49,18 @@ Fl_Color tile_color(char tile) {
 		return 0x99004C00;
 	case 'a': //ankh
 		return 0xE2B22700;
+	case '9': //static door
+		return 0xAA00BD00;
+	case '8': //tile-generating door
+		return 0x50005900;
+	case 'R': //ruby
+		return 0xE3404A00;
 	default:
 		return ((tile - '0')*0x23456721) & 0xFFFFFF00;
 	}
 }
 
-void draw_tile(char tile, int x, int y, int w, int h) {
+void draw_tile(char tile, int x, int y, int w, int h, AreaRenderMode arm) {
 	Fl_Color ctile = tile_color(tile);
 	char str[] = {tile, 0};
 
