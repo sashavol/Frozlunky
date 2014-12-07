@@ -207,7 +207,8 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 }
 
 void EditorWidget::cursor_fill(int x, int y) {
-	if(x >= 0 && y >= 0) {
+	char tile = picker.tile();
+	if(x >= 0 && y >= 0 && tp->valid_tile(tile)) {
 		cursor.s(x, y);
 		cursor.e(x, y);
 		timeline.push_state();
