@@ -556,7 +556,12 @@ namespace TileEditing {
 						}
 						
 						IO::NewFile();
+						::window->redraw();
 					}
+				}
+				else {
+					IO::NewFile();
+					::window->redraw();
 				}
 			}
 			else if(state == STATE_REQ_TAB || state == STATE_REQ_TAB_REVERSE) {
