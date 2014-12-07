@@ -21,7 +21,7 @@
 //OPT separate city of gold support
 //OPT save force-level attribute to level exports for single-level challenges
 
-//TODO add menu bar
+//TODO fix the click scrollbar bug
 //TODO move clear level button away from Force level, and move Force level checkbox up
 //TODO hints bar for displaying useful information on hover, i.e. sidebar
 //TODO default templates for chunks

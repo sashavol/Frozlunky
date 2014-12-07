@@ -312,7 +312,6 @@ namespace TileEditing {
 
 	static SeedInput* input_seed;
 	static SeedRandomize* btn_randomize;
-	static Fl_Button* open_file;
 
 	static void SetCurrentEditor(const std::string& area);
 
@@ -545,7 +544,17 @@ namespace TileEditing {
 				IO::SaveAs();
 			}
 			else if(state == STATE_REQ_OPEN) {
-				open_file->handle(2);
+				try {
+					std::string file = TileUtil::QueryTileFile(false);
+					try {
+						IO::LoadFile(file);
+						::window->redraw();
+					}
+					catch(std::exception& e) {
+						MessageBox(NULL, (std::string("Error loading file: ") + e.what()).c_str(), "Error", MB_OK);
+					}
+				}
+				catch(std::exception&) {}
 			}
 			else if(state == STATE_REQ_NEW_FILE) {
 				if(unsaved_changes) {
@@ -684,54 +693,6 @@ namespace TileEditing {
 	void DisplayStateCallback(std::function<void(bool)> cb) {
 		display_cb = cb;
 	}
-
-	BUTTON_CLASS(RevertButton, "New File");
-	int RevertButton::handle(int evt) {
-		if(evt == 2) {			
-			//clear undos
-			for(auto&& ep : editors) {
-				ep.second->clear_state();
-			}
-
-			IO::NewFile();
-			::window->redraw();
-		}
-		else if(evt == FL_FOCUS)
-			return 0;
-		return Fl_Button::handle(evt);
-	}
-
-	BUTTON_CLASS(SaveButton, "Save As..");
-	int SaveButton::handle(int evt) {
-		if(evt == 2) {
-			IO::SaveAs();
-			::window->redraw();
-		}
-		else if(evt == FL_FOCUS)
-			return 0;
-		return Fl_Button::handle(evt);
-	}
-	
-	BUTTON_CLASS(LoadButton, "Load File");
-	int LoadButton::handle(int evt) {
-		if(evt == 2) {
-			try {
-				std::string file = TileUtil::QueryTileFile(false);
-				try {
-					IO::LoadFile(file);
-					::window->redraw();
-				}
-				catch(std::exception& e) {
-					MessageBox(NULL, (std::string("Error loading file: ") + e.what()).c_str(), "Error", MB_OK);
-				}
-			}
-			catch(std::exception&) {}
-		}
-		else if(evt == FL_FOCUS)
-			return 0;
-
-		return Fl_Button::handle(evt);	
-	}
 	
 	struct AreaButton : public Fl_Button {
 		std::string area;
@@ -753,19 +714,6 @@ namespace TileEditing {
 		}
 	};
 
-	BUTTON_CLASS(ClearButton, "Clear Level");
-	int ClearButton::handle(int evt) {
-		if(evt == 2) {
-			if(!current_area_editor.empty()) {
-				editors[current_area_editor]->clear_chunks();
-				parent()->redraw();
-			}
-		}
-		else if(evt == FL_FOCUS)
-			return 0;
-
-		return Fl_Button::handle(evt);
-	}
 
 	//lays out the UI widgets and stores them to an AreaControls object.
 	static void create_controls(int x, int y, const std::string& group) {
@@ -891,12 +839,7 @@ namespace TileEditing {
 			}
 		}
 
-		new SaveButton(5, y += 8, 150, 25);
-		open_file = new LoadButton(5, y += 30, 150, 25);
-		new RevertButton(5, y += 30, 150, 25);
-
-		new ClearButton(165, 425+MB_Y_OFFSET, 135, 25);
-		flcb_force = new NF_CheckButton(165, 455+MB_Y_OFFSET, 100, 20, "Force level to game");
+		flcb_force = new NF_CheckButton(165, 2+425+MB_Y_OFFSET, 100, 20, "Force level to game");
 		flcb_force->value(0);
 		
 		if(!level_forcer->valid()) {
@@ -915,7 +858,7 @@ namespace TileEditing {
 			}
 		});
 
-		btn_randomize = new SeedRandomize(input_seed, 400, 455+MB_Y_OFFSET, 120, 20);
+		btn_randomize = new SeedRandomize(input_seed, 400+175, 2+425+MB_Y_OFFSET, 120, 20);
 
 		cons->end();
 
