@@ -629,7 +629,7 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 				std::pair<int, int> bottom = chunkcoord_pos(this->x(), this->y() + this->h() - 1);
 				affect(yu*(cy - bottom.second + 10));
 			}
-			else if(rpos.second < 0) {
+			else if(rpos.second < this->y()) {
 				std::pair<int, int> zero = chunkcoord_pos(this->x(), this->y());
 				affect(yu*(cy - zero.second - 10));
 			}
@@ -775,7 +775,7 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 	fit_chunk_aspect(cnk, maxw, maxh);
 
 	int xu = maxw / cw, yu = maxh / ch;
-	int ymin = this->y(), ymax = this->y() + cnk_render_h*4 + 1;
+	int ymin = this->y(), ymax = this->y() + cnk_render_h*4 - 1;
 
 	//maps chunk coordinates to world coordinates
 	auto map = [&](int cx, int cy) -> std::pair<int, int> {
@@ -785,15 +785,17 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 	
 	//chunk bg + bounds
 	auto fs = map(0, 0), fx = map(cw, ch);
+	fx.first -= 1; fx.second -= 1;
+
 	fs.second = clamp_(ymin, ymax, fs.second);
 	fx.second = clamp_(ymin, ymax, fx.second);
 
 	auto render_bounds = [=]() {
 		fl_color(Fl_Color(0x1A1A1A00));
-		fl_line(fs.first, fs.second, fs.first, fx.second-1);
-		fl_line(fs.first, fs.second, fx.first-1, fs.second);
+		fl_line(fs.first, fs.second, fs.first, fx.second);
+		fl_line(fs.first, fs.second, fx.first, fs.second);
 	};
-	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, fs.first, fs.second, fx.first - fs.first, fx.second - fs.second, Fl_Color(0));
+	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, fs.first, fs.second, fx.first - fs.first + 1, fx.second - fs.second + 1, Fl_Color(0));
 
 	//render bounds behind scene if not in read-only mode
 	if(!read_only) {
@@ -811,7 +813,7 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 					draw_tile(tile, dp.first, dp.second, xu, yu, arm);
 				}
 				else if(dp.second + yu >= ymin || dp.second < ymax) {
-					std::pair<int,int> start = dp, end = std::pair<int,int>(dp.first+xu, dp.second+yu);
+					std::pair<int,int> start = dp, end = std::pair<int,int>(dp.first+xu-1, dp.second+yu-1);
 					start.second = clamp_(ymin, ymax, dp.second);
 					end.second = clamp_(ymin, ymax, end.second);
 					if(end.second - start.second > 5) {
