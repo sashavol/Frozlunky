@@ -153,59 +153,6 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 	parent()->redraw();
 }
 
-void EditorWidget::cursor_finish_move() {
-	move_drag_start = std::pair<int, int>(-1, -1);
-}
-
-char EditorWidget::cursor_tile() {
-	return picker.tile();
-}
-
-void EditorWidget::cursor_build(int rx, int ry, bool drag) {
-	char tile = cursor_tile();
-	if(tile == 0)
-		return;
-
-	auto affect = [=](int x, int y) {
-		Chunk* c = find_chunk(x, y);
-		if(c && tile != 0) {
-			auto spos = get_chunk_render_pos(c);
-			c->tile(c->get_width() * (x - spos.first) / cnk_render_w, c->get_height() * (y - spos.second) / cnk_render_h, tile);
-		}
-	};
-
-	if(drag) {
-		double x = last_build.first, y = last_build.second;
-		int to_x = rx, to_y = ry;
-
-		double vx = to_x - x, vy = to_y - y;
-		double len = sqrt(vx*vx + vy*vy);
-		if(len >= 1) {
-			vx /= len; vy /= len;
-
-			while(abs(to_x - x) > 0.1 || abs(to_y - y) > 0.1) {
-				affect((int)x, (int)y);
-				
-				vx = to_x - x, vy = to_y - y;
-				len = sqrt(vx*vx + vy*vy);
-				if(len > 0.9) {
-					vx /= len;
-					vy /= len;
-				}
-
-				x += vx;
-				y += vy;
-			}
-		}
-	}
-	else {
-		affect(rx, ry);
-	}
-
-	last_build = std::pair<int, int>(rx, ry);
-	parent()->redraw();
-}
-
 void EditorWidget::cursor_fill(int x, int y) {
 	char tile = picker.tile();
 	if(x >= 0 && y >= 0 && tp->valid_tile(tile)) {
@@ -439,6 +386,61 @@ int EditorWidget::handle_key(int key) {
 	throw std::invalid_argument("No input triggered.");
 }
 
+void EditorWidget::cursor_finish_move() {
+	move_drag_start = std::pair<int, int>(-1, -1);
+}
+
+char EditorWidget::cursor_tile() {
+	return picker.tile();
+}
+
+void EditorWidget::cursor_build(int rx, int ry, bool drag) {
+	char tile = cursor_tile();
+	if(tile == 0)
+		return;
+
+	auto affect = [=](int x, int y) {
+		auto cc = chunkcoord_pos(x, y);
+		cursor.s(cc.first, cc.second);
+		cursor.e(cc.first, cc.second);
+
+		if(tile != 0 && tp->valid_tile(tile)) {
+			cursor.put(tile);
+		}
+	};
+
+	if(drag) {
+		double x = last_build.first, y = last_build.second;
+		int to_x = rx, to_y = ry;
+
+		double vx = to_x - x, vy = to_y - y;
+		double len = sqrt(vx*vx + vy*vy);
+		if(len >= 1) {
+			vx /= len; vy /= len;
+
+			while(abs(to_x - x) > 0.1 || abs(to_y - y) > 0.1) {
+				affect((int)x, (int)y);
+				
+				vx = to_x - x, vy = to_y - y;
+				len = sqrt(vx*vx + vy*vy);
+				if(len > 0.9) {
+					vx /= len;
+					vy /= len;
+				}
+
+				x += vx;
+				y += vy;
+			}
+		}
+	}
+	else {
+		affect(rx, ry);
+	}
+
+	last_build = std::pair<int, int>(rx, ry);
+	parent()->redraw();
+}
+
 int EditorWidget::handle(int evt) {
 	switch(evt) {
 	case FL_FOCUS:
@@ -462,8 +464,6 @@ int EditorWidget::handle(int evt) {
 			if(cpos.first >= 0 && cpos.second >= 0) {
 				timeline.push_state();
 				cursor_build(Fl::event_x(), Fl::event_y(), false);
-				cursor.s(cpos.first, cpos.second);
-				cursor.e(cpos.first, cpos.second);
 			}
 		}
 		else if(Fl::event_state() & FL_BUTTON2) {
@@ -487,8 +487,6 @@ int EditorWidget::handle(int evt) {
 			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
 			if(cpos.first >= 0 && cpos.second >= 0) {
 				cursor_build(Fl::event_x(), Fl::event_y(), true);
-				cursor.s(cpos.first, cpos.second);
-				cursor.e(cpos.first, cpos.second);
 			}
 		}
 
@@ -589,13 +587,16 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 {
 	//allocate width for sidebar
 	w -= 60;
-
+	
 	std::fill(mouse_down, mouse_down+sizeof(mouse_down), false);
 
 	if(chunks.empty()) {
 		this->deactivate();
 		return;
 	}
+
+	//default picker to air
+	picker.select('0');
 
 	compute_u();
 

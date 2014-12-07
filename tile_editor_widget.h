@@ -22,9 +22,9 @@
 //OPT save force-level attribute to level exports for single-level challenges
 
 //TODO fix the click scrollbar bug
-//TODO move clear level button away from Force level, and move Force level checkbox up
 //TODO hints bar for displaying useful information on hover, i.e. sidebar
 //TODO default templates for chunks
+//TODO add support for shop chunk selection
 
 enum Direction {
 	UP, LEFT, RIGHT, DOWN
@@ -109,6 +109,7 @@ private:
 	void cursor_fill(int x, int y);
 	
 	std::pair<int, int> last_build;
+	std::pair<int, int> build_dim;
 	void cursor_build(int rx, int ry, bool drag);
 
 	void compute_u();

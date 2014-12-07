@@ -279,10 +279,11 @@ namespace Mods {
 		if(evt == 2) {
 			if(!mods->get("stcp")->is_active()) {
 				mods->get("stcp")->perform();
-				mod_checkboxes["stcp"]->value(1);
 			}
-		
+			
 			TileEditing::ShowUI();
+			HideModsGUI();
+			return 1;
 		}
 		return Fl_Button::handle(evt);
 	}
@@ -361,22 +362,30 @@ namespace Mods {
 		} // Fl_Group* o
 
 		{
-			ModCheckbox* mc = new ModCheckbox("stcp", 5, 308, 255, 25, "Enable Custom Levels");
 			Fl_Button* o = new ChunkEditorButton(5, 338, 255, 25, "Level Editor (Beta)");
 			if(TileEditing::Visible()) {
 				o->deactivate();
 			}
 
 			if(!TileEditing::Valid()) {
-				mc->deactivate();
 				o->label("Editing Unavailable");
+				o->deactivate();
 			}
-
+			
+			//level editing will be enabled as long as the window is open
 			TileEditing::DisplayStateCallback([=](bool vis) {
-				if(vis)
+				if(vis) {
+					std::shared_ptr<Patch> mod = mods->get("stcp");
+					if(!mod->is_active()) {
+						mod->perform();
+					}
+
 					o->deactivate();
-				else
+				}
+				else {
+					mods->get("stcp")->undo();
 					o->activate();
+				}
 			});
 		}
 
