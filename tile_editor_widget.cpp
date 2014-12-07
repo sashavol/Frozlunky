@@ -748,6 +748,7 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 	fit_chunk_aspect(cnk, maxw, maxh);
 
 	int xu = maxw / cw, yu = maxh / ch;
+	int ymin = this->y(), ymax = this->y() + cnk_render_h*4 + 1;
 
 	//maps chunk coordinates to world coordinates
 	auto map = [&](int cx, int cy) -> std::pair<int, int> {
@@ -757,19 +758,21 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 	
 	//chunk bg + bounds
 	auto fs = map(0, 0), fx = map(cw, ch);
+	fs.second = clamp_(ymin, ymax, fs.second);
+	fx.second = clamp_(ymin, ymax, fx.second);
+
 	auto render_bounds = [=]() {
 		fl_color(Fl_Color(0x1A1A1A00));
-		fl_line(fs.first, fs.second, fs.first, fx.second);
-		fl_line(fs.first, fs.second, fx.first, fs.second);
+		fl_line(fs.first, fs.second, fs.first, fx.second-1);
+		fl_line(fs.first, fs.second, fx.first-1, fs.second);
 	};
-
-	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, fs.first, fs.second, fx.first - fs.first, fx.second - fs.second, Fl_Color(0));
+	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, fs.first, fs.second, fx.first - fs.first + 1, fx.second - fs.second + 1, Fl_Color(0));
 
 	//render bounds behind scene if not in read-only mode
 	if(!read_only) {
 		render_bounds();
 	}
-
+	
 	fl_font(FL_SCREEN, min(xu, yu)-2);
 	for(int cy = 0; cy < ch; cy++) {
 		for(int cx = 0; cx < cw; cx++) {
@@ -777,7 +780,9 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 			//'0' = air
 			if(tile != '0') { 
 				auto dp = map(cx, cy);
-				draw_tile(tile, dp.first, dp.second, xu, yu, arm);		
+				if(dp.second >= ymin && dp.second+yu < ymax) {
+					draw_tile(tile, dp.first, dp.second, xu, yu, arm);
+				}
 			}
 		}
 	}
