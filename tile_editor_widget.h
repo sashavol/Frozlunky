@@ -20,6 +20,7 @@
 
 //OPT separate city of gold support
 //OPT save force-level attribute to level exports for single-level challenges
+//OPT boshy-style level checkpoints through automated force level
 
 //TODO fix the click scrollbar bug
 //TODO hints bar for displaying useful information on hover, i.e. sidebar
