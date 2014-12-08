@@ -876,7 +876,7 @@ void EditorScrollbar::set_parent_editor(EditorWidget* editor) {
 }
 
 int EditorScrollbar::handle(int evt) {
-	if(evt == 5 || evt == 0x13) {
+	if(evt == 5 || evt == 0x13 || evt == FL_PUSH || evt == FL_RELEASE) {
 		auto par = parent();
 		if(par)
 			par->redraw();

@@ -421,6 +421,8 @@ namespace TileEditing {
 					SetActiveFile(file);
 					ofs.close();
 				}
+
+				unsaved_changes = false;
 			}
 			else {
 				fst.close();
@@ -500,6 +502,7 @@ namespace TileEditing {
 				}
 
 				SetActiveFile(file);
+				unsaved_changes = false;
 			}
 		}
 

@@ -389,24 +389,7 @@ int FrozboardsButton::handle(int evt) {
 
 int InfoButton::handle(int evt) {
 	if(evt == 2) {
-		Fl_Window* window = this->window();
-
-		Fl_Double_Window* info = make_info_window();
-		info->callback([](Fl_Widget* wind) {
-			if(info_button != nullptr) {
-				info_button->activate();
-			}
-
-			delete (Fl_Double_Window*)wind;
-			info_window = nullptr;
-		});
-		
-		if(info_button != nullptr) {
-			info_button->deactivate();
-		}
-
-		info->show();
-		info_window = info;
+		ShellExecute(NULL, "open", FROZLUNKY_URL, NULL, NULL, SW_SHOWNORMAL);
 	}
 
 	return Fl_Button::handle(evt);
