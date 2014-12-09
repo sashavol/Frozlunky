@@ -9,7 +9,7 @@ AreaRenderMode mode_from_name(const std::string& area) {
 		return AreaRenderMode::ICE_CAVES;
 	else if(area.find("4-") == 0 || area == "Olmec (4-4)")
 		return AreaRenderMode::TEMPLE;
-	else if(area.find("5-") == 0)
+	else if(area.find("5-") == 0 || area == "Yama (5-4)")
 		return AreaRenderMode::HELL;
 	else if(area == "Worm")
 		return AreaRenderMode::WORM;

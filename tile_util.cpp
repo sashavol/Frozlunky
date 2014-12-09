@@ -38,7 +38,13 @@ namespace TileUtil {
 		return ret;
 	}
 
-	std::string GetBaseFilename(const std::string& addr) {
-		return addr.substr(addr.find_last_of("/")+1, addr.size());
+	std::string GetBaseFilename(const std::string& file) {
+		auto las = file.find_last_of("\\/");
+		if(las != std::string::npos) {
+			return file.substr(las+1);
+		}
+		else {
+			return file;
+		}
 	}
 }

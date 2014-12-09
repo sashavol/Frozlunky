@@ -53,7 +53,7 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", dp, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 46)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Temple", dp, tp->get_gen_fn("LevelGen_TempleCnk"), 13, 15+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("TempleOlmec", dp, tp->get_gen_fn("LevelGen_OlmecCnk"), 16, 16+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Hell", dp, tp->get_gen_fn("LevelGen_HellCnk"), 17, 19+1)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Hell", dp, tp->get_gen_fn("LevelGen_HellCnk"), 17, 20+1)));
 
 	bool suc = false;
 	for(auto&& sap : saps) {

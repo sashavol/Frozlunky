@@ -82,6 +82,9 @@ typedef struct area_grouping {
 typedef std::vector<std::pair<std::string, std::string>> area_map;
 typedef std::vector<std::pair<std::string, area_grouping>> grouping_map;
 
+//mapping references:
+//	tile_editing.cpp
+//	tile_draw.cpp
 static area_map area_lookup = boost::assign::map_list_of
 			("Default (Read-Only)", "%")
 			("Tut-1", "Tutorial-1")
@@ -106,6 +109,7 @@ static area_map area_lookup = boost::assign::map_list_of
 			("5-1", "Hell-17")
 			("5-2", "Hell-18")
 			("5-3", "Hell-19")
+			("Yama (5-4)", "Hell-20")
 			("Worm", "Worm")
 			("Black Market", "JungleBlackMarket")
 			("Haunted Castle", "JungleHauntedCastle");
@@ -121,6 +125,7 @@ static grouping_map grouping = boost::assign::map_list_of
 	("Temple", area_grouping("4-1", "4-2", "4-3"))
 	("Olmec (4-4)", area_grouping("Olmec (4-4)"))
 	("Hell", area_grouping("5-1", "5-2", "5-3"))
+	("Yama (5-4)", area_grouping("Yama (5-4)"))
 	("Black Market", area_grouping("Black Market"))
 	("Haunted Castle", area_grouping("Haunted Castle"))
 	("Worm", area_grouping("Worm"));
@@ -135,29 +140,31 @@ static void area_order(std::vector<std::string>& areas) {
 	}
 }
 
-static std::map<std::string, std::function<void()>> level_force_oper = boost::assign::map_list_of
-	("1-1",			std::function<void()>([](){level_forcer->force(1);}))
-	("1-2",			std::function<void()>([](){level_forcer->force(2);}))
-	("1-3",		    std::function<void()>([](){level_forcer->force(3);}))
-	("1-4",		    std::function<void()>([](){level_forcer->force(4);}))
-	("2-1",			std::function<void()>([](){level_forcer->force(5);}))
-	("2-2",			std::function<void()>([](){level_forcer->force(6);}))
-	("2-3",			std::function<void()>([](){level_forcer->force(7);}))
-	("2-4",			std::function<void()>([](){level_forcer->force(8);}))
-	("3-1",			std::function<void()>([](){level_forcer->force(9);}))
-	("3-2",			std::function<void()>([](){level_forcer->force(10);}))
-	("3-3",			std::function<void()>([](){level_forcer->force(11);}))
-	("3-4",			std::function<void()>([](){level_forcer->force(12);}))
-	("4-1",			std::function<void()>([](){level_forcer->force(13);}))
-	("4-2",			std::function<void()>([](){level_forcer->force(14);}))
-	("4-3",			std::function<void()>([](){level_forcer->force(15);}))
-	("Olmec (4-4)", std::function<void()>([](){level_forcer->force(16);}))
-	("5-1",			std::function<void()>([](){level_forcer->force(17);}))
-	("5-2",			std::function<void()>([](){level_forcer->force(18);}))
-	("5-3",			std::function<void()>([](){level_forcer->force(19);}))
-	("Black Market", std::function<void()>([](){level_forcer->force(5, LF_BLACK_MARKET);}))
-	("Haunted Castle", std::function<void()>([](){level_forcer->force(5, LF_HAUNTED_MANSION);}))
-	("Worm",		std::function<void()>([](){level_forcer->force(5, LF_WORM);}));
+typedef std::function<void()> fnv_;
+static std::map<std::string, fnv_> level_force_oper = boost::assign::map_list_of
+	("1-1",			fnv_([](){level_forcer->force(1);}))
+	("1-2",			fnv_([](){level_forcer->force(2);}))
+	("1-3",		    fnv_([](){level_forcer->force(3);}))
+	("1-4",		    fnv_([](){level_forcer->force(4);}))
+	("2-1",			fnv_([](){level_forcer->force(5);}))
+	("2-2",			fnv_([](){level_forcer->force(6);}))
+	("2-3",			fnv_([](){level_forcer->force(7);}))
+	("2-4",			fnv_([](){level_forcer->force(8);}))
+	("3-1",			fnv_([](){level_forcer->force(9);}))
+	("3-2",			fnv_([](){level_forcer->force(10);}))
+	("3-3",			fnv_([](){level_forcer->force(11);}))
+	("3-4",			fnv_([](){level_forcer->force(12);}))
+	("4-1",			fnv_([](){level_forcer->force(13);}))
+	("4-2",			fnv_([](){level_forcer->force(14);}))
+	("4-3",			fnv_([](){level_forcer->force(15);}))
+	("Olmec (4-4)", fnv_([](){level_forcer->force(16);}))
+	("5-1",			fnv_([](){level_forcer->force(17);}))
+	("5-2",			fnv_([](){level_forcer->force(18);}))
+	("5-3",			fnv_([](){level_forcer->force(19);}))
+	("Yama (5-4)",  fnv_([](){level_forcer->force(20);}))
+	("Black Market", fnv_([](){level_forcer->force(6, LF_BLACK_MARKET);}))
+	("Haunted Castle", fnv_([](){level_forcer->force(5, LF_HAUNTED_MANSION);}))
+	("Worm",		fnv_([](){level_forcer->force(5, LF_WORM);}));
 	//("Yeti Level",  std::function<void()>([](){level_forcer->force(9, LF_YETI);}))
 	//("The Mothership", std::function<void()>([](){level_forcer->force(12, LF_MOTHERSHIP);}));
 
@@ -189,6 +196,8 @@ static std::string current_game_level() {
 	switch(level) {
 	case 16:
 		return "Olmec (4-4)";
+	case 20:
+		return "Yama (5-4)";
 	default:
 		return std::to_string(1 + (level-1) / 4) + "-" + std::to_string(((level - 1) % 4) + 1);
 	}
@@ -470,6 +479,7 @@ namespace TileEditing {
 						}
 					}
 				}
+
 				mut_level_seeds.unlock();
 
 				InitializeEmptySeeds();
@@ -524,7 +534,7 @@ namespace TileEditing {
 			try {
 				if(!current_file.empty()) {
 					IO::EncodeToFile();
-					window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file).c_str());
+					window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file)).c_str());
 				}
 				else {
 					IO::SaveAs();
@@ -537,7 +547,7 @@ namespace TileEditing {
 
 		static void status_handler(unsigned state) {
 			if(state == STATE_CHUNK_WRITE || state == STATE_CHUNK_PASTE || state == STATE_RESERVED1) {
-				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + current_file + "*").c_str());
+				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file) + "* (Unapplied)").c_str());
 				unsaved_changes = true;
 			}
 			else if(state == STATE_REQ_SAVE) {
