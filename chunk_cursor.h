@@ -16,7 +16,7 @@ private:
 private:
 	bool read_only;
 
-	pos_fn pos_change_cb;
+	std::vector<pos_fn> pos_change_cb;
 
 	std::vector<Chunk*> chunks;
 	int tw;
@@ -41,8 +41,11 @@ private:
 	char get(int x, int y) const;
 
 public:
+	char get() const;
 	void put(char tile);
-	bool in_bounds();
+	
+	bool in_bounds() const;
+
 	bool try_dx(int dx);
 	bool try_dy(int dy);
 	bool try_dex(int dx);
@@ -50,10 +53,10 @@ public:
 	bool try_dsx(int dx);
 	bool try_dsy(int dy);
 
-	int rsx();
-	int rsy();
-	int rex();
-	int rey();
+	int rsx() const;
+	int rsy() const;
+	int rex() const;
+	int rey() const;
 
 	void s(int x, int y);
 	void e(int x, int y);

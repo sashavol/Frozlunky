@@ -6,23 +6,23 @@
 #include "tile_draw.h"
 #include "tile_chunk.h"
 
-class TileEditingHintbar : public Fl_Group {
+class TileEditingHintbar : public Fl_Widget {
 private:
+	std::string text;
+
 	char tile;
 	AreaRenderMode area;
 
 	Chunk* chunk;
 
+	void update_label();
+
 public:
-	TileEditingHintbar(int x, int y, int w, int h) : 
-		Fl_Group(x, y, w, h),
-		tile(0), 
-		area(MINES), 
-		chunk(nullptr)
-	{}
-	
+	TileEditingHintbar(int x, int y, int w, int h);
+
 	void set_tile(char tile, AreaRenderMode area);
 	void set_chunk(Chunk* chunk);
 
 	virtual void draw() override;
+	virtual int handle(int evt) override;
 };

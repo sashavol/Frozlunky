@@ -16,6 +16,10 @@ std::vector<Chunk*> EditorWidget::get_chunks() {
 	return chunks;
 }
 
+ChunkCursor& EditorWidget::get_cursor() {
+	return cursor;
+}
+
 void EditorWidget::status_callback(std::function<void(unsigned)> cb) {
 	this->status_cb = cb;
 }
@@ -562,18 +566,27 @@ static Numeric_ clamp_(Numeric_ s, Numeric_ e, Numeric_ v) {
 	return min(e, max(s, v));
 }
 
+void EditorWidget::update_hint_bar() {
+	auto pair = render_pos(cursor.rsx(), cursor.rsy());
+	hint_bar->set_chunk(find_chunk(pair.first, pair.second));
+	hint_bar->set_tile(cursor.get(), arm);
+	hint_bar->redraw();
+}
+
 EditorWidget::~EditorWidget() {}
 
 EditorWidget::EditorWidget(AreaRenderMode arm, 
 						   std::shared_ptr<StaticChunkPatch> tp, 
 						   int x, int y, int w, int h, 
 						   Fl_Scrollbar* scrollbar, 
+						   TileEditingHintbar* hint_bar,
 						   std::vector<Chunk*> chunks, 
 						   bool extended_mode, bool read_only) : 
 	Fl_Widget(x,y,w,h,""),
 	read_only(read_only),
 	chunks(chunks),
 	sidebar_scrollbar(scrollbar),
+	hint_bar(hint_bar),
 	cnk_render_w(130),
 	cnk_render_h(104),
 	xu(0),
@@ -625,10 +638,11 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 
 	//adjust scrollbar if cursor off screen
 	cursor.pos_callback([=](int dsx, int dsy, int dex, int dey) {
+		update_hint_bar();
+		
 		auto affect = [=](int amt) {
 			int t = sidebar_scrollbar->value() + amt;
 			sidebar_scrollbar->value(clamp_((int)sidebar_scrollbar->minimum(), (int)sidebar_scrollbar->maximum(), t));
-			parent()->redraw();	
 		};
 
 		if(render_pos(cursor.rex(), cursor.rey()).second >= this->y() + cnk_render_h*4) {
@@ -640,6 +654,8 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 			affect(yu*(cursor.rsy() - zero.second - 10));
 		}
 	});
+
+	update_hint_bar();
 }
 
 Chunk* EditorWidget::find_chunk(int rx, int ry) {

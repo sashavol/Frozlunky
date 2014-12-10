@@ -3,6 +3,7 @@
 #include "tile_default.h"
 #include "tile_editor_widget.h"
 #include "tile_editing_menubar.h"
+#include "tile_editing_hintbar.h"
 #include "level_forcer.h"
 #include "gui.h"
 #include "syllabic.h"
@@ -321,7 +322,7 @@ namespace TileEditing {
 
 	static SeedInput* input_seed;
 	static SeedRandomize* btn_randomize;
-
+	
 	static void SetCurrentEditor(const std::string& area);
 	static void ForceCurrentLevel(bool r);
 
@@ -695,11 +696,14 @@ namespace TileEditing {
 				curr->ctrl_down = last->ctrl_down;
 				std::memcpy(curr->mouse_down, last->mouse_down, sizeof(curr->mouse_down));
 				window->remove(last);
+				window->remove(last->sidebar_scrollbar);
+				window->remove(last->hint_bar);
 			}
 			
 			EditorWidget* ew = editors[current_area_editor = area];
 			window->add(ew);
 			window->add(ew->sidebar_scrollbar);
+			window->add(ew->hint_bar);
 
 			ForceCurrentLevel(!!flcb_force->value());
 
@@ -880,12 +884,14 @@ namespace TileEditing {
 		});
 
 		btn_randomize = new SeedRandomize(input_seed, 400+175, 2+425+MB_Y_OFFSET, 120, 20);
-
 		cons->end();
 
 		std::string valid_editor;
 		for(auto&& area : area_lookup) {
 			EditorScrollbar* es = new EditorScrollbar(690, 5+MB_Y_OFFSET, 15, 420);
+			TileEditingHintbar* hint_bar = new TileEditingHintbar(165, window->h()-30+1, 535, 25);
+			//TODO pass hint_bar to editor and have it handle it / activate upon switch to (In SetCurrentEditor, similar to scrollbar)
+
 			std::vector<Chunk*> chunks = tp->query_chunks(area.second);
 
 			// % -> default read-only
@@ -905,7 +911,7 @@ namespace TileEditing {
 							edited.push_back(chunks[i]);
 						}
 					}
-					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, edited, true);
+					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, edited, true);
 				}
 				else if(area.second == "%") { //default read-only
 					std::vector<Chunk*> relevant;
@@ -913,11 +919,12 @@ namespace TileEditing {
 						if(c->get_width() == CHUNK_WIDTH && c->get_height() == CHUNK_HEIGHT)
 							relevant.push_back(c);
 					}
-					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, relevant, false, true);
+					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, relevant, false, true);
 				}
 				else {
-					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, chunks);
+					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, chunks);
 				}
+
 				es->set_parent_editor(ew);
 				ew->status_callback(IO::status_handler);
 				editors[area.first] = ew;

@@ -252,6 +252,9 @@
     <ClCompile Include="tile_editing_menubar.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="tile_editing_hintbar.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">

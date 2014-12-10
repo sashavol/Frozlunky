@@ -131,6 +131,7 @@
     <ClCompile Include="tile_default.cpp" />
     <ClCompile Include="tile_draw.cpp" />
     <ClCompile Include="tile_editing.cpp" />
+    <ClCompile Include="tile_editing_hintbar.cpp" />
     <ClCompile Include="tile_editing_menubar.cpp" />
     <ClCompile Include="tile_editor_widget.cpp" />
     <ClCompile Include="tile_patch.cpp" />

@@ -6,6 +6,7 @@
 #include "tile_chunk.h"
 #include "tile_draw.h"
 #include "tile_picker.h"
+#include "tile_editing_hintbar.h"
 
 #include <FL/Fl_Widget.H>
 #include <FL/fl_draw.H>
@@ -55,7 +56,9 @@ public:
 	int cnk_render_w, cnk_render_h;
 	int xu, yu;
 	int hv_gap;
+
 	Fl_Scrollbar* sidebar_scrollbar;
+	TileEditingHintbar* hint_bar;
 
 	bool mouse_down[3];
 	bool ctrl_down;
@@ -79,12 +82,14 @@ private:
 
 	bool EditorWidget::allow_input();
 	void status(unsigned state);
+	void update_hint_bar();
 
 //outside interface
 public:
 	std::vector<Chunk*> get_chunks();
 	void status_callback(std::function<void(unsigned)> cb);
 	void clear_state(); //clear state (undos)
+	ChunkCursor& get_cursor();
 
 private:
 	void clear_chunk(Chunk* cnk);
@@ -123,7 +128,7 @@ public:
 
 public:
 	~EditorWidget();
-	EditorWidget(AreaRenderMode arm, std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, std::vector<Chunk*> chunks, bool extended_mode=false, bool read_only=false);
+	EditorWidget(AreaRenderMode arm, std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, TileEditingHintbar* hint_bar, std::vector<Chunk*> chunks, bool extended_mode=false, bool read_only=false);
 
 
 private:
