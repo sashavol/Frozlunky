@@ -485,6 +485,9 @@
     <ClInclude Include="tile_editing_menubar.h">
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
+    <ClInclude Include="tile_editing_hintbar.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\fr.ico">

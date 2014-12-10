@@ -360,7 +360,7 @@ namespace Mods {
 		  o->end();
 			
 		} // Fl_Group* o
-
+		
 		{
 			Fl_Button* o = new ChunkEditorButton(5, 338, 255, 25, "Level Editor (Beta)");
 			if(TileEditing::Visible()) {
@@ -379,7 +379,7 @@ namespace Mods {
 					if(!mod->is_active()) {
 						mod->perform();
 					}
-
+					
 					o->deactivate();
 				}
 				else {

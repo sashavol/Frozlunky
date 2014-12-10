@@ -354,6 +354,12 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
+	case 'e': //e: force level
+		if(ctrl_down) {
+			status(STATE_REQ_TOGGLE_FORCE_LEVEL);
+			return 1;
+		}
+
 	case 'q': //q: clear level
 		if(ctrl_down && shift_down) {
 			if(!read_only) {
@@ -625,22 +631,14 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 			parent()->redraw();	
 		};
 
-		auto handle_pos = [=](int cx, int cy) {
-			auto rpos = render_pos(cx, cy);
-			if(rpos.second >= this->y() + cnk_render_h*4) {
-				std::pair<int, int> bottom = chunkcoord_pos(this->x(), this->y() + this->h() - 1);
-				affect(yu*(cy - bottom.second + 10));
-			}
-			else if(rpos.second < this->y()) {
-				std::pair<int, int> zero = chunkcoord_pos(this->x(), this->y());
-				affect(yu*(cy - zero.second - 10));
-			}
-		};
-
-		if((dsy != 0 && dey != 0) || dsy != 0)
-			handle_pos(cursor.rsx(), cursor.rsy());
-		else if(dey != 0)
-			handle_pos(cursor.rex(), cursor.rey());
+		if(render_pos(cursor.rex(), cursor.rey()).second >= this->y() + cnk_render_h*4) {
+			std::pair<int, int> bottom = chunkcoord_pos(this->x(), this->y() + this->h() - 1);
+			affect(yu*(cursor.rey() - bottom.second + 10));
+		}
+		else if(render_pos(cursor.rsx(), cursor.rsy()).second < this->y()) {
+			std::pair<int, int> zero = chunkcoord_pos(this->x(), this->y());
+			affect(yu*(cursor.rsy() - zero.second - 10));
+		}
 	});
 }
 
@@ -848,7 +846,7 @@ void EditorWidget::draw() {
 	for(Chunk* c : chunks) {
 		int rx = x, ry = y - sidebar_scrollbar->value();
 
-		if(!(ry < -cnk_render_h || ry > this->h() + cnk_render_h)) {
+		if(ry >= this->y() - cnk_render_h && ry < this->h() + cnk_render_h) {
 			render_chunk(c, rx, ry, cnk_render_w, cnk_render_h);
 		}
 			

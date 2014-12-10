@@ -323,6 +323,7 @@ namespace TileEditing {
 	static SeedRandomize* btn_randomize;
 
 	static void SetCurrentEditor(const std::string& area);
+	static void ForceCurrentLevel(bool r);
 
 	namespace IO 
 	{
@@ -342,13 +343,11 @@ namespace TileEditing {
 
 		static void InitializeEmptySeeds() {
 			srand((unsigned int)time(0));
-			mut_level_seeds.lock();
 			for(auto&& seed : level_seeds) {
 				if(seed.second.empty()) {
 					seed.second = std::string(":") + Syllabic::MakePhoneticString(2);
 				}
 			}
-			mut_level_seeds.unlock();
 		}
 
 		static void NewFile() {
@@ -356,11 +355,10 @@ namespace TileEditing {
 			for(auto&& area : area_lookup) {
 				level_seeds[area.first] = std::string();
 			}
-			mut_level_seeds.unlock();
 
 			TileDefault::SetToDefault(tp->get_chunks());
-
 			InitializeEmptySeeds();
+			mut_level_seeds.unlock();
 
 			IO::SetActiveFile("");
 			unsaved_changes = false;
@@ -480,9 +478,8 @@ namespace TileEditing {
 					}
 				}
 
-				mut_level_seeds.unlock();
-
 				InitializeEmptySeeds();
+				mut_level_seeds.unlock();
 
 				std::vector<SingleChunk*> scs = tp->root_chunks();
 				pugi::xml_node chunks = xmld.child("chunks");
@@ -617,6 +614,17 @@ namespace TileEditing {
 				else {
 					SetCurrentEditor("Default (Read-Only)");
 				}
+			}
+			else if(state == STATE_REQ_TOGGLE_FORCE_LEVEL) {
+				if(flcb_force->value()) {
+					flcb_force->value(0);
+					ForceCurrentLevel(false);
+				}
+				else {
+					flcb_force->value(1);
+					ForceCurrentLevel(true);
+				}
+				::window->redraw();
 			}
 		}
 		

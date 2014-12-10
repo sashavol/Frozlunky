@@ -193,6 +193,7 @@
     <ClInclude Include="shop_contents_patch.h" />
     <ClInclude Include="syllabic.h" />
     <ClInclude Include="temple_anticrash.h" />
+    <ClInclude Include="tile_editing_hintbar.h" />
     <ClInclude Include="tile_editing_menubar.h" />
     <ClInclude Include="tile_editor_widget.h" />
     <ClInclude Include="tile_patch.h" />

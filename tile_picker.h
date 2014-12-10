@@ -31,7 +31,8 @@ public:
 			draw_tile(c, px, py, xu, yu, arm);
 
 			if(c == selected) {
-				fl_rect(px, py, xu, yu, 0xFF000000);
+				fl_rect(px, py, xu, yu, 0xCF000000);
+				fl_rect(px+1, py+1, xu-2, yu-2, 0xCF000000);
 			}
 
 			px += xu;
