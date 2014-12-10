@@ -417,6 +417,8 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 		if(tile != 0 && tp->valid_tile(tile)) {
 			cursor.put(tile);
 		}
+
+		status(STATE_CHUNK_WRITE);
 	};
 
 	if(drag) {
