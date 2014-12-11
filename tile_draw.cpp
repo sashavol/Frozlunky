@@ -55,6 +55,10 @@ Fl_Color tile_color(char tile) {
 		return 0x50005900;
 	case 'R': //ruby
 		return 0xE3404A00;
+	case '.': //guaranteed tile
+		return 0x33339F00;
+	case 's': //spikes
+		return 0xD5A59500;
 	default:
 		return ((tile - '0')*0x23456721) & 0xFFFFFF00;
 	}

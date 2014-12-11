@@ -412,7 +412,7 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 	auto affect = [=](int x, int y) {
 		auto cc = chunkcoord_pos(x, y);
 		cursor.s(cc.first, cc.second);
-		cursor.e(cc.first+build_dim.first-1, cc.second+build_dim.second-1);
+		cursor.e(min(cursor.cc_width()-1, cc.first+build_dim.first-1), min(cursor.cc_height()-1, cc.second+build_dim.second-1));
 
 		if(tile != 0 && tp->valid_tile(tile)) {
 			cursor.put(tile);
