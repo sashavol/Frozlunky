@@ -1,10 +1,14 @@
 #include "tile_draw.h"
 
 AreaRenderMode mode_from_name(const std::string& area) {
-	if(area.find("1-") == 0 || area.find("Tut") == 0)
+	if(area.find("Tut") == 0)
+		return AreaRenderMode::TUTORIAL;
+	else if(area.find("1-") == 0)
 		return AreaRenderMode::MINES;
-	else if(area.find("2-") == 0 || area == "Black Market" || area == "Haunted Castle") 
+	else if(area.find("2-") == 0 || area == "Black Market") 
 		return AreaRenderMode::JUNGLE;
+	else if(area == "Haunted Castle")
+		return AreaRenderMode::HAUNTED_CASTLE;
 	else if(area.find("3-") == 0)
 		return AreaRenderMode::ICE_CAVES;
 	else if(area.find("4-") == 0 || area == "Olmec (4-4)")
@@ -12,6 +16,48 @@ AreaRenderMode mode_from_name(const std::string& area) {
 	else if(area.find("5-") == 0 || area == "Yama (5-4)")
 		return AreaRenderMode::HELL;
 	else if(area == "Worm")
+		return AreaRenderMode::WORM;
+	else
+		return AreaRenderMode::MINES;
+}
+
+AreaRenderMode mode_from_chunk(Chunk* cnk) {
+	const std::string& area = cnk->get_name();
+	
+	//default chunks
+	if(area.find("LevelGen_TutorialCnk") == 0)
+		return AreaRenderMode::TUTORIAL;
+	else if(area.find("LevelGen_MinesCnk") == 0)
+		return AreaRenderMode::MINES;
+	else if(area.find("LevelGen_JungleGeneralCnk") == 0 || area.find("LevelGen_JungleBlackMarketCnk") == 0)
+		return AreaRenderMode::JUNGLE;
+	else if(area.find("LevelGen_JungleHauntedMansionCnk") == 0)
+		return AreaRenderMode::HAUNTED_CASTLE;
+	else if(area.find("LevelGen_IceCavesGeneralCnk") == 0)
+		return AreaRenderMode::ICE_CAVES;
+	else if(area.find("LevelGen_TempleCnk") == 0 || area.find("LevelGen_OlmecCnk") == 0)
+		return AreaRenderMode::TEMPLE;
+	else if(area.find("LevelGen_HellCnk") == 0)
+		return AreaRenderMode::HELL;
+	else if(area.find("LevelGen_WormCnk") == 0)
+		return AreaRenderMode::WORM;
+	
+	//custom chunks
+	if(area.find("Tutorial-") == 0)
+		return AreaRenderMode::TUTORIAL;
+	else if(area.find("Mines-") == 0)
+		return AreaRenderMode::MINES;
+	else if(area.find("Jungle-") == 0 || area.find("JungleBlackMarket-") == 0)
+		return AreaRenderMode::JUNGLE;
+	else if(area.find("JungleHauntedCastle-") == 0)
+		return AreaRenderMode::HAUNTED_CASTLE;
+	else if(area.find("IceCaves-") == 0)
+		return AreaRenderMode::ICE_CAVES;
+	else if(area.find("Temple-") == 0 || area.find("TempleOlmec-") == 0)
+		return AreaRenderMode::TEMPLE;
+	else if(area.find("Hell-") == 0)
+		return AreaRenderMode::HELL;
+	else if(area.find("Worm-") == 0)
 		return AreaRenderMode::WORM;
 	else
 		return AreaRenderMode::MINES;

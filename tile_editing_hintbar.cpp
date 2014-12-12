@@ -1,20 +1,10 @@
 #include "tile_editing_hintbar.h"
+#include "tile_description.h"
 
 #include <string>
 #include <sstream>
 #include <iostream>
 
-
-static std::string TileDescription(char tile) {
-	//TODO
-	return std::string("Tile '") + tile + "'";
-}
-
-static std::string ChunkDescription(Chunk* cnk) {
-	return cnk->get_name();
-}
-
-//////////////////
 
 TileEditingHintbar::TileEditingHintbar(int x, int y, int w, int h) : 
 	Fl_Widget(x, y, w, h),
@@ -29,11 +19,17 @@ void TileEditingHintbar::update_label() {
 	std::ostringstream oss;
 
 	if(chunk) {
-		oss << "Chunk: " << ChunkDescription(chunk) << "  ";
+		oss << "Chunk: " << Description::ChunkDescription(chunk) << "  ";
 	}
 
 	if(tile) {
-		oss << "Tile: " << TileDescription(tile);
+		//derive render mode from given by default, otherwise derive from chunk attributes
+		if(area != AreaRenderMode::INVALID) {
+			oss << "Tile: " << Description::TileDescription(tile, area);
+		}
+		else {
+			oss << "Tile: " << Description::TileDescription(tile, this->chunk);
+		}
 	}
 
 	text = oss.str();

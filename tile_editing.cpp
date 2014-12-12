@@ -900,7 +900,7 @@ namespace TileEditing {
 					valid_editor = area.first;
 				}
 
-				AreaRenderMode arm = mode_from_name(area.first);
+				AreaRenderMode arm = area.second != "%" ? mode_from_name(area.first) : AreaRenderMode::INVALID;
 
 				//special handling for worm editor construction
 				EditorWidget* ew;
