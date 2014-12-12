@@ -28,13 +28,13 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('-', map_list_of
 		(TUTORIAL, "Cracking ice platform"))
 	('.', map_list_of
-		(TUTORIAL, "Unmorphed terrain tile"))
+		(TUTORIAL, "Unmodified terrain tile"))
 	('0', map_list_of
 		(TUTORIAL, "Empty tile"))
 	('1', map_list_of
 		(TUTORIAL, "Regular terrain tile"))
 	('2', map_list_of
-		(TUTORIAL, "Probablistic terrain tile"))
+		(TUTORIAL, "Probabilistic terrain/empty tile"))
 	('3', map_list_of
 		(TUTORIAL, "TODO"))
 	('4', map_list_of
@@ -50,10 +50,12 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('9', map_list_of
 		(TUTORIAL, "Static platformless entrance/exit"))
 	(':', map_list_of
-		(TUTORIAL, "Scorpion spawn tile")
-		(JUNGLE, "Tikiman/caveman spawn tile"))
+		(TUTORIAL, "Scorpion spawn")
+		(JUNGLE, "Tikiman/caveman spawn")
+		(WORM, "Area enemy spawn")
+		(ICE_CAVES, "Yeti spawn"))
 	(';', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Idol + Damsel side-by-side spawn"))
 	('=', map_list_of
 		(TUTORIAL, "Wooden platform"))
 	('?', map_list_of
@@ -61,29 +63,33 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('A', map_list_of
 		(TUTORIAL, "Idol altar tile"))
 	('B', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Idol trap stone platform tile"))
 	('C', map_list_of
 		(TUTORIAL, "Non-movable push block"))
 	('D', map_list_of
-		(TUTORIAL, "Closing castle door tile"))
+		(TUTORIAL, "Damsel")
+		(MINES, "Inactive")
+		(HAUNTED_CASTLE, "Closing castle door tile")
+		(WORM, "Inactive"))
 	('E', map_list_of
-		(TUTORIAL, "Chest spawn tile"))
+		(TUTORIAL, "Probabilistic chest/crate/terrain/empty tile"))
 	('F', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Inactive")
+		(ICE_CAVES, "Probabilistic self+neighbor ice/platform/empty generator"))
 	('G', map_list_of
 		(TUTORIAL, "Ladder tile"))
 	('I', map_list_of
 		(TUTORIAL, "Idol spawn tile")
 		(HELL, "Tiki spawn"))
 	('J', map_list_of
-		(TUTORIAL, "Ol' Bitey spawn")
-		(HELL, "TODO"))
+		(TUTORIAL, "Ol' Bitey spawn"))
 	('K', map_list_of
 		(TUTORIAL, "Shopkeeper spawn"))
 	('L', map_list_of
 		(TUTORIAL, "Ladder tile")
 		(JUNGLE, "Vine tile")
-		(TEMPLE, "TODO")
+		(WORM, "Climbable uvula tile")
+		(ICE_CAVES, "Upward laser tile")
 		(HELL, "Chain tile"))
 	('M', map_list_of
 		(TUTORIAL, "Terrain block containing mattock"))
@@ -94,8 +100,10 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('P', map_list_of
 		(TUTORIAL, "Ladder platform junction"))
 	('Q', map_list_of
-		(TUTORIAL, "TODO")
+		(TUTORIAL, "(Glitched) Variable-length ladder spawn")
 		(JUNGLE, "Variable-length vine spawn")
+		(WORM, "Variable-length climbable uvula spawn")
+		(ICE_CAVES, "(Glitched) Variable-length ladder spawn")
 		(HELL, "Variable-length chain spawn"))
 	('R', map_list_of
 		(TUTORIAL, "Ruby tile"))
@@ -106,18 +114,21 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('U', map_list_of
 		(TUTORIAL, "Vlad spawn")
 		(HAUNTED_CASTLE, "Black knight spawn")
-		(WORM, "TODO"))
+		(WORM, "Vlad spawn"))
 	('V', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Inactive")
+		(JUNGLE, "Monkey+vine obstacle generator (requires large space)")
+		(ICE_CAVES, "Inactive, may crash"))
 	('W', map_list_of
 		(TUTORIAL, "TODO"))
 	('X', map_list_of
 		(TUTORIAL, "TODO")
 		(MINES, "Giant spider spawn")
 		(JUNGLE, "'Psychic presence' alien spawn")
-		(HELL, "TODO"))
+		(HELL, "Horsehead / Oxface spawn"))
 	('Y', map_list_of
 		(TUTORIAL, "Yeti King spawn")
+		(TEMPLE, "Mummy spawn")
 		(HELL, "King Yama spawn"))
 	('a', map_list_of
 		(TUTORIAL, "Ankh spawn tile"))
@@ -154,13 +165,17 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('m', map_list_of
 		(TUTORIAL, "Unbreakable terrain tile"))
 	('n', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Probabilistic snake/terrain/empty tile")
+		(HELL, "Probabilistic enemy/terrain/empty tile"))
 	('o', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Rock spawn"))
 	('p', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Inactive")
+		(JUNGLE, "Inactive, crashes game")
+		(WORM, "Inactive"))
 	('q', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Unmodified terrain tile")
+		(HELL, "Unmodified brick tile"))
 	('r', map_list_of
 		(TUTORIAL, "TODO"))
 	('s', map_list_of
@@ -179,7 +194,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('y', map_list_of
 		(TUTORIAL, "Block containing ruby"))
 	('z', map_list_of
-		(TUTORIAL, "TODO")
+		(TUTORIAL, "Chest spawn")
 		(JUNGLE, "Bee spawn"))
 	('|', map_list_of
 		(TUTORIAL, "Vault spawn tile"))
