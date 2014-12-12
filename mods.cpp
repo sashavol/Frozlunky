@@ -380,11 +380,15 @@ namespace Mods {
 						mod->perform();
 					}
 					
-					o->deactivate();
+					if(o) {
+						o->deactivate();
+					}
 				}
 				else {
 					mods->get("stcp")->undo();
-					o->activate();
+					if(o) { 
+						o->activate();
+					}
 				}
 			});
 		}

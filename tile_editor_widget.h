@@ -19,14 +19,14 @@
 #include <functional>
 #include <chrono>
 
+//TODO hover info
+//TODO finish descriptions
+//TODO move level editor button to main UI
+
+//OPT shops
 //OPT separate city of gold support
 //OPT save force-level attribute to level exports for single-level challenges
 //OPT boshy-style level checkpoints through automated force level
-
-//TODO fix the click scrollbar bug
-//TODO hints bar for displaying useful information on hover, i.e. sidebar
-//TODO default templates for chunks
-//TODO add support for shop chunk selection
 
 enum Direction {
 	UP, LEFT, RIGHT, DOWN

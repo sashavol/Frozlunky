@@ -188,6 +188,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TUTORIAL, "Wooden platform tile"))
 	('w', map_list_of
 		(TUTORIAL, "Water tile")
+		(WORM, "Acid pool tile")
+		(ICE_CAVES, "Water tile")
 		(TEMPLE, "Lava tile"))
 	('x', map_list_of
 		(TUTORIAL, "Kali sacrifice altar spawn"))
