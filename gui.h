@@ -29,6 +29,7 @@ BUTTON_CLASS(DailyButton);
 BUTTON_CLASS(FrozboardsButton);
 BUTTON_CLASS(DisplayModsButton);
 BUTTON_CLASS(NetplayButton);
+BUTTON_CLASS(ChunkEditorButton);
 
 #undef BUTTON_CLASS
 

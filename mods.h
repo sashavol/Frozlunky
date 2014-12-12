@@ -27,7 +27,6 @@ namespace Mods {
 	typedef std::function<void(bool)> visibility_callback;
 	
 	BUTTON_CLASS(DoneButton);
-	BUTTON_CLASS(ChunkEditorButton);
 
 	class ModCheckbox : public Fl_Check_Button {
 	public:

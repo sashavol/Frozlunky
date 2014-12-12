@@ -28,6 +28,7 @@
 #include "netplay_connection.h"
 #include "frzsave_patch.h"
 #include "rc_io.h"
+#include "tile_editing.h"
 
 #include "frozboards/session.h"
 
@@ -74,6 +75,8 @@ std::shared_ptr<GameHooks> info_hooks;
 std::shared_ptr<CustomHudPatch> chp;
 
 std::shared_ptr<RemoteCallPatch> rcp;
+
+std::shared_ptr<StaticChunkPatch> stcp;
 
 std::mutex daily_mutex;
 std::mutex gsd_mutex;
@@ -124,6 +127,51 @@ void init_special_mods() {
 		}
 	});
 }
+
+
+//////////
+// LEVEL EDITOR
+//////////
+
+static ChunkEditorButton* editor_button;
+
+int ChunkEditorButton::handle(int evt) {
+	if(evt == 2) {
+		TileEditing::ShowUI();
+		return 1;
+	}
+	return 0;
+}
+
+void init_level_editor() {
+	std::shared_ptr<TilePatch> tp(new TilePatch(spelunky));
+	stcp = std::make_shared<StaticChunkPatch>(dp, tp, seeder);
+	Mods::ModsGroup()->add("stcp", stcp);
+
+	TileEditing::Initialize(dp, info_hooks, seeder, stcp);
+	if(!TileEditing::Valid()) {
+		editor_button->deactivate();
+		editor_button->label("Level Editor Unavailable");
+	}
+
+	TileEditing::DisplayStateCallback([=](bool vis) {
+		if(vis) {
+			NetplayGUI::HideNetplayGUI();
+			Mods::HideModsGUI();
+			window->hide();
+			if(!stcp->is_active()) {
+				stcp->perform();
+			}
+		}
+		else {
+			stcp->undo();
+			window->show();
+		}
+	});
+}
+
+//////////
+
 
 
 int DisplayModsButton::handle(int evt) {
@@ -583,7 +631,7 @@ Fl_Window* make_window()
 {
   Fl_Window* w;
 
-  { Fl_Window* o = new Fl_Window(256, 120, FROZLUNKY_TITLE);
+  { Fl_Window* o = new Fl_Window(256, 150, FROZLUNKY_TITLE);
     w = o;
 	window = o;
 	o->begin();
@@ -629,7 +677,9 @@ Fl_Window* make_window()
 	} // Fl_Button* o
 	{ (netplay_button = new NetplayButton(120, 60, 60, 25, "Netplay"))->deactivate();
 	} // Fl_Button* o
-    o->size_range(256, 120, 256, 120);
+	{ editor_button = new ChunkEditorButton(5, 120, 246, 25, "Switch to Level Editor");
+	}
+   
     o->end();
   } // Fl_Window* o
   return w;
@@ -776,6 +826,9 @@ int gui_operate(std::shared_ptr<Spelunky> spelunk, char* icon)
 
 	DBG_EXPR(std::cout << "[GUI] Initializing operations on Spelunky located at base: " << spelunk->base_directory() << std::endl);
 
+	Fl_Window* gui_window = make_window();
+	window = gui_window;
+
 	start_thread = std::thread([]() {
 		try {
 			patches = std::make_shared<PatchGroup>(spelunky);
@@ -823,6 +876,7 @@ int gui_operate(std::shared_ptr<Spelunky> spelunk, char* icon)
 			chp->perform();
 
 			init_special_mods();
+			init_level_editor();
 
 			bool allow_netplay = true;
 			//change save paths to frzlunky_save.*
@@ -914,9 +968,6 @@ int gui_operate(std::shared_ptr<Spelunky> spelunk, char* icon)
 			std::cout << "Error: " << e.what() << std::endl;
 		}
 	});
-
-	Fl_Window* gui_window = make_window();
-	window = gui_window;
 
 	if(icon != nullptr) {
 		window->icon(icon);

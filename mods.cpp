@@ -6,7 +6,6 @@
 #include "append_ai.h"
 #include "timer99.h"
 #include "precise_timer.h"
-#include "tile_editing.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
@@ -275,18 +274,7 @@ namespace Mods {
 	}
 
 	
-	int ChunkEditorButton::handle(int evt) {
-		if(evt == 2) {
-			if(!mods->get("stcp")->is_active()) {
-				mods->get("stcp")->perform();
-			}
-			
-			TileEditing::ShowUI();
-			HideModsGUI();
-			return 1;
-		}
-		return Fl_Button::handle(evt);
-	}
+	
 
 
 	Fl_Double_Window* make_mods_window() {
@@ -298,7 +286,7 @@ namespace Mods {
 		std::shared_ptr<AppendAIPatch> aip = std::dynamic_pointer_cast<AppendAIPatch>(mods->get("aip"));
 
 		Fl_Double_Window* w;
-		{ Fl_Double_Window* o = new Fl_Double_Window(264, 370, "Special Mods");
+		{ Fl_Double_Window* o = new Fl_Double_Window(264, 310, "Special Mods");
 		w = o;
 		{ Fl_Check_Button* o = new ModCheckbox("dpos", 5, 10, 255, 15, "Dark ice caves and hell are possible");
 		o->down_box(FL_DOWN_BOX);
@@ -360,38 +348,6 @@ namespace Mods {
 		  o->end();
 			
 		} // Fl_Group* o
-		
-		{
-			Fl_Button* o = new ChunkEditorButton(5, 338, 255, 25, "Level Editor (Beta)");
-			if(TileEditing::Visible()) {
-				o->deactivate();
-			}
-
-			if(!TileEditing::Valid()) {
-				o->label("Editing Unavailable");
-				o->deactivate();
-			}
-			
-			//level editing will be enabled as long as the window is open
-			TileEditing::DisplayStateCallback([=](bool vis) {
-				if(vis) {
-					std::shared_ptr<Patch> mod = mods->get("stcp");
-					if(!mod->is_active()) {
-						mod->perform();
-					}
-					
-					if(o) {
-						o->deactivate();
-					}
-				}
-				else {
-					mods->get("stcp")->undo();
-					if(o) { 
-						o->activate();
-					}
-				}
-			});
-		}
 
 		o->end();
 		} // Fl_Double_Window* o
@@ -410,14 +366,6 @@ namespace Mods {
 		mods->add("smo", std::make_shared<ShopContentsPatch>(dp));
 		mods->add("smlt", std::make_shared<Timer99Patch>(dp));
 		mods->add("pret", std::make_shared<PreciseTimerPatch>(dp, gh,  chp));
-
-		{
-			std::shared_ptr<TilePatch> tp(new TilePatch(spel));
-			std::shared_ptr<StaticChunkPatch> stcp(new StaticChunkPatch(dp, tp, seeder));
-			mods->add("stcp", stcp);
-
-			TileEditing::Initialize(dp, gh, seeder, stcp);
-		}
 	}
 
 	std::shared_ptr<PatchGroup> ModsGroup() {
