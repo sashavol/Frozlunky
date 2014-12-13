@@ -132,12 +132,9 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(ICE_CAVES, "Inactive")
 		(HELL, "Brick + Enemy generator (requires space)"))
 	('W', map_list_of
-		(TUTORIAL, "Inactive")
-		(JUNGLE, "Causes crash")
-		(WORM, "TODO"))
+		(TUTORIAL, "Inactive outside shops"))
 	('X', map_list_of
-		(TUTORIAL, "TODO")
-		(MINES, "Giant spider spawn")
+		(TUTORIAL, "Giant spider spawn")
 		(JUNGLE, "'Psychic presence' alien spawn")
 		(HELL, "Horsehead / Oxface spawn"))
 	('Y', map_list_of
