@@ -164,6 +164,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TUTORIAL, "Crate containing ropes")
 		(MINES, "Hell terrain tile")
 		(JUNGLE, "Gravestone tile")
+		(HAUNTED_CASTLE, "Sacrifice altar")
 		(WORM, "Hell terrain tile"))
 	('i', map_list_of
 		(TUTORIAL, "Ice block tile")
@@ -205,7 +206,9 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(ICE_CAVES, "Water tile")
 		(TEMPLE, "Lava tile"))
 	('x', map_list_of
-		(TUTORIAL, "Kali sacrifice altar spawn"))
+		(TUTORIAL, "Sacrifice altar")
+		(HAUNTED_CASTLE, "Wall torch")
+		(WORM, "Sacrifice altar"))
 	('y', map_list_of
 		(TUTORIAL, "Block containing ruby"))
 	('z', map_list_of
