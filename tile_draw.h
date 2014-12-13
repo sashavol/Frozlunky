@@ -11,9 +11,10 @@ enum AreaRenderMode {
 	HAUNTED_CASTLE = 3, 
 	WORM = 4, 
 	ICE_CAVES = 5, 
-	TEMPLE = 6,
-	HELL = 7,
-	INVALID = 8
+	MOTHERSHIP = 6,
+	TEMPLE = 8,
+	HELL = 9,
+	INVALID = 10
 };
 
 AreaRenderMode mode_from_chunk(Chunk* cnk);

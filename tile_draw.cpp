@@ -18,7 +18,7 @@ AreaRenderMode mode_from_name(const std::string& area) {
 	else if(area == "Worm")
 		return AreaRenderMode::WORM;
 	else
-		return AreaRenderMode::MINES;
+		return AreaRenderMode::INVALID;
 }
 
 AreaRenderMode mode_from_chunk(Chunk* cnk) {
@@ -33,8 +33,10 @@ AreaRenderMode mode_from_chunk(Chunk* cnk) {
 		return AreaRenderMode::JUNGLE;
 	else if(area.find("LevelGen_JungleHauntedMansionCnk") == 0)
 		return AreaRenderMode::HAUNTED_CASTLE;
-	else if(area.find("LevelGen_IceCavesGeneralCnk") == 0)
+	else if(area.find("LevelGen_IceCavesGeneralCnk") == 0 || area.find("LevelGen_IceCavesYetiCnk") == 0)
 		return AreaRenderMode::ICE_CAVES;
+	else if(area.find("LevelGen_IceCavesSpaceshipCnk") == 0)
+		return AreaRenderMode::MOTHERSHIP;
 	else if(area.find("LevelGen_TempleCnk") == 0 || area.find("LevelGen_OlmecCnk") == 0)
 		return AreaRenderMode::TEMPLE;
 	else if(area.find("LevelGen_HellCnk") == 0)
@@ -60,7 +62,7 @@ AreaRenderMode mode_from_chunk(Chunk* cnk) {
 	else if(area.find("Worm-") == 0)
 		return AreaRenderMode::WORM;
 	else
-		return AreaRenderMode::MINES;
+		return AreaRenderMode::INVALID;
 }
 
 Fl_Color tile_color(char tile) {

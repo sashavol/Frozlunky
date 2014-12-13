@@ -22,9 +22,13 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('*', map_list_of
 		(TUTORIAL, "Spinning spike ball"))
 	('+', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Wooden background")
+		(JUNGLE, "Inactive, causes crash")
+		(WORM, "Wooden background")
+		(ICE_CAVES, "Alien spaceship tile")
+		(TEMPLE, "Wooden background"))
 	(',', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Probabilistic terrain/wood tile"))
 	('-', map_list_of
 		(TUTORIAL, "Cracking ice platform"))
 	('.', map_list_of
@@ -36,7 +40,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('2', map_list_of
 		(TUTORIAL, "Probabilistic terrain/empty tile"))
 	('3', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Probabilistic terrain/water tile")
+		(TEMPLE, "Probabilistic terrain/lava tile"))
 	('4', map_list_of
 		(TUTORIAL, "Push block with physics"))
 	('5', map_list_of
@@ -44,7 +49,9 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('6', map_list_of
 		(TUTORIAL, "Obstacle marker tile 2"))
 	('7', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Probabilistic spike/empty tile")
+		(JUNGLE, "Causes crash")
+		(WORM, "Probabilistic spike/empty tile"))
 	('8', map_list_of
 		(TUTORIAL, "Terrain-generating entrance/exit with platform"))
 	('9', map_list_of
@@ -59,7 +66,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('=', map_list_of
 		(TUTORIAL, "Wooden platform"))
 	('?', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Inactive"))
 	('A', map_list_of
 		(TUTORIAL, "Idol altar tile"))
 	('B', map_list_of
@@ -72,7 +79,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(HAUNTED_CASTLE, "Closing castle door tile")
 		(WORM, "Inactive"))
 	('E', map_list_of
-		(TUTORIAL, "Probabilistic chest/crate/terrain/empty tile"))
+		(TUTORIAL, "Gold bar spawn")
+		(MINES, "Probabilistic chest/crate/terrain/empty tile"))
 	('F', map_list_of
 		(TUTORIAL, "Inactive")
 		(ICE_CAVES, "Probabilistic self+neighbor ice/platform/empty generator"))
@@ -94,7 +102,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('M', map_list_of
 		(TUTORIAL, "Terrain block containing mattock"))
 	('N', map_list_of
-		(TUTORIAL, "Snake spawn tile"))
+		(TUTORIAL, "Snake spawn"))
 	('O', map_list_of
 		(TUTORIAL, "Moai head spawn"))
 	('P', map_list_of
@@ -110,17 +118,23 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('S', map_list_of
 		(TUTORIAL, "Shop contents spawn"))
 	('T', map_list_of
-		(TUTORIAL, "Tree spawn"))
+		(TUTORIAL, "Tree spawn")
+		(ICE_CAVES, "Mothership Entrance")
+		(TEMPLE, "Tree spawn"))
 	('U', map_list_of
 		(TUTORIAL, "Vlad spawn")
-		(HAUNTED_CASTLE, "Black knight spawn")
+		(HAUNTED_CASTLE, "Black Knight spawn")
 		(WORM, "Vlad spawn"))
 	('V', map_list_of
 		(TUTORIAL, "Inactive")
-		(JUNGLE, "Monkey+vine obstacle generator (requires large space)")
-		(ICE_CAVES, "Inactive, may crash"))
+		(JUNGLE, "Vine generator (requires space)")
+		(WORM, "Climbable uvula generator (requires space)")
+		(ICE_CAVES, "Inactive")
+		(HELL, "Brick + Enemy generator (requires space)"))
 	('W', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Inactive")
+		(JUNGLE, "Causes crash")
+		(WORM, "TODO"))
 	('X', map_list_of
 		(TUTORIAL, "TODO")
 		(MINES, "Giant spider spawn")
@@ -131,7 +145,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TEMPLE, "Mummy spawn")
 		(HELL, "King Yama spawn"))
 	('a', map_list_of
-		(TUTORIAL, "Ankh spawn tile"))
+		(TUTORIAL, "Pot spawn")
+		(MINES, "Ankh spawn"))
 	('b', map_list_of
 		(TUTORIAL, "Shop floor tile"))
 	('c', map_list_of
@@ -141,7 +156,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('d', map_list_of
 		(TUTORIAL, "Jungle terrain tile"))
 	('e', map_list_of
-		(TUTORIAL, "Crate spawn")
+		(TUTORIAL, "Crate containing bombs")
 		(MINES, "Beehive terrain tile"))
 	('f', map_list_of
 		(TUTORIAL, "Blue falling platform")
@@ -149,7 +164,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('g', map_list_of
 		(TUTORIAL, "Unlockable character / hired help coffin spawn"))
 	('h', map_list_of
-		(TUTORIAL, "Hell terrain tile")
+		(TUTORIAL, "Crate containing ropes")
+		(MINES, "Hell terrain tile")
 		(JUNGLE, "Gravestone tile")
 		(WORM, "Hell terrain tile"))
 	('i', map_list_of
@@ -157,7 +173,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(JUNGLE, "Tiki village fireplace")
 		(WORM, "Ice block tile"))
 	('j', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Prevents ice block tiles from becoming icicles by Yeti King"))
 	('k', map_list_of
 		(TUTORIAL, "Shop type sign tile"))
 	('l', map_list_of
@@ -177,7 +193,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TUTORIAL, "Unmodified terrain tile")
 		(HELL, "Unmodified brick tile"))
 	('r', map_list_of
-		(TUTORIAL, "TODO"))
+		(TUTORIAL, "Probabilistic temple/terrain/push block tile"))
 	('s', map_list_of
 		(TUTORIAL, "Spikes tile"))
 	('t', map_list_of
@@ -185,7 +201,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('u', map_list_of
 		(TUTORIAL, "Bat spawn tile"))
 	('v', map_list_of
-		(TUTORIAL, "Wooden platform tile"))
+		(TUTORIAL, "Wooden tile"))
 	('w', map_list_of
 		(TUTORIAL, "Water tile")
 		(WORM, "Acid pool tile")
@@ -205,7 +221,36 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 
 namespace Description {
 	std::string ChunkDescription(Chunk* cnk) {
-		return cnk->get_name();
+		AreaRenderMode mode = mode_from_chunk(cnk);
+
+		//write area name if from internal, otherwise chunk identifier
+		if(mode != AreaRenderMode::INVALID && cnk->get_name().find("LevelGen") == 0) {
+			switch(mode) {
+			case TUTORIAL:
+				return "Tutorial";
+			case MINES:
+				return "Mines";
+			case JUNGLE:
+				return "Jungle";
+			case HAUNTED_CASTLE:
+				return "Haunted Castle";
+			case WORM:
+				return "Worm";
+			case ICE_CAVES:
+				return "Ice Caves";
+			case MOTHERSHIP:
+				return "Mothership";
+			case TEMPLE:
+				return "Temple";
+			case HELL:
+				return "Hell";
+			default:
+				return "Unknown";
+			}
+		}
+		else {
+			return cnk->get_name();
+		}
 	}
 
 	std::string TileDescription(char tile, AreaRenderMode mode) {
@@ -214,6 +259,11 @@ namespace Description {
 		const std::string* desc = nullptr;
 		for(unsigned p = TUTORIAL; p != INVALID; ++p) {
 			AreaRenderMode arm = static_cast<AreaRenderMode>(p);
+			
+			//default to mines tiles
+			if(arm == AreaRenderMode::INVALID)
+				arm = AreaRenderMode::MINES;
+
 			auto it = areas.find(arm);
 			if(it != areas.end()) {
 				desc = &it->second;
