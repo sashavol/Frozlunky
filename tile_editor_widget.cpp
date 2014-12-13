@@ -1,4 +1,5 @@
 #include "tile_editor_widget.h"
+#include "tile_description.h"
 
 bool EditorWidget::allow_input() {
 	if(!key_press)
@@ -151,6 +152,7 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 		char ptile = picker.tile(rx, ry);
 		if(ptile != 0) {
 			picker.select(ptile);
+			hint_bar->set_tile(ptile, arm, nullptr);
 		}
 	}
 
@@ -571,8 +573,7 @@ static Numeric_ clamp_(Numeric_ s, Numeric_ e, Numeric_ v) {
 
 void EditorWidget::update_hint_bar() {
 	auto pair = render_pos(cursor.rsx(), cursor.rsy());
-	hint_bar->set_chunk(find_chunk(pair.first, pair.second));
-	hint_bar->set_tile(cursor.get(), arm);
+	hint_bar->set_tile(cursor.get(), arm, find_chunk(pair.first, pair.second));
 	hint_bar->redraw();
 }
 

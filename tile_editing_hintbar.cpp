@@ -15,35 +15,35 @@ TileEditingHintbar::TileEditingHintbar(int x, int y, int w, int h) :
 	this->box(Fl_Boxtype::FL_BORDER_BOX);
 }
 
+
 void TileEditingHintbar::update_label() {
 	std::ostringstream oss;
 
 	if(chunk) {
 		oss << "Chunk: " << Description::ChunkDescription(chunk) << "  ";
+		
+		if(tile) {
+			//derive render mode from given by default, otherwise derive from chunk attributes
+			if(area != AreaRenderMode::INVALID) {
+				oss << "Tile: " << Description::TileDescription(tile, area);
+			}
+			else {
+				oss << "Tile: " << Description::TileDescription(tile, this->chunk);
+			}
+		}
 	}
-
-	if(tile) {
-		//derive render mode from given by default, otherwise derive from chunk attributes
-		if(area != AreaRenderMode::INVALID) {
-			oss << "Tile: " << Description::TileDescription(tile, area);
-		}
-		else {
-			oss << "Tile: " << Description::TileDescription(tile, this->chunk);
-		}
+	else if(tile) {
+		oss << "Picked tile: " << Description::TileDescription(tile, area);
 	}
 
 	text = oss.str();
 }
 
-void TileEditingHintbar::set_tile(char tile, AreaRenderMode area) {
+void TileEditingHintbar::set_tile(char tile, AreaRenderMode area, Chunk* parent) {
 	this->tile = tile;
 	this->area = area;
+	this->chunk = parent;
 
-	update_label();
-}
-
-void TileEditingHintbar::set_chunk(Chunk* chunk) {
-	this->chunk = chunk;
 	update_label();
 }
 

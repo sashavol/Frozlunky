@@ -20,9 +20,8 @@ private:
 public:
 	TileEditingHintbar(int x, int y, int w, int h);
 
-	void set_tile(char tile, AreaRenderMode area);
-	void set_chunk(Chunk* chunk);
-
+	void set_tile(char tile, AreaRenderMode area, Chunk* parent);
+	
 	virtual void draw() override;
 	virtual int handle(int evt) override;
 };
