@@ -98,6 +98,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(JUNGLE, "Vine tile")
 		(WORM, "Climbable uvula tile")
 		(ICE_CAVES, "Upward laser tile")
+		(TEMPLE, "Ladder tile")
 		(HELL, "Chain tile"))
 	('M', map_list_of
 		(TUTORIAL, "Terrain block containing mattock"))
