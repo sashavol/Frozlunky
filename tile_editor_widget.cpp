@@ -350,7 +350,10 @@ int EditorWidget::handle_key(int key) {
 
 	case 'r':
 		if(ctrl_down) {
-			status(STATE_REQ_RANDOMIZE);
+			if(shift_down)
+				status(STATE_REQ_RESOURCE_EDITOR);
+			else
+				status(STATE_REQ_RANDOMIZE);
 			return 1;
 		}
 

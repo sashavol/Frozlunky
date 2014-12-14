@@ -258,6 +258,12 @@
     <ClCompile Include="tile_description.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="resource_editor.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
+    <ClCompile Include="resource_editor_gui.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -495,6 +501,12 @@
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
     <ClInclude Include="tile_description.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_editor.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_editor_gui.h">
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
   </ItemGroup>

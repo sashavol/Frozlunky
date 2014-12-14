@@ -2,6 +2,11 @@
 
 #include "derandom.h"
 
+#define MAX_PLAYERS 4
+
+#define LEVEL_1_1 1
+#define LEVEL_5_4 20
+
 #define STATE_PLAYING 0
 #define STATE_INPUTLOCK_GENERIC 1
 #define STATE_INPUTLOCK_LEVELSTART 2
@@ -103,8 +108,14 @@ public:
 
 	//first player_id = 0
 	int bombs(int player_id);
+	void set_bombs(int p, int bombs);
+
 	int health(int player_id);
+	void set_health(int p, int health);
+
 	int ropes(int player_id);
+	void set_ropes(int p, int ropes);
+
 	float player_x(int pid);
 	float player_y(int pid);
 
@@ -136,8 +147,6 @@ public:
 	int main_menu_select_idx();
 	int character_id(int pid);
 	void character_id(int pid, int id);
-
-	void set_health(int p, int health);
 
 	int fullscreen_effects();
 	void set_fullscreen_effects(int state);

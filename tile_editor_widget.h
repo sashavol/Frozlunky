@@ -46,6 +46,7 @@ enum Direction {
 #define STATE_REQ_SAVE_AS	   (1 << 11)
 #define STATE_REQ_NEW_FILE	   (1 << 12)
 #define STATE_REQ_TOGGLE_FORCE_LEVEL (1 << 13)
+#define STATE_REQ_RESOURCE_EDITOR (1 << 14)
 
 class EditorWidget : public Fl_Widget {
 public:

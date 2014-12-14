@@ -5,6 +5,8 @@
 #include "tile_editing_menubar.h"
 #include "tile_editing_hintbar.h"
 #include "level_forcer.h"
+#include "resource_editor.h"
+#include "resource_editor_gui.h"
 #include "gui.h"
 #include "syllabic.h"
 
@@ -42,6 +44,8 @@ static std::shared_ptr<LevelForcer> level_forcer;
 static std::shared_ptr<Seeder> seeder;
 static std::shared_ptr<DerandomizePatch> dp;
 static std::shared_ptr<GameHooks> gh;
+static std::shared_ptr<ResourceEditor> resource_editor;
+static ResourceEditorWindow* resource_editor_window;
 static std::thread worker_thread;
 static std::function<void(bool)> display_cb;
 static bool initialized = false;
@@ -608,6 +612,11 @@ namespace TileEditing {
 			else if(state == STATE_REQ_RANDOMIZE) {
 				btn_randomize->handle(2);
 			}
+			else if(state == STATE_REQ_RESOURCE_EDITOR) {
+				if(!resource_editor_window->visible()) {
+					resource_editor_window->show();
+				}
+			}
 			else if(state == STATE_REQ_DEFAULT_SWAP) {
 				if(mget(area_lookup, current_area_editor).second == "%") {
 					SetCurrentEditor(prior_nondefault_editor);
@@ -794,6 +803,8 @@ namespace TileEditing {
 						}
 					}
 					mut_level_seeds.unlock();
+
+					resource_editor->cycle();
 				}
 
 				std::this_thread::sleep_for(std::chrono::milliseconds(2));
@@ -945,6 +956,17 @@ namespace TileEditing {
 		::seeder = seeder;
 		::dp = dp;
 		::gh = gh;
+		::resource_editor = std::make_shared<ResourceEditor>(gh);
+
+		{
+			std::vector<std::string> areas;
+			for(auto&& area : area_lookup) {
+				if(area.second != "%") {
+					areas.push_back(area.first);
+				}
+			}
+			::resource_editor_window = new ResourceEditorWindow(resource_editor, areas, current_game_level, "1-1");
+		}
 
 		level_forcer = std::make_shared<LevelForcer>(dp, gh);
 
@@ -965,6 +987,10 @@ namespace TileEditing {
 		}
 
 		if(!scp->valid()) {
+			return false;
+		}
+
+		if(!resource_editor->valid()) {
 			return false;
 		}
 

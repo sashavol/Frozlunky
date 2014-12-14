@@ -64,7 +64,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <AdditionalOptions>-DPSAPI_VERSION=1 -DCURL_STATICLIB=1 -DWIN32=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-DPSAPI_VERSION=1 -DCURL_STATICLIB=1 -DWIN32=1 -D_CRT_SECURE_NO_WARNINGS=1 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -118,6 +118,8 @@
     <ClCompile Include="registry.cpp" />
     <ClCompile Include="remote_call_patch.cpp" />
     <ClCompile Include="remove_daily.cpp" />
+    <ClCompile Include="resource_editor.cpp" />
+    <ClCompile Include="resource_editor_gui.cpp" />
     <ClCompile Include="save_manager.cpp" />
     <ClCompile Include="seeder.cpp" />
     <ClCompile Include="shop_contents_patch.cpp" />
@@ -150,6 +152,8 @@
     <ClInclude Include="chunk_cursor.h" />
     <ClInclude Include="chunk_timeline.h" />
     <ClInclude Include="level_forcer.h" />
+    <ClInclude Include="resource_editor.h" />
+    <ClInclude Include="resource_editor_gui.h" />
     <ClInclude Include="static_area_patch.h" />
     <ClInclude Include="static_chunk_patch.h" />
     <ClInclude Include="constant_random_patch.h" />

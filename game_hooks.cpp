@@ -408,6 +408,12 @@ void GameHooks::character_id(int pid, int id) {
 	spel->write_mem(ext + ext_character_id_offset + pid * ext_player_size, &id, sizeof(int));
 }
 
+void GameHooks::set_bombs(int p, int bombs) {
+	Address game;
+	spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
+	spel->write_mem(game + player_bomb_offs + player_struct_size*p, &bombs, sizeof(int));
+}
+
 int GameHooks::bombs(int player_id) {
 	Address game;
 	spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
@@ -418,6 +424,12 @@ int GameHooks::bombs(int player_id) {
 	return bomb_count;
 }
 
+void GameHooks::set_ropes(int p, int ropes) {
+	Address game;
+	spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
+	spel->write_mem(game + player_rope_offs + player_struct_size*p, &ropes, sizeof(int));
+}
+
 int GameHooks::ropes(int player_id) {
 	Address game;
 	spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
@@ -426,6 +438,12 @@ int GameHooks::ropes(int player_id) {
 	spel->read_mem(game + player_rope_offs + player_struct_size*player_id, &ropes_count, sizeof(int));
 
 	return ropes_count;
+}
+
+void GameHooks::set_health(int p, int health) {
+	Address game;
+	spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
+	spel->write_mem(game + player_health_offs + player_struct_size*p, &health, sizeof(int));
 }
 
 int GameHooks::health(int player_id) {
@@ -552,12 +570,6 @@ std::string GameHooks::steam_id() {
 	}
 	else
 		return "";
-}
-
-void GameHooks::set_health(int p, int health) {
-	Address game;
-	spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
-	spel->write_mem(game + player_health_offs + player_struct_size*p, &health, sizeof(int));
 }
 
 unsigned GameHooks::ctrl_offset() {
