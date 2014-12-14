@@ -186,10 +186,16 @@ int EditorWidget::handle_key(int key) {
 		return 1;
 
 	case 65307: //esc: reset cursor size
-		{
+		if(!shift_down) {
 			int sx = cursor.rsx(), sy = cursor.rsy();
 			cursor.s(sx, sy);
 			cursor.e(sx, sy);
+			parent()->redraw();
+		}
+		else {
+			int ex = cursor.rex(), ey = cursor.rey();
+			cursor.s(ex, ey);
+			cursor.e(ex, ey);
 			parent()->redraw();
 		}
 		return 1;

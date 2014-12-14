@@ -65,7 +65,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 	)
 	("dCursor", map_list_of
 		("aSelect Entire Level", tg_('a', true, false, false, "Ctrl+A"))
-		("bReset Cursor Size", tg_(65307, false, false, false, "Esc"))
+		("bReset Cursor Size", tg_(65307, false, false, false, "(Shift+) Esc"))
 		("cFlood Fill", tg_(102, true, false, false, "Ctrl+F"))
 		("dLeft", tg_(65361, false, false, false, "(Ctrl+) Left"))
 		("eRight", tg_(65362, false, false, false, "(Ctrl+) Right"))

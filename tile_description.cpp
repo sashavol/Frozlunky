@@ -43,7 +43,9 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TUTORIAL, "Probabilistic terrain/water tile")
 		(TEMPLE, "Probabilistic terrain/lava tile"))
 	('4', map_list_of
-		(TUTORIAL, "Push block with physics"))
+		(TUTORIAL, "Push block with physics")
+		(ICE_CAVES, "Crashes game")
+		(TEMPLE, "Push block with physics"))
 	('5', map_list_of
 		(TUTORIAL, "Obstacle marker tile 1"))
 	('6', map_list_of
@@ -86,6 +88,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(ICE_CAVES, "Probabilistic self+neighbor ice/platform/empty generator"))
 	('G', map_list_of
 		(TUTORIAL, "Ladder tile"))
+	('H', map_list_of
+		(TUTORIAL, "Ladder platform junction"))
 	('I', map_list_of
 		(TUTORIAL, "Idol spawn tile")
 		(HELL, "Tiki spawn"))
@@ -142,6 +146,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TUTORIAL, "Yeti King spawn")
 		(TEMPLE, "Mummy spawn")
 		(HELL, "King Yama spawn"))
+	('Z', map_list_of
+		(TUTORIAL, "Beehive terrain tile"))
 	('a', map_list_of
 		(TUTORIAL, "Pot spawn")
 		(MINES, "Ankh spawn"))

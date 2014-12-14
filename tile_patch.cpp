@@ -2,6 +2,8 @@
 #include <iostream>
 #include <algorithm>
 
+static char extension_tiles[] = {'H', 'Z'};
+
 static BYTE LevelGen_Selector_find[] = {0x81,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x8B};
 static std::string LevelGen_Selector_mask = "x......x.......x......x";
 
@@ -247,6 +249,12 @@ TilePatch::TilePatch(std::shared_ptr<Spelunky> spel) :
 	DISCOVER_CNK(LevelGen_TempleCnk);
 	DISCOVER_CNK(LevelGen_TutorialCnk);
 	DISCOVER_CNK(LevelGen_WormCnk);
+	
+	//extensions to possible tiles
+	for(char ext : extension_tiles) {
+		if(pos_tiles.find(ext) == pos_tiles.end())
+			pos_tiles.insert(ext);
+	}
 
 	DBG_EXPR(
 		std::cout << "Possible tiles: ";
