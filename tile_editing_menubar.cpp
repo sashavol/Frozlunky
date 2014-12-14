@@ -44,7 +44,7 @@ typedef TileEditingMenuBar::KeyTrigger tg_;
 
 static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigger>> menu_data = map_list_of
 	("aFile", map_list_of
-		("aNew Level Pack", tg_('n', true, true, false, "Ctrl+N"))
+		("aNew Level Pack", tg_('n', true, true, false, "Ctrl+Shift+N"))
 		("bOpen Level Pack", tg_('o', true, false, false, "Ctrl+O"))
 		("cSave + Apply", tg_('s', true, false, false, "Ctrl+S"))
 		("dSave as..", tg_('s', true, true, false, "Ctrl+Shift+S"))
@@ -61,7 +61,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 	("cLevel", map_list_of
 		("aForce Level", tg_('e', true, false, false, "Ctrl+E"))
 		("bRandomize Level Seed", tg_('r', true, false, false, "Ctrl+R"))
-		("cClear Level", tg_('q', true, true, false, "Ctrl+Shift+Q"))
+		("cClear Level", tg_('n', true, false, false, "Ctrl+N"))
 		("dResource Editor", tg_('r', true, true, false, "Ctrl+Shift+R"))
 	)
 	("dCursor", map_list_of

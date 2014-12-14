@@ -54,6 +54,7 @@ void EditorWidget::clear_chunks() {
 	for(Chunk* c : chunks) {
 		clear_chunk(c);
 	}
+	status(STATE_CHUNK_WRITE);
 }
 
 void EditorWidget::shift_env_left(int u, bool box_change) {
@@ -364,23 +365,20 @@ int EditorWidget::handle_key(int key) {
 		}
 
 	case 'n': //n: new file
-		if(ctrl_down && shift_down) {
-			status(STATE_REQ_NEW_FILE);
+		if(ctrl_down) {
+			if(shift_down) {
+				status(STATE_REQ_NEW_FILE);
+			}
+			else if(!read_only) {
+				clear_chunks();
+				parent()->redraw();
+			}
 			return 1;
 		}
 
 	case 'e': //e: force level
 		if(ctrl_down) {
 			status(STATE_REQ_TOGGLE_FORCE_LEVEL);
-			return 1;
-		}
-
-	case 'q': //q: clear level
-		if(ctrl_down && shift_down) {
-			if(!read_only) {
-				clear_chunks();
-				parent()->redraw();
-			}
 			return 1;
 		}
 
