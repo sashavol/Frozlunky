@@ -19,9 +19,6 @@
 #include <functional>
 #include <chrono>
 
-//TODO hover info
-//TODO finish descriptions
-//TODO move level editor button to main UI
 
 //OPT shops
 //OPT separate city of gold support

@@ -222,7 +222,7 @@ bool GameHooks::discover_steamid()
 		start = spel->find_mem(steamid_find, steamid_mask, start);
 		if(start == 0x0) {
 			have_steamid = false;
-			return false;
+			return true;
 		}
 
 		spel->read_mem(start+sizeof(steamid_find)-1, &id, sizeof(id));

@@ -389,6 +389,13 @@ bool daily_gui_update(Fl_Window* window)
 
 int DailyButton::handle(int evt) {
 	if(evt == 2) {
+		std::string steam_id = info_hooks->steam_id();
+		if(steam_id == "") {
+			MessageBox(NULL, "Frozlunky did not find a suitable Steam account to bind to Frozboards.", "Frozboards Error", MB_OK);
+			return Fl_Button::handle(evt);
+		}
+
+
 		//abort daily
 		if(daily) {
 			daily->force_end();

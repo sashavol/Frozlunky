@@ -9,6 +9,8 @@
 //TODO implement handling for choice switch
 //TODO implement Done button
 
+//TODO custom enemy placement
+
 ResourceEditorWindow::ResourceEditorWindow(std::shared_ptr<ResourceEditor> res, 
 		const std::vector<std::string>& areas, 
 		std::function<std::string()> level_getter, 
