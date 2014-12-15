@@ -395,7 +395,6 @@ int DailyButton::handle(int evt) {
 			return Fl_Button::handle(evt);
 		}
 
-
 		//abort daily
 		if(daily) {
 			daily->force_end();

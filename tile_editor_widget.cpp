@@ -395,6 +395,9 @@ int EditorWidget::handle_key(int key) {
 					shift_env_right(1);
 					status(STATE_CHUNK_WRITE);
 				}
+				else {
+					hint_bar->set_tile(tile, arm, nullptr);
+				}
 
 				parent()->redraw();
 			}
