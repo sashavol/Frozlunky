@@ -64,7 +64,9 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(WORM, "Area enemy spawn")
 		(ICE_CAVES, "Yeti spawn"))
 	(';', map_list_of
-		(TUTORIAL, "Idol + Damsel side-by-side spawn"))
+		(TUTORIAL, "Idol + Damsel side-by-side spawn")
+		(ICE_CAVES, "'Psychic presence' triple lasers")
+		(TEMPLE, "Idol + Damsel side-by-side spawn"))
 	('=', map_list_of
 		(TUTORIAL, "Wooden platform"))
 	('?', map_list_of
