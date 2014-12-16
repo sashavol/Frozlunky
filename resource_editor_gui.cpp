@@ -1,12 +1,5 @@
 #include "resource_editor_gui.h"
 
-//TODO implement support for resource editor object modification
-//TODO implement handling for data change, apply to resource editor.
-//TODO implement handling for choice switch
-//TODO implement Done button
-
-//TODO custom enemy placement
-
 static void fn_callback(Fl_Widget* o, void* fn) {
 	(*static_cast<ResourceEditorWindow::fn_gen::heap_fn>(fn))(o);
 }
