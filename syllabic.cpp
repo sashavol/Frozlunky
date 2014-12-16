@@ -1,5 +1,6 @@
 #include "syllabic.h"
 #include <sstream>
+#include <ctime>
 
 namespace Syllabic {
    const char* prefix[] = 
@@ -83,8 +84,13 @@ namespace Syllabic {
 		return ss.str();
 	}
 
+	static bool rand_seeded = false;
 
 	std::string MakePhoneticString(int parts) {
+		if(!rand_seeded) {
+			srand((unsigned int)time(0));
+			rand_seeded = true;
+		}
 		return MakePhoneticString(rand(), parts);
 	}
 }

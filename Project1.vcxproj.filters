@@ -509,6 +509,9 @@
     <ClInclude Include="resource_editor_gui.h">
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
+    <ClInclude Include="cfn_util.h">
+      <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\fr.ico">

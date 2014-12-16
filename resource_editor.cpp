@@ -1,5 +1,7 @@
 #include "resource_editor.h"
 
+//TODO health editing support
+
 ResourceEditor::Resources::Resources() : bombs(-1), ropes(-1), health(-1) {}
 
 void ResourceEditor::Resources::set(std::shared_ptr<GameHooks> gh) {
@@ -15,27 +17,37 @@ void ResourceEditor::Resources::set(std::shared_ptr<GameHooks> gh) {
 
 ///////
 
-ResourceEditor::ResourceEditor(std::shared_ptr<GameHooks> gh) : gh(gh), last_level(-1) {
-	for(int lvl = LEVEL_1_1; lvl <= LEVEL_5_4; ++lvl) {
-		resources[lvl] = Resources();
+ResourceEditor::ResourceEditor(std::shared_ptr<GameHooks> gh, std::function<std::string()> level_getter, const std::vector<std::string>& areas) : 
+	gh(gh), 
+	last_level(""),
+	level_getter(level_getter)
+{
+	for(auto&& area : areas) {
+		resources[area] = Resources();
 	}
 }
 
 void ResourceEditor::cycle() {
 	int state = gh->game_state();
-	if(state == STATE_PLAYING || state == STATE_INPUTLOCK_LEVELSTART) {
+
+	if(state == STATE_INPUTLOCK_LEVELSTART || state == STATE_PLAYING) {
+		std::string level = level_getter();
 		for(auto&& level_res : resources) {
-			if(last_level == level_res.first && last_level != level_res.first) {
+			if(level == level_res.first && last_level != level_res.first) {
 				level_res.second.set(gh);
-				last_level = level_res.first;
+				last_level = level;
 			}
 		}
 	}
 	else if(state == STATE_LOBBY || state == STATE_GAMEOVER_HUD) {
-		last_level = -1;
+		last_level = "";
 	}
 }
 
 bool ResourceEditor::valid() {
 	return true;
+}
+
+ResourceEditor::Resources& ResourceEditor::res(const std::string& area) {
+	return resources[area];
 }

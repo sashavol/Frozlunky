@@ -149,6 +149,7 @@
     <ClInclude Include="anticrash.h" />
     <ClInclude Include="antipause_patch.h" />
     <ClInclude Include="async_input_grab.h" />
+    <ClInclude Include="cfn_util.h" />
     <ClInclude Include="chunk_cursor.h" />
     <ClInclude Include="chunk_timeline.h" />
     <ClInclude Include="level_forcer.h" />

@@ -28,7 +28,7 @@
 #include <pugixml.hpp>
 
 
-#define WINDOW_BASE_TITLE "Tile Editor"
+#define WINDOW_BASE_TITLE "Level Editor"
 
 #define BUTTON_CLASS(NAME, LABEL) \
 class NAME : public Fl_Button { \
@@ -956,7 +956,6 @@ namespace TileEditing {
 		::seeder = seeder;
 		::dp = dp;
 		::gh = gh;
-		::resource_editor = std::make_shared<ResourceEditor>(gh);
 
 		{
 			std::vector<std::string> areas;
@@ -965,6 +964,7 @@ namespace TileEditing {
 					areas.push_back(area.first);
 				}
 			}
+			::resource_editor = std::make_shared<ResourceEditor>(gh, current_game_level, areas);
 			::resource_editor_window = new ResourceEditorWindow(resource_editor, areas, current_game_level, "1-1");
 		}
 

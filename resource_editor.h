@@ -3,6 +3,8 @@
 #include "derandom.h"
 #include "game_hooks.h"
 #include <map>
+#include <string>
+#include <functional>
 
 #define RE_DEFAULT_BOMBS 4
 #define RE_DEFAULT_ROPES 4
@@ -22,14 +24,18 @@ public:
 	};
 
 private:
-	std::map<int, Resources> resources;
+	std::map<std::string, Resources> resources;
 
-	int last_level;
+	std::function<std::string()> level_getter;
+	std::string last_level;
+	
 	std::shared_ptr<GameHooks> gh;
 	std::shared_ptr<Spelunky> spel;
 
 public:
-	ResourceEditor(std::shared_ptr<GameHooks> gh);
+	ResourceEditor(std::shared_ptr<GameHooks> gh, std::function<std::string()> level_getter, const std::vector<std::string>&  areas);
+
+	Resources& res(const std::string& area);
 
 	void cycle();
 	bool valid();
