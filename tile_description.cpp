@@ -207,7 +207,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TUTORIAL, "Temple/castle tile"))
 	('u', map_list_of
 		(TUTORIAL, "Bat spawn")
-		(JUNGLE, "Vampire spawn"))
+		(MINES, "Vampire spawn"))
 	('v', map_list_of
 		(TUTORIAL, "Wooden tile"))
 	('w', map_list_of

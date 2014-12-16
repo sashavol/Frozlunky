@@ -37,6 +37,8 @@ public: \
 	virtual int handle(int evt) override; \
 }
 
+//TODO change SafeXMLName to better represent the area internally
+
 //OPT add simulation widget to the overview page, should simulate a chosen area's chunks
 static Fl_Window* window = nullptr;
 static std::shared_ptr<StaticChunkPatch> tp;	
@@ -365,6 +367,9 @@ namespace TileEditing {
 			InitializeEmptySeeds();
 			mut_level_seeds.unlock();
 
+			resource_editor->reset();
+			resource_editor_window->update();
+
 			IO::SetActiveFile("");
 			unsaved_changes = false;
 		}
@@ -395,6 +400,16 @@ namespace TileEditing {
 				}
 			}
 			mut_level_seeds.unlock();
+
+			pugi::xml_node resources = xmld.append_child("resources");
+			for(auto&& res : *resource_editor) {
+				pugi::xml_node level = resources.append_child(SafeXMLName(res.first).c_str());
+
+				auto& r = res.second;
+				level.append_attribute("bombs").set_value(r.bombs);
+				level.append_attribute("ropes").set_value(r.ropes);
+				level.append_attribute("health").set_value(r.health);
+			}
 
 			pugi::xml_node node = xmld.append_child("chunks");
 			if(!node) { 
@@ -485,6 +500,33 @@ namespace TileEditing {
 
 				InitializeEmptySeeds();
 				mut_level_seeds.unlock();
+
+
+				resource_editor->reset();
+				pugi::xml_node resources = xmld.child("resources");
+				if(!resources.empty()) {
+					for(pugi::xml_node level : resources.children()) {
+						std::string area = AreaName(level.name());
+						
+						if(area != "") {
+							ResourceEditor::Resources& res = resource_editor->res(area);
+							for(pugi::xml_attribute attr : level.attributes()) {
+								std::string name(attr.name());
+							
+								if(name == "bombs")
+									res.bombs = attr.as_int();
+								else if(name == "ropes")
+									res.ropes = attr.as_int();
+								else if(name == "health")
+									res.health = attr.as_int();
+								else
+									throw std::runtime_error("Encountered invalid resources attribute.");
+							}
+						}
+					}
+				}
+				resource_editor_window->update();
+
 
 				std::vector<SingleChunk*> scs = tp->root_chunks();
 				pugi::xml_node chunks = xmld.child("chunks");
@@ -966,6 +1008,7 @@ namespace TileEditing {
 			}
 			::resource_editor = std::make_shared<ResourceEditor>(gh, current_game_level, areas);
 			::resource_editor_window = new ResourceEditorWindow(resource_editor, areas, current_game_level, "1-1");
+			resource_editor_window->status_bind(IO::status_handler);
 		}
 
 		level_forcer = std::make_shared<LevelForcer>(dp, gh);

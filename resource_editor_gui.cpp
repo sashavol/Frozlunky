@@ -1,4 +1,5 @@
 #include "resource_editor_gui.h"
+#include "tile_editor_widget.h"
 
 static void fn_callback(Fl_Widget* o, void* fn) {
 	(*static_cast<ResourceEditorWindow::fn_gen::heap_fn>(fn))(o);
@@ -19,7 +20,8 @@ ResourceEditorWindow::ResourceEditorWindow(std::shared_ptr<ResourceEditor> res,
 	health_spinner(nullptr),
 	bombs_spinner(nullptr),
 	ropes_spinner(nullptr),
-	area_choose(nullptr)
+	area_choose(nullptr),
+	status_handler([](int){})
 {
 	Fl_Double_Window* o = this;
 	o->begin();
@@ -61,12 +63,13 @@ ResourceEditorWindow::ResourceEditorWindow(std::shared_ptr<ResourceEditor> res,
 	{ Fl_Spinner* o = new Fl_Spinner(65, 76, 90, 24, "Health:");
 		health_spinner = o;
 
-		o->minimum(-1);
-		o->maximum(99);
+		o->minimum(MIN_HEALTH_VAL);
+		o->maximum(MAX_HEALTH_VAL);
 		o->value(-1);
 
 		o->callback(fn_callback, gen.wrap([=](Fl_Widget*) {
 			get_res().health = (int)health_spinner->value();
+			status_handler(STATE_CHUNK_WRITE); //update
 		}));
 
 		//Currently disabled because health editing is unsupported
@@ -75,23 +78,25 @@ ResourceEditorWindow::ResourceEditorWindow(std::shared_ptr<ResourceEditor> res,
 	{ Fl_Spinner* o = new Fl_Spinner(65, 106, 90, 24, "Bombs:");
 		bombs_spinner = o;
 
-		o->minimum(-1);
-		o->maximum(99);
+		o->minimum(MIN_BOMBS_VAL);
+		o->maximum(MAX_BOMBS_VAL);
 		o->value(-1);
 
 		o->callback(fn_callback, gen.wrap([=](Fl_Widget*) {
 			get_res().bombs = (int)bombs_spinner->value();
+			status_handler(STATE_CHUNK_WRITE); //update
 		}));
 	} // Fl_Spinner* o
 	{ Fl_Spinner* o = new Fl_Spinner(65, 136, 90, 24, "Ropes:");
 		ropes_spinner = o;
 
-		o->minimum(-1);
-		o->maximum(99);
+		o->minimum(MIN_ROPES_VAL);
+		o->maximum(MAX_ROPES_VAL);
 		o->value(-1);
 
 		o->callback(fn_callback, gen.wrap([=](Fl_Widget*) {
 			get_res().ropes = (int)ropes_spinner->value();
+			status_handler(STATE_CHUNK_WRITE); //update
 		}));
 	} // Fl_Spinner* o
 	{ Fl_Group* o = new Fl_Group(15, 65, 165, 10, "-1 = No change");
@@ -99,4 +104,15 @@ ResourceEditorWindow::ResourceEditorWindow(std::shared_ptr<ResourceEditor> res,
 	} // Fl_Group* o
 
 	o->end();
+}
+
+void ResourceEditorWindow::update() {
+	ResourceEditor::Resources& res = get_res();
+	bombs_spinner->value(res.bombs);
+	health_spinner->value(res.health);
+	ropes_spinner->value(res.ropes);
+}
+
+void ResourceEditorWindow::status_bind(std::function<void(int)> status_handler) {
+	this->status_handler = status_handler;
 }

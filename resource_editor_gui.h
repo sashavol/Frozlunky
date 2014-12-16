@@ -16,6 +16,8 @@ public:
 	typedef CFnGen<void(Fl_Widget*)> fn_gen;
 
 private:
+	std::function<void(int)> status_handler;
+
 	std::shared_ptr<ResourceEditor> res_editor;
 	std::function<std::string()> level_getter;
 	fn_gen gen;
@@ -32,4 +34,7 @@ private:
 
 public:
 	ResourceEditorWindow(std::shared_ptr<ResourceEditor> res, const std::vector<std::string>& areas, std::function<std::string()> level_getter, const std::string& first);
+	
+	void status_bind(std::function<void(int)> status_handler);
+	void update();
 };

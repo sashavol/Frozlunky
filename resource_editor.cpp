@@ -44,10 +44,24 @@ void ResourceEditor::cycle() {
 	}
 }
 
+void ResourceEditor::reset() {
+	for(auto&& res : resources) {
+		res.second = Resources();
+	}
+}
+
 bool ResourceEditor::valid() {
 	return true;
 }
 
 ResourceEditor::Resources& ResourceEditor::res(const std::string& area) {
 	return resources[area];
+}
+
+std::map<std::string, ResourceEditor::Resources>::const_iterator ResourceEditor::begin() const {
+	return resources.begin();
+}
+
+std::map<std::string, ResourceEditor::Resources>::const_iterator ResourceEditor::end() const {
+	return resources.end();
 }
