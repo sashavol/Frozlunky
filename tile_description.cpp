@@ -107,7 +107,9 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TEMPLE, "Ladder tile")
 		(HELL, "Chain tile"))
 	('M', map_list_of
-		(TUTORIAL, "Terrain block containing mattock"))
+		(TUTORIAL, "Terrain block containing mattock")
+		(ICE_CAVES, "Terrain block containing jetpack")
+		(TEMPLE, "Terrain block containing mattock"))
 	('N', map_list_of
 		(TUTORIAL, "Snake spawn"))
 	('O', map_list_of
