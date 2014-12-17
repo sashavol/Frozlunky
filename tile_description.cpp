@@ -156,11 +156,14 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('b', map_list_of
 		(TUTORIAL, "Shop floor tile"))
 	('c', map_list_of
-		(TUTORIAL, "Crystal skull spawn tile")
-		(WORM, "Crysknife spawn tile")
-		(ICE_CAVES, "Crystal skull spawn tile"))
+		(TUTORIAL, "Crystal skull spawn")
+		(WORM, "Crysknife spawn (horizontally probabilistic)")
+		(ICE_CAVES, "Crystal skull spawn"))
 	('d', map_list_of
-		(TUTORIAL, "Jungle terrain tile"))
+		(TUTORIAL, "Jungle terrain tile")
+		(JUNGLE, "Wooden tile")
+		(WORM, "Breakable meat block")
+		(ICE_CAVES, "Jungle terrain tile"))
 	('e', map_list_of
 		(TUTORIAL, "Crate containing bombs")
 		(MINES, "Beehive terrain tile"))
@@ -223,7 +226,9 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TUTORIAL, "Block containing ruby"))
 	('z', map_list_of
 		(TUTORIAL, "Chest spawn")
-		(JUNGLE, "Bee spawn"))
+		(MINES, "Probabilistic beehive/empty tile")
+		(JUNGLE, "Probabilistic beehive/bee spawn/empty tile")
+		(WORM, "Probabilistic beehive/empty tile"))
 	('|', map_list_of
 		(TUTORIAL, "Vault spawn tile"))
 	('~', map_list_of
