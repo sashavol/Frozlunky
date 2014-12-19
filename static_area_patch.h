@@ -3,6 +3,7 @@
 #include "tile_chunk.h"
 #include "patches.h"
 #include "derandom.h"
+#include "entity_spawn_builder.h"
 
 #define CHUNK_LEN 81
 #define CHUNK_WIDTH 10
@@ -12,6 +13,7 @@ class StaticAreaPatch : public Patch {
 private:
 	std::string name;
 	std::shared_ptr<DerandomizePatch> dp;
+	std::map<int, std::shared_ptr<EntitySpawnBuilder>> builders;
 
 	Address gen_fn;
 	Address gen_fn_end;
@@ -24,6 +26,7 @@ private:
 	//[BaseArea](-[Lvl#])-[Seg#]
 	std::map<std::string, Address> named_allocs;
 	std::map<int, Address> allocs;
+	std::map<Chunk*, int> level_parents;
 	std::vector<SingleChunk*> chunks;
 	Address chunk_alloc;
 	Address subroutine_alloc;
@@ -65,8 +68,12 @@ public:
 	std::vector<Chunk*> query_chunks(const std::string& start);
 	std::vector<Chunk*> get_chunks();
 	std::vector<SingleChunk*> root_chunks();
+	std::shared_ptr<EntitySpawnBuilder> entity_builder(int lvl);
 
 	const std::string& get_name();
 	int level_start();
 	int level_end();
+
+	//attempts to identify this chunk, if this patch does not own the chunk returns -1, otherwise the level number the chunk belongs to
+	int identify_chunk(Chunk* cnk);
 };

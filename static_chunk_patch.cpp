@@ -16,6 +16,7 @@ StaticChunkPatch::~StaticChunkPatch() {
 
 StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<TilePatch> tp, std::shared_ptr<Seeder> seeder) : 
 	Patch(dp->spel),
+	dp(dp),
 	seeder(seeder),
 	tp(tp),
 	is_valid(true),
@@ -71,6 +72,15 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 		DBG_EXPR(std::cout << "[StaticChunkPatch] All SAPs failed." << std::endl);
 		is_valid = false;
 	}
+}
+
+std::pair<std::shared_ptr<StaticAreaPatch>, int> StaticChunkPatch::parent(Chunk* cnk) {
+	for(auto&& sap : saps) {
+		int lvl = sap->identify_chunk(cnk);
+		if(lvl != -1)
+			return std::pair<std::shared_ptr<StaticAreaPatch>, int>(sap, lvl);
+	}
+	return std::pair<std::shared_ptr<StaticAreaPatch>, int>(nullptr, -1);
 }
 
 bool StaticChunkPatch::valid_tile(char tile) {
@@ -159,4 +169,12 @@ const std::set<char>& StaticChunkPatch::valid_tiles() {
 
 const std::shared_ptr<TilePatch> StaticChunkPatch::tile_patch() const {
 	return tp;
+}
+
+std::shared_ptr<StaticAreaPatch> StaticChunkPatch::area_patch(const std::string& name) {
+	for(auto&& sap : saps) {
+		if(sap->get_name() == name)
+			return sap;
+	}
+	return nullptr;
 }

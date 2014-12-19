@@ -21,3 +21,6 @@ AreaRenderMode mode_from_chunk(Chunk* cnk);
 AreaRenderMode mode_from_name(const std::string& area);
 Fl_Color tile_color(char tile);
 void draw_tile(char tile, int x, int y, int w, int h, AreaRenderMode arm=MINES);
+
+Fl_Color entity_color(int entity);
+void draw_entity(int entity, int x, int y, int w, int h);

@@ -87,6 +87,8 @@
     <ClCompile Include="daily.cpp" />
     <ClCompile Include="dark_possible.cpp" />
     <ClCompile Include="disable_ctrlmenu_patch.cpp" />
+    <ClCompile Include="entity_spawn_builder.cpp" />
+    <ClCompile Include="entity_spawn_layer.cpp" />
     <ClCompile Include="force_controller_attrs.cpp" />
     <ClCompile Include="frozboards\crypt.cpp" />
     <ClCompile Include="frozboards\request.cpp" />
@@ -152,6 +154,9 @@
     <ClInclude Include="cfn_util.h" />
     <ClInclude Include="chunk_cursor.h" />
     <ClInclude Include="chunk_timeline.h" />
+    <ClInclude Include="entity_insert_gui.h" />
+    <ClInclude Include="entity_spawn_builder.h" />
+    <ClInclude Include="entity_spawn_layer.h" />
     <ClInclude Include="level_forcer.h" />
     <ClInclude Include="resource_editor.h" />
     <ClInclude Include="resource_editor_gui.h" />

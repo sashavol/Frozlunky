@@ -3,7 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
-ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw, bool read_only) :
+ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, std::shared_ptr<EntitySpawnBuilder> esb, int tw, bool read_only) :
 	read_only(read_only),
 	tile('1'), 
 	sx(-1), 
@@ -21,6 +21,15 @@ ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, int tw, bool read_on
 
 	width = chunks[0]->get_width()*tw;
 	height = chunks.size()/tw * chunks[0]->get_height();
+
+	if(esb) {
+		entity_layer = std::make_shared<EntitySpawnLayer>(esb, width, height);
+		//DEBUG
+		entity_layer->put(1, 1, 0x40E);
+		entity_layer->put(2, 1, 0x410);
+		entity_layer->put(3, 1, 0x418);
+		entity_layer->put(4, 1, 0x422);
+	}
 
 	sx = 0;
 	sy = 0;
@@ -60,10 +69,32 @@ void ChunkCursor::tileref(int x, int y, std::function<void(Chunk* c, int cx, int
 	}
 }
 
-void ChunkCursor::write(char tile, int x, int y) {
+void ChunkCursor::write(char tile, int x, int y, bool zero_et_) {
+	if(zero_et_)
+		entity_write(0, x, y);
+
 	tileref(x, y, [=](Chunk* c, int cx, int cy) {
 		c->tile(cx, cy, tile);
 	});
+}
+
+void ChunkCursor::entity_write(int entity, int x, int y, bool zero_ti_) {
+	if(!entity_layer) {
+		return;
+	}
+
+	if(zero_ti_)
+		write('0', x, y, false);
+	
+	entity_layer->put(x, y, entity);
+}
+
+int ChunkCursor::entity_get(int x, int y) const {
+	if(!entity_layer) {
+		return 0;
+	}
+
+	return entity_layer->get(x, y);
 }
 
 char ChunkCursor::get(int x, int y) const {
@@ -74,8 +105,31 @@ char ChunkCursor::get(int x, int y) const {
 	return tile;
 }
 
+int ChunkCursor::entity_get() const {
+	return entity_get(rsx(), rsy());
+}
+
 char ChunkCursor::get() const {
 	return get(rsx(), rsy());
+}
+
+void ChunkCursor::entity_put(int entity) {
+	if(!in_bounds() || read_only) {
+		return;
+	}
+
+	int sx = rsx(), sy = rsy(), ex = rex(), ey = rey();
+
+	try {
+		for(int x = sx; x <= ex; x++) {
+			for(int y = sy; y <= ey; y++) {
+				entity_write(tile, x, y);
+			}
+		}
+	}
+	catch(std::exception&) {
+		DBG_EXPR(std::cout << "[TileEditorWidget] Warning: entity_put('" << tile << "') out of bounds." << std::endl);
+	}
 }
 
 void ChunkCursor::put(char tile) {
@@ -161,19 +215,19 @@ void ChunkCursor::e(int x, int y) {
 }
 
 int ChunkCursor::rex() const {
-	return std::max(sx, ex);
+	return max(sx, ex);
 }
 
 int ChunkCursor::rsx() const {
-	return std::min(sx, ex);
+	return min(sx, ex);
 }
 
 int ChunkCursor::rey() const {
-	return std::max(sy, ey);
+	return max(sy, ey);
 }
 
 int ChunkCursor::rsy() const {
-	return std::min(sy, ey);
+	return min(sy, ey);
 }
 
 
@@ -239,33 +293,6 @@ bool ChunkCursor::try_dsy(int dy) {
 	return true;
 }
 
-/*
-static void trim_enc(cursor_store& enc, int h) {
-	std::pair<int, int> f(INT_MAX, INT_MAX), s(-1, -1);
-
-	for(auto& p : enc) {
-		auto pos = p.first;
-		if(p.second != '0') {
-			f.first = std::min(pos.first, f.first);
-			f.second = std::min(pos.second, f.second);
-			s.first = std::max(pos.first, s.first);
-			s.second = std::max(pos.second, s.second);
-		}
-	}
-	
-	for(auto i = enc.begin(); i != enc.end();) {
-		auto pos = i->first;
-		if((pos.first < f.first || pos.second < f.second) 
-		|| (pos.first > s.first || pos.second > s.second))
-		{
-			i = enc.erase(i);
-		}
-		else
-			++i;
-	}
-}
-*/
-
 cursor_store ChunkCursor::encode() {
 	int sx = rsx(), sy = rsy(), ex = rex(), ey = rey();
 	
@@ -274,12 +301,11 @@ cursor_store ChunkCursor::encode() {
 		for(int y = sy; y <= ey; y++) {
 			char tile = get(x, y);
 			if(tile != 0) {
-				out[std::pair<int, int>(x, y)] = tile;
-			}	
+				out[std::make_pair(x, y)] = std::make_pair(tile, entity_get(x, y));
+			}
 		}
 	}
 
-	//trim_enc(out, ey - sy);
 	return out;
 }
 
@@ -293,31 +319,39 @@ void ChunkCursor::decode(const cursor_store& store) {
 	std::pair<int, int> edge(INT_MAX, INT_MAX);
 	for(auto&& p : store) {
 		auto& at = p.first;
-		edge.first = std::min(at.first, edge.first);
-		edge.second = std::min(at.second, edge.second);
+		edge.first = min(at.first, edge.first);
+		edge.second = min(at.second, edge.second);
 	}
 
 	for(auto&& p : store) {
-		auto at = p.first;
-		write(p.second, at.first - edge.first + sx, at.second - edge.second + sy);
+		std::pair<int, int> at = p.first;
+		int x = at.first - edge.first + sx;
+		int y = at.second - edge.second + sy;
+		
+		if(p.second.first != '0')
+			write(p.second.first, x, y);
+		else if(p.second.second != 0)
+			entity_write(p.second.second, x, y);
+		else
+			write('0', x, y);
 	}
 }
 
 
 void ChunkCursor::fill_recurse(int x, int y, fill_history& history, char tile, char target) {
-	if(history.find(std::pair<int,int>(x-1,y)) == history.end() && x > 0 && get(x-1, y) == target) {
+	if(history.find(std::pair<int,int>(x-1,y)) == history.end() && x > 0 && get(x-1, y) == target && entity_get(x-1, y) == 0) {
 		history.insert(std::pair<int,int>(x-1,y));
 		fill_recurse(x-1, y, history, tile, target);
 	}
-	if(history.find(std::pair<int,int>(x+1,y)) == history.end() && x < width - 1 && get(x+1, y) == target) {
+	if(history.find(std::pair<int,int>(x+1,y)) == history.end() && x < width - 1 && get(x+1, y) == target && entity_get(x+1, y) == 0) {
 		history.insert(std::pair<int,int>(x+1,y));
 		fill_recurse(x+1, y, history, tile, target);
 	}
-	if(history.find(std::pair<int,int>(x,y-1)) == history.end() && y > 0 && get(x, y-1) == target) {
+	if(history.find(std::pair<int,int>(x,y-1)) == history.end() && y > 0 && get(x, y-1) == target && entity_get(x, y-1) == 0) {
 		history.insert(std::pair<int,int>(x,y-1));
 		fill_recurse(x, y-1, history, tile, target);
 	}
-	if(history.find(std::pair<int,int>(x,y+1)) == history.end() && y < height - 1 && get(x, y+1) == target) {
+	if(history.find(std::pair<int,int>(x,y+1)) == history.end() && y < height - 1 && get(x, y+1) == target && entity_get(x, y+1) == 0) {
 		history.insert(std::pair<int,int>(x,y+1));
 		fill_recurse(x, y+1, history, tile, target);
 	}

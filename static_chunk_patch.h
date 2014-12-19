@@ -43,4 +43,7 @@ public:
 	void apply_chunks();
 	bool valid_tile(char tile);
 	const std::set<char>& valid_tiles();
+
+	std::pair<std::shared_ptr<StaticAreaPatch>, int> parent(Chunk* cnk);
+	std::shared_ptr<StaticAreaPatch> area_patch(const std::string& name);
 };

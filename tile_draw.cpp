@@ -122,3 +122,24 @@ void draw_tile(char tile, int x, int y, int w, int h, AreaRenderMode arm) {
 	fl_color(0);
 	fl_draw(str, x, y, w, h, FL_ALIGN_INSIDE);
 }
+
+
+
+////////////
+// entities
+////////////
+
+Fl_Color entity_color(int entity) {
+	return (entity*0x12334265) & 0xFFFFFF00;
+}
+
+void draw_entity(int entity, int x, int y, int w, int h) {
+	Fl_Color centity = entity_color(entity);
+	char str[] = {'e', 0};
+
+	fl_draw_box(FL_OVAL_BOX, x, y, w, h, fl_darker(centity));
+	fl_draw_box(FL_OVAL_BOX, x, y, w-1, h-1, centity);
+
+	fl_color(0);
+	fl_draw(str, x, y, w, h, FL_ALIGN_INSIDE);
+}

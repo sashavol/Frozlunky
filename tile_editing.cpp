@@ -591,7 +591,7 @@ namespace TileEditing {
 
 		static void status_handler(unsigned state) {
 			if(state == STATE_CHUNK_WRITE || state == STATE_CHUNK_PASTE || state == STATE_RESERVED1) {
-				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file) + "* (Unapplied)").c_str());
+				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file) + "* (Save to Apply)").c_str());
 				unsaved_changes = true;
 			}
 			else if(state == STATE_REQ_SAVE) {
@@ -943,7 +943,6 @@ namespace TileEditing {
 		for(auto&& area : area_lookup) {
 			EditorScrollbar* es = new EditorScrollbar(690, 5+MB_Y_OFFSET, 15, 420);
 			TileEditingHintbar* hint_bar = new TileEditingHintbar(165, window->h()-30+1, 535, 25);
-			//TODO pass hint_bar to editor and have it handle it / activate upon switch to (In SetCurrentEditor, similar to scrollbar)
 
 			std::vector<Chunk*> chunks = tp->query_chunks(area.second);
 
@@ -954,6 +953,12 @@ namespace TileEditing {
 				}
 
 				AreaRenderMode arm = area.second != "%" ? mode_from_name(area.first) : AreaRenderMode::INVALID;
+				
+				std::shared_ptr<EntitySpawnBuilder> esb;
+				if(!chunks.empty()) {
+					std::pair<std::shared_ptr<StaticAreaPatch>, int> area_patch = tp->parent(chunks[0]);
+					esb = area_patch.first ? area_patch.first->entity_builder(area_patch.second) : nullptr;
+				}
 
 				//special handling for worm editor construction
 				EditorWidget* ew;
@@ -964,7 +969,7 @@ namespace TileEditing {
 							edited.push_back(chunks[i]);
 						}
 					}
-					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, edited, true);
+					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, edited, true);
 				}
 				else if(area.second == "%") { //default read-only
 					std::vector<Chunk*> relevant;
@@ -972,10 +977,10 @@ namespace TileEditing {
 						if(c->get_width() == CHUNK_WIDTH && c->get_height() == CHUNK_HEIGHT)
 							relevant.push_back(c);
 					}
-					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, relevant, false, true);
+					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, relevant, false, true);
 				}
 				else {
-					ew = new EditorWidget(arm, tp, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, chunks);
+					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, chunks);
 				}
 
 				es->set_parent_editor(ew);

@@ -7,6 +7,7 @@
 #include "tile_draw.h"
 #include "tile_picker.h"
 #include "tile_editing_hintbar.h"
+#include "entity_spawn_layer.h"
 
 #include <FL/Fl_Widget.H>
 #include <FL/fl_draw.H>
@@ -53,7 +54,6 @@ public:
 
 	int cnk_render_w, cnk_render_h;
 	int xu, yu;
-	int hv_gap;
 
 	Fl_Scrollbar* sidebar_scrollbar;
 	TileEditingHintbar* hint_bar;
@@ -66,6 +66,7 @@ public:
 private:
 	typedef std::chrono::high_resolution_clock clock;
 
+	std::shared_ptr<EntitySpawnBuilder> esb;
 	std::shared_ptr<StaticChunkPatch> tp;
 	std::function<void(unsigned)> status_cb;
 
@@ -84,6 +85,7 @@ private:
 
 //outside interface
 public:
+	std::shared_ptr<EntitySpawnBuilder> get_entity_builder();
 	std::vector<Chunk*> get_chunks();
 	void status_callback(std::function<void(unsigned)> cb);
 	void clear_state(); //clear state (undos)
@@ -103,6 +105,8 @@ private:
 	void shift_env_up(int u, bool bc=false);
 	void shift_env_down(int u, bool bc=false);
 	void shift_env_last(int u);
+
+	void shift_picker_cursor(int dx, int dy);
 
 private:
 	int mouse_event_id();
@@ -126,7 +130,15 @@ public:
 
 public:
 	~EditorWidget();
-	EditorWidget(AreaRenderMode arm, std::shared_ptr<StaticChunkPatch> tp, int x, int y, int w, int h, Fl_Scrollbar* scrollbar, TileEditingHintbar* hint_bar, std::vector<Chunk*> chunks, bool extended_mode=false, bool read_only=false);
+	EditorWidget(AreaRenderMode arm, 
+			std::shared_ptr<StaticChunkPatch> tp, 
+			std::shared_ptr<EntitySpawnBuilder> esb, 
+			int x, int y, int w, int h, 
+			Fl_Scrollbar* scrollbar, 
+			TileEditingHintbar* hint_bar, 
+			std::vector<Chunk*> chunks, 
+			bool extended_mode=false, 
+			bool read_only=false);
 
 
 private:

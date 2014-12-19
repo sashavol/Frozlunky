@@ -13,6 +13,10 @@ void EditorWidget::status(unsigned state) {
 		status_cb(state);
 }
 
+std::shared_ptr<EntitySpawnBuilder> EditorWidget::get_entity_builder() {
+	return esb;
+}
+
 std::vector<Chunk*> EditorWidget::get_chunks() {
 	return chunks;
 }
@@ -26,7 +30,7 @@ void EditorWidget::status_callback(std::function<void(unsigned)> cb) {
 }
 
 void EditorWidget::clear_state() {
-	timeline = ChunkTimeline(chunks);
+	timeline = ChunkTimeline(chunks, esb);
 }
 
 void EditorWidget::clear_chunk(Chunk* cnk) {
@@ -51,9 +55,13 @@ void EditorWidget::clear_chunks() {
 		return;
 
 	timeline.push_state();
+
 	for(Chunk* c : chunks) {
 		clear_chunk(c);
 	}
+
+	esb->clear();
+
 	status(STATE_CHUNK_WRITE);
 }
 
@@ -109,6 +117,12 @@ void EditorWidget::shift_env_last(int u) {
 		shift_env_right(u);
 		break;
 	}
+}
+
+void EditorWidget::shift_picker_cursor(int dx, int dy) {
+	picker.try_move(dx, dy);
+	if(picker.tile())
+		hint_bar->set_tile(picker.tile(), arm, nullptr);
 }
 
 int EditorWidget::mouse_event_id() {
@@ -202,21 +216,41 @@ int EditorWidget::handle_key(int key) {
 		return 1;
 
 	case 65361:
+		if(alt_down) {
+			shift_picker_cursor(-1, 0);
+			parent()->redraw();
+			return 1;
+		}
 		shift_env_left(ctrl_down ? 2 : 1, shift_down);
 		parent()->redraw();
 		return 1;
 
 	case 65362: //up
+		if(alt_down) {
+			shift_picker_cursor(0, -1);
+			parent()->redraw();
+			return 1;
+		}
 		shift_env_up(ctrl_down ? 2 : 1, shift_down);
 		parent()->redraw();
 		return 1;
 
 	case 65363:
+		if(alt_down) {
+			shift_picker_cursor(1, 0);
+			parent()->redraw();
+			return 1;
+		}
 		shift_env_right(ctrl_down ? 2 : 1, shift_down);
 		parent()->redraw();
 		return 1;
 
 	case 65364: //down
+		if(alt_down) {
+			shift_picker_cursor(0, 1);
+			parent()->redraw();
+			return 1;
+		}
 		shift_env_down(ctrl_down ? 2 : 1, shift_down);
 		parent()->redraw();
 		return 1;
@@ -224,9 +258,18 @@ int EditorWidget::handle_key(int key) {
 	case 32:    //space
 		if(cursor.in_bounds()) {
 			timeline.push_state();
-			cursor.put('0');
-			if(!ctrl_down)
-				shift_env_right(1);
+			if(ctrl_down) {
+				if(picker.tile())
+					cursor.put(picker.tile());
+				else if(picker.entity())
+					cursor.entity_put(picker.entity());
+				else
+					cursor.put('0');
+			}
+			else {
+				cursor.put('0');
+			}
+			shift_env_right(1);
 			parent()->redraw();
 			status(STATE_CHUNK_WRITE);
 		}
@@ -591,6 +634,7 @@ EditorWidget::~EditorWidget() {}
 
 EditorWidget::EditorWidget(AreaRenderMode arm, 
 						   std::shared_ptr<StaticChunkPatch> tp, 
+						   std::shared_ptr<EntitySpawnBuilder> esb,
 						   int x, int y, int w, int h, 
 						   Fl_Scrollbar* scrollbar, 
 						   TileEditingHintbar* hint_bar,
@@ -599,24 +643,24 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 	Fl_Widget(x,y,w,h,""),
 	read_only(read_only),
 	chunks(chunks),
+	esb(esb),
 	sidebar_scrollbar(scrollbar),
 	hint_bar(hint_bar),
 	cnk_render_w(130),
 	cnk_render_h(104),
 	xu(0),
 	yu(0),
-	hv_gap(0),
 	ctrl_down(false),
 	shift_down(false),
 	alt_down(false),
 	tp(tp),
 	extended_mode(extended_mode),
 	last_dir(Direction::UP),
-	timeline(chunks),
+	timeline(chunks, esb),
 	move_drag_start(-1, -1),
 	arm(arm),
 	picker(arm, tp->valid_tiles(), x + w - 87, y, 45, h, 15, 15),
-	cursor(chunks, extended_mode ? 2 : 4, read_only)
+	cursor(chunks, esb, extended_mode ? 2 : 4, read_only)
 {
 	//allocate width for sidebar
 	w -= 60;
@@ -687,10 +731,10 @@ Chunk* EditorWidget::find_chunk(int rx, int ry) {
 		}
 
 		hc++;
-		x += cnk_render_w + hv_gap;
+		x += cnk_render_w;
 		if(hc == 4 || (extended_mode && hc == 2)) {
 			x = this->x();
-			y += cnk_render_h + hv_gap;
+			y += cnk_render_h;
 			hc = 0;
 		}
 	}
@@ -747,11 +791,11 @@ std::pair<int, int> EditorWidget::render_pos(int tx, int ty) {
 		}
 
 		hc++;
-		x += cnk_render_w + hv_gap;
+		x += cnk_render_w;
 		xc += c->get_width();
 		if(hc == 4 || (extended_mode && hc == 2)) {
 			x = this->x();
-			y += cnk_render_h + hv_gap;
+			y += cnk_render_h;
 			yc += c->get_height();
 			xc = 0;
 			hc = 0;
@@ -773,10 +817,10 @@ std::pair<int, int> EditorWidget::get_chunk_render_pos(Chunk* cnk) {
 			return std::pair<int, int>(x, y - sidebar_scrollbar->value());
 
 		hc++;
-		x += cnk_render_w + hv_gap;
+		x += cnk_render_w;
 		if(hc == 4 || (extended_mode && hc == 2)) { //TODO this is not very accurate, fix this check.
 			x = this->x();
-			y += cnk_render_h + hv_gap;
+			y += cnk_render_h;
 			hc = 0;
 		}
 	}
@@ -873,6 +917,7 @@ void EditorWidget::draw() {
 	int x = this->x(), y = this->y();
 	int hc = 0;
 
+	//render regular tiles
 	for(Chunk* c : chunks) {
 		int rx = x, ry = y - sidebar_scrollbar->value();
 
@@ -881,15 +926,26 @@ void EditorWidget::draw() {
 		}
 			
 		hc++;
-		x += cnk_render_w + hv_gap;
+		x += cnk_render_w;
 		if(hc == 4 || (extended_mode && hc == 2)) {
 			x = this->x();
-			y += cnk_render_h + hv_gap;
+			y += cnk_render_h;
 			hc = 0;
 		}
 	}
+	
+	if(esb) {
+		//TODO this rendering operation is very slow because of render_pos call, improve performance of either render_pos or this
+		//render entity spawners
+		for(auto&& es : *esb) {
+			const EntitySpawnBuilder::EntitySpawn& eto = es.second;
+			std::pair<int, int> unmapped = EntitySpawnLayer::unmap(eto.x, eto.y);
+			auto rpos = render_pos(unmapped.first, unmapped.second);
+			draw_entity(eto.entity, rpos.first, rpos.second, xu, yu);
+		}
+	}
 
-	//active chunk
+	//render cursor
 	if(cursor.in_bounds()) {
 		render_cursor();
 	}

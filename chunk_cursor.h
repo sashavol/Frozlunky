@@ -5,8 +5,9 @@
 #include <vector>
 #include <map>
 #include "tile_chunk.h"
+#include "entity_spawn_layer.h"
 
-typedef std::map<std::pair<int, int>, char> cursor_store;
+typedef std::map<std::pair<int, int>, std::pair<char, int>> cursor_store;
 
 //works with constant-size chunks as a cursor
 struct ChunkCursor {
@@ -16,6 +17,7 @@ private:
 private:
 	bool read_only;
 
+	std::shared_ptr<EntitySpawnLayer> entity_layer;
 	std::vector<pos_fn> pos_change_cb;
 
 	std::vector<Chunk*> chunks;
@@ -31,16 +33,22 @@ private:
 public:
 	char tile;
 	
-	ChunkCursor(const std::vector<Chunk*>& chunks, int tw, bool read_only=false);
+	ChunkCursor(const std::vector<Chunk*>& chunks, std::shared_ptr<EntitySpawnBuilder> esb, int tw, bool read_only=false);
 	void pos_callback(pos_fn fn);
 	
 private:
 	void tileref(int x, int y, std::function<void(Chunk* c, int cx, int cy)> ref);
 
-	void write(char tile, int x, int y);
+	void entity_write(int entity, int x, int y, bool zero_ti_=true);
+	int entity_get(int x, int y) const;
+
+	void write(char tile, int x, int y, bool zero_et_=true);
 	char get(int x, int y) const;
 
 public:
+	int entity_get() const;
+	void entity_put(int entity);
+
 	char get() const;
 	void put(char tile);
 	

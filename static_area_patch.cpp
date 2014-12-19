@@ -28,6 +28,11 @@ static BYTE cnkseg_opcode[] = {0x83,0xF8,0xAA,0x75,0xCC,0x61,0x68,0xAA,0xAA,0xAA
 */
 static BYTE cnkseg_jmpout[] = {0xE9,0xAA,0xAA,0xAA,0xAA};
 
+/*
+	AA (+1) -> Builder call diff
+*/
+static BYTE builder_call[] = {0xE8,0xAA,0xAA,0xAA,0xAA};
+
 static Address find_end(std::shared_ptr<Spelunky> spel, Address start_addr) {
 	static BYTE end_find[] = {0x83, 0xC4, 0xCC, 0xC3};
 	static BYTE end2_find[] = {0x83, 0xC4, 0xCC, 0xC2};
@@ -315,11 +320,35 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<Derand
 	}
 
 	if(!chunk_alloc) {
-		DBG_EXPR(std::cout << "[StaticAreaPatch] Failed to allcoate chunk memory." << std::endl);
+		DBG_EXPR(std::cout << "[StaticAreaPatch] Failed to allocate chunk memory." << std::endl);
 		is_valid = false;
 		return;
 	}
 
+	//construct entity spawn builders
+	if(!single_level) {
+		for(int lvl = lvl_start; lvl < lvl_end; ++lvl) {
+			std::shared_ptr<EntitySpawnBuilder> builder = std::make_shared<EntitySpawnBuilder>(dp);
+			if(!builder->valid()) {
+				DBG_EXPR(std::cout << "[StaticAreaPatch] Failed to construct valid entity builder." << std::endl);
+				is_valid = false;
+				return;
+			}
+			builders[lvl] = builder;
+		}
+	}
+	else {
+		std::shared_ptr<EntitySpawnBuilder> builder = std::make_shared<EntitySpawnBuilder>(dp);
+		if(!builder->valid()) {
+			DBG_EXPR(std::cout << "[StaticAreaPatch] Failed to construct valid entity builder." << std::endl);
+			is_valid = false;
+			return;
+		}
+		
+		for(int lvl = lvl_start; lvl < lvl_end; ++lvl) {
+			builders[lvl] = builder;
+		}
+	}
 
 	//TODO construct Chunk* and store into internal chunk vector
 	{
@@ -335,7 +364,11 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<Derand
 					std::string cnk_name = name + "-" + std::to_string(lvl) + "-" + std::to_string(c);
 					spel->write_mem(lvl_alloc + CHUNK_LEN*c, empty_chunk, sizeof(empty_chunk));
 					named_allocs[cnk_name] = lvl_alloc + CHUNK_LEN*c;
-					chunks.push_back(new SingleChunk(cnk_name, std::string((char*)empty_chunk), CHUNK_WIDTH, CHUNK_HEIGHT));
+
+					SingleChunk* cnk = new SingleChunk(cnk_name, std::string((char*)empty_chunk), CHUNK_WIDTH, CHUNK_HEIGHT);
+					chunks.push_back(cnk);
+
+					level_parents[static_cast<Chunk*>(cnk)] = lvl;
 				}
 				
 				allocs[lvl] = lvl_alloc;
@@ -346,7 +379,11 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<Derand
 				spel->write_mem(chunk_alloc + CHUNK_LEN*c, empty_chunk, sizeof(empty_chunk));
 				std::string cnk_name = name + "-" + std::to_string(c);
 				named_allocs[cnk_name] = chunk_alloc + CHUNK_LEN*c;
-				chunks.push_back(new SingleChunk(cnk_name, std::string((char*)empty_chunk), CHUNK_WIDTH, CHUNK_HEIGHT));
+
+				SingleChunk* cnk = new SingleChunk(cnk_name, std::string((char*)empty_chunk), CHUNK_WIDTH, CHUNK_HEIGHT);
+				chunks.push_back(cnk);
+
+				level_parents[static_cast<Chunk*>(cnk)] = lvl_start;
 			}
 
 			for(int lvl = lvl_start; lvl < lvl_end; lvl++) {
@@ -414,7 +451,7 @@ bool StaticAreaPatch::_perform() {
 		spel->write_mem(sr+ 2, &blvl, sizeof(BYTE));
 
 		signed int cnkseg_size = sizeof(cnkseg_opcode)+sizeof(cnkseg_jmpout)+jmpout_pre_size;
-		signed int diff = (sr+sizeof(lvlseg_opcode)+lvl_chunks*cnkseg_size) - (sr+3+6);
+		signed int diff = (sr + sizeof(lvlseg_opcode) + sizeof(builder_call) + lvl_chunks*cnkseg_size) - (sr+3+6);
 		spel->write_mem(sr + 5, &diff, sizeof(signed int));
 
 		sr += sizeof(lvlseg_opcode);
@@ -429,9 +466,20 @@ bool StaticAreaPatch::_perform() {
 			spel->write_mem(sr+7, &cnk_alloc, sizeof(Address));
 
 			signed char cnkdiff = (signed char)cnkseg_size - 5;
+			if(c == 0) {
+				cnkdiff += sizeof(builder_call);
+			}
 			spel->write_mem(sr+4, &cnkdiff, sizeof(signed char));
 
 			sr += sizeof(cnkseg_opcode);
+			
+			//entity spawning
+			if(c == 0) {
+				signed int calldiff = builders[lvl]->subroutine_addr() - (sr + 5);
+				spel->write_mem(sr, builder_call, sizeof(builder_call));
+				spel->write_mem(sr+1, &calldiff, sizeof(Address));
+				sr += sizeof(builder_call);
+			}
 			
 			std::memcpy(prej, jmpout_pre, jmpout_pre_size);
 			extract_pre(sr, prej, jmpout_pre_size);
@@ -496,4 +544,25 @@ void StaticAreaPatch::apply_chunks() {
 			spel->write_mem(addr, sc->get_data().c_str(), CHUNK_LEN);
 		}
 	}
+
+	std::set<EntitySpawnBuilder*> updated;
+	for(auto&& builder : builders) {
+		if(updated.find(builder.second.get()) == updated.end()) {
+			builder.second->update_memory();
+			updated.insert(builder.second.get());
+		}
+	}
+}
+
+std::shared_ptr<EntitySpawnBuilder> StaticAreaPatch::entity_builder(int lvl) {
+	return builders[lvl];
+}
+
+int StaticAreaPatch::identify_chunk(Chunk* cnk) {
+	auto p = level_parents.find(cnk);
+	if(p != level_parents.end()) {
+		return p->second;
+	}
+	else
+		return -1;
 }
