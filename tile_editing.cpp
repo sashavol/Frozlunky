@@ -7,7 +7,6 @@
 #include "level_forcer.h"
 #include "resource_editor.h"
 #include "resource_editor_gui.h"
-#include "gui.h"
 #include "syllabic.h"
 
 #include <FL/Fl_Double_Window.H>
@@ -508,8 +507,6 @@ namespace TileEditing {
 				for(auto&& ep : editors) {
 					ep.second->clear_state();
 				}
-
-				request_soft_seed_lock();
 
 				mut_level_seeds.lock();
 				for(auto&& level : level_seeds) {

@@ -567,11 +567,11 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 		}
 	}
 	else {
-		build_dim = std::pair<int,int>(cursor.rex() - cursor.rsx() + 1, cursor.rey() - cursor.rsy() + 1);
+		build_dim = std::make_pair(cursor.rex() - cursor.rsx() + 1, cursor.rey() - cursor.rsy() + 1);
 		affect(rx, ry);
 	}
 
-	last_build = std::pair<int, int>(rx, ry);
+	last_build = std::make_pair(rx, ry);
 	parent()->redraw();
 }
 
