@@ -1,3 +1,4 @@
+#include "known_entities.h"
 #include "chunk_cursor.h"
 #include "debug.h"
 #include <iostream>
@@ -24,11 +25,6 @@ ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, std::shared_ptr<Enti
 
 	if(esb) {
 		entity_layer = std::make_shared<EntitySpawnLayer>(esb, width, height);
-		//DEBUG
-		entity_layer->put(1, 1, 0x40E);
-		entity_layer->put(2, 1, 0x410);
-		entity_layer->put(3, 1, 0x418);
-		entity_layer->put(4, 1, 0x422);
 	}
 
 	sx = 0;
@@ -123,7 +119,7 @@ void ChunkCursor::entity_put(int entity) {
 	try {
 		for(int x = sx; x <= ex; x++) {
 			for(int y = sy; y <= ey; y++) {
-				entity_write(tile, x, y);
+				entity_write(entity, x, y);
 			}
 		}
 	}
@@ -337,26 +333,32 @@ void ChunkCursor::decode(const cursor_store& store) {
 	}
 }
 
+bool ChunkCursor::check_dir(int x, int y, char target, int entity_target) {
+	return entity_get(x, y) == entity_target && get(x, y) == target;
+}
 
-void ChunkCursor::fill_recurse(int x, int y, fill_history& history, char tile, char target) {
-	if(history.find(std::pair<int,int>(x-1,y)) == history.end() && x > 0 && get(x-1, y) == target && entity_get(x-1, y) == 0) {
-		history.insert(std::pair<int,int>(x-1,y));
-		fill_recurse(x-1, y, history, tile, target);
+void ChunkCursor::fill_recurse(int x, int y, fill_history& history, char tile, int entity, char target, int entity_target) {
+	if(history.find(std::make_pair(x-1,y)) == history.end() && x > 0 && check_dir(x-1, y, target, entity_target)) {
+		history.insert(std::make_pair(x-1,y));
+		fill_recurse(x-1, y, history, tile, entity, target, entity_target);
 	}
-	if(history.find(std::pair<int,int>(x+1,y)) == history.end() && x < width - 1 && get(x+1, y) == target && entity_get(x+1, y) == 0) {
-		history.insert(std::pair<int,int>(x+1,y));
-		fill_recurse(x+1, y, history, tile, target);
+	if(history.find(std::make_pair(x+1,y)) == history.end() && x < width - 1 && check_dir(x+1, y, target, entity_target)) {
+		history.insert(std::make_pair(x+1,y));
+		fill_recurse(x+1, y, history, tile, entity, target, entity_target);
 	}
-	if(history.find(std::pair<int,int>(x,y-1)) == history.end() && y > 0 && get(x, y-1) == target && entity_get(x, y-1) == 0) {
-		history.insert(std::pair<int,int>(x,y-1));
-		fill_recurse(x, y-1, history, tile, target);
+	if(history.find(std::make_pair(x,y-1)) == history.end() && y > 0 && check_dir(x, y-1, target, entity_target)) {
+		history.insert(std::make_pair(x,y-1));
+		fill_recurse(x, y-1, history, tile, entity, target, entity_target);
 	}
-	if(history.find(std::pair<int,int>(x,y+1)) == history.end() && y < height - 1 && get(x, y+1) == target && entity_get(x, y+1) == 0) {
-		history.insert(std::pair<int,int>(x,y+1));
-		fill_recurse(x, y+1, history, tile, target);
+	if(history.find(std::make_pair(x,y+1)) == history.end() && y < height - 1 && check_dir(x, y+1, target, entity_target)) {
+		history.insert(std::make_pair(x,y+1));
+		fill_recurse(x, y+1, history, tile, entity, target, entity_target);
 	}
 
-	write(tile, x, y);
+	if(entity)
+		entity_write(entity, x, y);
+	else if(tile)
+		write(tile, x, y);
 }
 
 void ChunkCursor::fill(char tile) {
@@ -364,5 +366,13 @@ void ChunkCursor::fill(char tile) {
 		return;
 
 	fill_history history;
-	fill_recurse(sx, sy, history, tile, get(sx, sy));
+	fill_recurse(sx, sy, history, tile, 0, get(sx, sy), entity_get(sx, sy));
+}
+
+void ChunkCursor::entity_fill(int entity) {
+	if(read_only)
+		return;
+
+	fill_history history;
+	fill_recurse(sx, sy, history, '0', entity, get(sx, sy), entity_get(sx, sy));
 }

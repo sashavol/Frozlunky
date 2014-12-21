@@ -1,4 +1,5 @@
 #include "tile_draw.h"
+#include "known_entities.h"
 
 AreaRenderMode mode_from_name(const std::string& area) {
 	if(area.find("Tut") == 0)
@@ -130,12 +131,20 @@ void draw_tile(char tile, int x, int y, int w, int h, AreaRenderMode arm) {
 ////////////
 
 Fl_Color entity_color(int entity) {
-	return (entity*0x12334265) & 0xFFFFFF00;
+	switch(entity) {
+	case 170: //too dark with default coloring scheme
+		return 0xABDBEF00;
+	case 1059:
+		return 0xFDBA9E00;
+	default:
+		return (entity*0x1233427F) & 0xFFFFFF00;
+	}	
 }
 
 void draw_entity(int entity, int x, int y, int w, int h) {
 	Fl_Color centity = entity_color(entity);
-	char str[] = {'e', 0};
+	const std::string& known = KnownEntities::GetName(entity);
+	char str[] = {known[0], 0};
 
 	fl_draw_box(FL_OVAL_BOX, x, y, w, h, fl_darker(centity));
 	fl_draw_box(FL_OVAL_BOX, x, y, w-1, h-1, centity);

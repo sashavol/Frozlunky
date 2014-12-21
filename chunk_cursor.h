@@ -76,10 +76,13 @@ public:
 
 private:
 	typedef std::set<std::pair<int, int>> fill_history;
-	void fill_recurse(int x, int y, fill_history& history, char tile, char target);
+
+	bool check_dir(int x, int y, char target, int entity_target);
+	void fill_recurse(int x, int y, fill_history& history, char tile, int entity, char target, int entity_target);
+	
 public:
 	void fill(char tile);
-
+	void entity_fill(int entity);
 
 	void decode(const cursor_store& store);
 };

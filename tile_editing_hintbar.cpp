@@ -1,5 +1,6 @@
 #include "tile_editing_hintbar.h"
 #include "tile_description.h"
+#include "known_entities.h"
 
 #include <string>
 #include <sstream>
@@ -10,7 +11,8 @@ TileEditingHintbar::TileEditingHintbar(int x, int y, int w, int h) :
 	Fl_Widget(x, y, w, h),
 	tile(0), 
 	area(MINES), 
-	chunk(nullptr)
+	chunk(nullptr),
+	entity(0)
 {
 	this->box(Fl_Boxtype::FL_BORDER_BOX);
 }
@@ -22,7 +24,10 @@ void TileEditingHintbar::update_label() {
 	if(chunk) {
 		oss << "Chunk: " << Description::ChunkDescription(chunk) << "  ";
 		
-		if(tile) {
+		if(entity) {
+			oss << "Entity: " << KnownEntities::GetName(entity);
+		}
+		else if(tile) {
 			//derive render mode from given by default, otherwise derive from chunk attributes
 			if(area != AreaRenderMode::INVALID) {
 				oss << "Tile: " << Description::TileDescription(tile, area);
@@ -31,6 +36,9 @@ void TileEditingHintbar::update_label() {
 				oss << "Tile: " << Description::TileDescription(tile, this->chunk);
 			}
 		}
+	}
+	else if(entity) {
+		oss << "Entity: " << KnownEntities::GetName(entity);
 	}
 	else if(tile) {
 		oss << "Picked tile: " << Description::TileDescription(tile, area);
@@ -43,12 +51,21 @@ void TileEditingHintbar::set_tile(char tile, AreaRenderMode area, Chunk* parent)
 	this->tile = tile;
 	this->area = area;
 	this->chunk = parent;
+	this->entity = 0;
 
 	update_label();
 }
 
 int TileEditingHintbar::handle(int evt) {
 	return 0;
+}
+
+void TileEditingHintbar::set_entity(int entity, Chunk* parent) {
+	this->tile = 0;
+	this->entity = entity;
+	this->chunk = parent;
+
+	update_label();
 }
 
 void TileEditingHintbar::draw() {

@@ -1,7 +1,7 @@
 #include "entity_spawn_builder.h"
 
-#define SUBROUTINE_ALLOC 4096
-#define FLOATS_ALLOC 2048
+#define SUBROUTINE_ALLOC 16384
+#define FLOATS_ALLOC 8192
 
 //[SpawnEntity(void* current_game, float x, float y, int id, bool autoadd)]
 //+0

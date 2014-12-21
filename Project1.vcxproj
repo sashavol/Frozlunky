@@ -106,6 +106,7 @@
     <ClCompile Include="input_push_builder.cpp" />
     <ClCompile Include="input_recv_patch.cpp" />
     <ClCompile Include="items.cpp" />
+    <ClCompile Include="known_entities.cpp" />
     <ClCompile Include="level_forcer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mods.cpp" />
@@ -140,6 +141,7 @@
     <ClCompile Include="tile_editing_menubar.cpp" />
     <ClCompile Include="tile_editor_widget.cpp" />
     <ClCompile Include="tile_patch.cpp" />
+    <ClCompile Include="tile_picker.cpp" />
     <ClCompile Include="tile_util.cpp" />
     <ClCompile Include="timer99.cpp" />
     <ClCompile Include="updates.cpp" />
@@ -157,6 +159,7 @@
     <ClInclude Include="entity_insert_gui.h" />
     <ClInclude Include="entity_spawn_builder.h" />
     <ClInclude Include="entity_spawn_layer.h" />
+    <ClInclude Include="known_entities.h" />
     <ClInclude Include="level_forcer.h" />
     <ClInclude Include="resource_editor.h" />
     <ClInclude Include="resource_editor_gui.h" />

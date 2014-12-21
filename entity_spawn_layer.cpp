@@ -9,11 +9,11 @@ EntitySpawnLayer::EntitySpawnLayer(std::shared_ptr<EntitySpawnBuilder> builder, 
 EntitySpawnLayer::EntitySpawnLayer() : builder(nullptr), w(0), h(0) {}
 
 std::pair<float, float> EntitySpawnLayer::map(int cx, int cy) {
-	return std::pair<float, float>(3.0f + (float)cx, 100.0f - (float)cy); 
+	return std::pair<float, float>(3.0f + (float)cx, (100.0f - (float)cy) - 1.0f); 
 }
 
 std::pair<int, int> EntitySpawnLayer::unmap(float x, float y) {
-	return std::pair<int, int>(int(x - 3.0f), int(100.0f - y));	
+	return std::pair<int, int>(int(x - 3.0f), int(99.0f - y));	
 }
 
 

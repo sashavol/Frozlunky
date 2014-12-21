@@ -25,6 +25,7 @@
 #include <thread>
 
 #include <boost/assign.hpp> 
+#include <boost/algorithm/string.hpp>
 #include <pugixml.hpp>
 
 
@@ -37,7 +38,7 @@ public: \
 	virtual int handle(int evt) override; \
 }
 
-//TODO change SafeXMLName to better represent the area internally
+//TODO save picker state
 
 //OPT add simulation widget to the overview page, should simulate a chosen area's chunks
 static Fl_Window* window = nullptr;
@@ -357,15 +358,33 @@ namespace TileEditing {
 			}
 		}
 
+		static void InitializeEmptyEntities() {
+			for(auto&& e : editors) {
+				std::shared_ptr<EntitySpawnBuilder> esb = e.second->get_entity_builder();
+				if(esb) {
+					esb->clear();
+				}
+			}
+		}
+
 		static void NewFile() {
 			mut_level_seeds.lock();
+			
 			for(auto&& area : area_lookup) {
 				level_seeds[area.first] = std::string();
 			}
 
 			TileDefault::SetToDefault(tp->get_chunks());
 			InitializeEmptySeeds();
+
+			if(!current_area_editor.empty()) {
+				input_seed->value(level_seeds[current_area_editor].c_str());
+			}
+
 			mut_level_seeds.unlock();
+
+
+			InitializeEmptyEntities();
 
 			resource_editor->reset();
 			resource_editor_window->update();
@@ -374,8 +393,14 @@ namespace TileEditing {
 			unsaved_changes = false;
 		}
 
-		static std::string SafeXMLName(const std::string& level) {
-			return std::string("s") + std::to_string(std::hash<std::string>()(level));
+		static std::string SafeXMLName(std::string level) {
+			using namespace boost::algorithm;
+			
+			replace_all(level, " ", "-");
+			replace_all(level, "(", "-");
+			replace_all(level, ")", "-");
+
+			return std::string("s")+level;
 		}
 
 		static std::string AreaName(const std::string& safe) {
@@ -403,12 +428,33 @@ namespace TileEditing {
 
 			pugi::xml_node resources = xmld.append_child("resources");
 			for(auto&& res : *resource_editor) {
+				if(mget(area_lookup, res.first).second == "%")
+					continue;
+
 				pugi::xml_node level = resources.append_child(SafeXMLName(res.first).c_str());
 
 				auto& r = res.second;
 				level.append_attribute("bombs").set_value(r.bombs);
 				level.append_attribute("ropes").set_value(r.ropes);
 				level.append_attribute("health").set_value(r.health);
+			}
+
+			pugi::xml_node entities = xmld.append_child("entities");
+			for(auto&& e : editors) {
+				if(mget(area_lookup, e.first).second == "%")
+					continue;
+
+				pugi::xml_node level = entities.append_child(SafeXMLName(e.first).c_str());
+
+				std::shared_ptr<EntitySpawnBuilder> esb = e.second->get_entity_builder();
+				if(esb) {
+					for(auto&& et : *esb) {
+						pugi::xml_node entity = level.append_child("entity");
+						entity.append_attribute("id").set_value(et.second.entity);
+						entity.append_attribute("x").set_value(et.second.x);
+						entity.append_attribute("y").set_value(et.second.y);
+					}
+				}
 			}
 
 			pugi::xml_node node = xmld.append_child("chunks");
@@ -501,7 +547,6 @@ namespace TileEditing {
 				InitializeEmptySeeds();
 				mut_level_seeds.unlock();
 
-
 				resource_editor->reset();
 				pugi::xml_node resources = xmld.child("resources");
 				if(!resources.empty()) {
@@ -510,18 +555,18 @@ namespace TileEditing {
 						
 						if(area != "") {
 							ResourceEditor::Resources& res = resource_editor->res(area);
-							for(pugi::xml_attribute attr : level.attributes()) {
-								std::string name(attr.name());
 							
-								if(name == "bombs")
-									res.bombs = attr.as_int();
-								else if(name == "ropes")
-									res.ropes = attr.as_int();
-								else if(name == "health")
-									res.health = attr.as_int();
-								else
-									throw std::runtime_error("Encountered invalid resources attribute.");
+							pugi::xml_attribute bombsa = level.attribute("bombs"),
+												ropesa = level.attribute("ropes"),
+												healtha = level.attribute("health");
+
+							if(bombsa.empty() || ropesa.empty() || healtha.empty()) {
+								throw std::runtime_error("Encountered invalid resource specifier.");
 							}
+
+							res.bombs = bombsa.as_int();
+							res.ropes = ropesa.as_int();
+							res.health = healtha.as_int();
 						}
 					}
 				}
@@ -554,6 +599,34 @@ namespace TileEditing {
 						}
 					}
 				}
+
+
+				InitializeEmptyEntities();
+				pugi::xml_node entities = xmld.child("entities");
+				if(!entities.empty()) {
+					for(pugi::xml_node level : entities.children()) {
+						std::string area = AreaName(level.name());
+
+						if(area != "") {
+							std::shared_ptr<EntitySpawnBuilder> esb = editors[area]->get_entity_builder();
+
+							if(esb) {
+								for(pugi::xml_node et : level.children()) {
+									pugi::xml_attribute xa = et.attribute("x"),
+														ya = et.attribute("y"),
+														ida = et.attribute("id");
+
+									if(xa.empty() || ya.empty() || ida.empty()) {
+										throw std::runtime_error("Encountered invalid entity.");
+									}
+
+									esb->add(xa.as_float(), ya.as_float(), ida.as_int());
+								}
+							}
+						}
+					}
+				}
+
 
 				SetActiveFile(file);
 				unsaved_changes = false;
@@ -1044,6 +1117,7 @@ namespace TileEditing {
 
 		construct_worker_thread();
 		IO::NewFile();
+		::window->redraw();
 
 		if(!first_editor.empty()) {
 			SetCurrentEditor(first_editor);

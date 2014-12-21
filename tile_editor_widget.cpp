@@ -1,6 +1,8 @@
 #include "tile_editor_widget.h"
 #include "tile_description.h"
 
+//TODO save editor picker state
+
 bool EditorWidget::allow_input() {
 	if(!key_press)
 		return true;
@@ -23,6 +25,10 @@ std::vector<Chunk*> EditorWidget::get_chunks() {
 
 ChunkCursor& EditorWidget::get_cursor() {
 	return cursor;
+}
+
+TilePicker& EditorWidget::get_picker() {
+	return picker;
 }
 
 void EditorWidget::status_callback(std::function<void(unsigned)> cb) {
@@ -60,7 +66,9 @@ void EditorWidget::clear_chunks() {
 		clear_chunk(c);
 	}
 
-	esb->clear();
+	if(esb) {
+		esb->clear();
+	}
 
 	status(STATE_CHUNK_WRITE);
 }
@@ -123,6 +131,8 @@ void EditorWidget::shift_picker_cursor(int dx, int dy) {
 	picker.try_move(dx, dy);
 	if(picker.tile())
 		hint_bar->set_tile(picker.tile(), arm, nullptr);
+	else if(picker.entity())
+		hint_bar->set_entity(picker.entity(), nullptr);
 }
 
 int EditorWidget::mouse_event_id() {
@@ -160,14 +170,29 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 			cursor.s(sx, sy);
 			cursor.e(ex, ey);
 		}
+
+
+		int entity = cursor.entity_get();
+		char tile = cursor.get();
+		if(entity)
+			hint_bar->set_entity(entity, c);
+		else if(tile)
+			hint_bar->set_tile(tile, arm, c);
 	}
 	else {
 		move_drag_start = std::pair<int, int>(-1, -1);
-			
-		char ptile = picker.tile(rx, ry);
-		if(ptile != 0) {
-			picker.select(ptile);
-			hint_bar->set_tile(ptile, arm, nullptr);
+		
+		int entity = picker.entity(rx, ry);
+		if(entity != 0) {
+			hint_bar->set_entity(entity, nullptr);
+			picker.entity_select(entity);
+		}
+		else {
+			char ptile = picker.tile(rx, ry);
+			if(ptile != 0) {
+				hint_bar->set_tile(ptile, arm, nullptr);
+				picker.select(ptile);
+			}
 		}
 	}
 
@@ -176,11 +201,18 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 
 void EditorWidget::cursor_fill(int x, int y) {
 	char tile = picker.tile();
-	if(x >= 0 && y >= 0 && tp->valid_tile(tile)) {
+	int entity = picker.entity();
+
+	if(x >= 0 && y >= 0 && (tile || entity)) {
 		cursor.s(x, y);
 		cursor.e(x, y);
 		timeline.push_state();
-		cursor.fill(picker.tile());
+		
+		if(tile)
+			cursor.fill(tile);
+		else
+			cursor.entity_fill(entity);
+
 		status(STATE_CHUNK_PASTE);
 		parent()->redraw();
 	}
@@ -257,21 +289,22 @@ int EditorWidget::handle_key(int key) {
 
 	case 32:    //space
 		if(cursor.in_bounds()) {
-			timeline.push_state();
 			if(ctrl_down) {
-				if(picker.tile())
-					cursor.put(picker.tile());
-				else if(picker.entity())
-					cursor.entity_put(picker.entity());
-				else
-					cursor.put('0');
+				int entity = cursor.entity_get();
+				char tile = cursor.get();
+				if(entity)
+					picker.entity_select(entity);
+				else if(tile)
+					picker.select(tile);
+				parent()->redraw();
 			}
 			else {
+				timeline.push_state();
 				cursor.put('0');
+				shift_env_right(1);
+				parent()->redraw();
+				status(STATE_CHUNK_WRITE);
 			}
-			shift_env_right(1);
-			parent()->redraw();
-			status(STATE_CHUNK_WRITE);
 		}
 		return 1;
 
@@ -308,6 +341,24 @@ int EditorWidget::handle_key(int key) {
 	case 65514:
 		alt_down = true;
 		return 1;
+
+	case '`': //place down currently picked tile
+		if(!shift_down) {
+			timeline.push_state();
+
+			if(picker.tile())
+				cursor.put(picker.tile());
+			else if(picker.entity())
+				cursor.entity_put(picker.entity());
+			else
+				cursor.put('0');
+			
+			shift_env_right(1);
+			status(STATE_CHUNK_WRITE);
+
+			parent()->redraw();
+			return 1;
+		}
 
 	case 102: //f: fill
 		if(ctrl_down) {
@@ -429,8 +480,6 @@ int EditorWidget::handle_key(int key) {
 		{
 			char tile = Fl::event_text()[0];
 			if(tp->valid_tile(tile)) {
-				picker.select(tile);
-						
 				//do not put down tile if alt. Alt+Tile = pick tile only
 				if(!alt_down && cursor.in_bounds()) {
 					timeline.push_state();
@@ -455,13 +504,11 @@ void EditorWidget::cursor_finish_move() {
 	move_drag_start = std::pair<int, int>(-1, -1);
 }
 
-char EditorWidget::cursor_tile() {
-	return picker.tile();
-}
-
 void EditorWidget::cursor_build(int rx, int ry, bool drag) {
-	char tile = cursor_tile();
-	if(tile == 0)
+	char tile = picker.tile();
+	int entity = picker.entity();
+
+	if(tile == 0 && entity == 0)
 		return;
 
 	auto affect = [=](int x, int y) {
@@ -469,10 +516,11 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag) {
 		cursor.s(cc.first, cc.second);
 		cursor.e(min(cursor.cc_width()-1, cc.first+build_dim.first-1), min(cursor.cc_height()-1, cc.second+build_dim.second-1));
 
-		if(tile != 0 && tp->valid_tile(tile)) {
+		if(entity)
+			cursor.entity_put(entity);
+		else if(tile)
 			cursor.put(tile);
-		}
-
+		
 		status(STATE_CHUNK_WRITE);
 	};
 
@@ -626,7 +674,15 @@ static Numeric_ clamp_(Numeric_ s, Numeric_ e, Numeric_ v) {
 
 void EditorWidget::update_hint_bar() {
 	auto pair = render_pos(cursor.rsx(), cursor.rsy());
-	hint_bar->set_tile(cursor.get(), arm, find_chunk(pair.first, pair.second));
+
+	char tile = cursor.get();
+	int entity = cursor.entity_get();
+	
+	if(entity)
+		hint_bar->set_entity(entity, find_chunk(pair.first, pair.second));
+	else
+		hint_bar->set_tile(tile, arm, find_chunk(pair.first, pair.second));
+	
 	hint_bar->redraw();
 }
 

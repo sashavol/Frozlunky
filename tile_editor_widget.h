@@ -90,6 +90,7 @@ public:
 	void status_callback(std::function<void(unsigned)> cb);
 	void clear_state(); //clear state (undos)
 	ChunkCursor& get_cursor();
+	TilePicker& get_picker();
 
 private:
 	void clear_chunk(Chunk* cnk);
@@ -114,7 +115,7 @@ private:
 	std::pair<int, int> move_drag_start;
 	void cursor_move(int rx, int ry, bool drag);
 	void cursor_finish_move();
-	char cursor_tile();
+
 	void cursor_fill(int x, int y);
 	
 	std::pair<int, int> last_build;
