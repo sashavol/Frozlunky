@@ -112,6 +112,11 @@ std::pair<int, int> TilePicker::elem_position(char tile, int entity) {
 			px = x;
 		}
 	}
+
+	if(px != x) {
+		py += yu;
+		px = x;
+	}
 		
 	for(int e : recent_entities) {
 		if(e == entity) {

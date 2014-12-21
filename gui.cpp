@@ -92,7 +92,7 @@ bool allow_seed_change = true;
 bool daily_available = false;
 bool gui_visible = false;
 
-const int states_can_disable_froz[] = {STATE_GAMEOVER_HUD, STATE_MAINMENU, STATE_LOBBY, STATE_TITLE, STATE_INTRO, STATE_CHARSELECT};
+const int states_can_disable_froz[] = {STATE_PLAYING, STATE_GAMEOVER_HUD, STATE_MAINMENU, STATE_LOBBY, STATE_TITLE, STATE_INTRO, STATE_CHARSELECT};
 
 //////
 // Unsafe
@@ -147,6 +147,7 @@ void init_level_editor() {
 	std::shared_ptr<TilePatch> tp(new TilePatch(spelunky));
 	stcp = std::make_shared<StaticChunkPatch>(dp, tp, seeder);
 	Mods::ModsGroup()->add("stcp", stcp);
+	Mods::ModsGroup()->add("tp", tp);
 
 	TileEditing::Initialize(dp, info_hooks, seeder, stcp);
 	if(!TileEditing::Valid()) {
@@ -195,7 +196,6 @@ void undo_patches() {
 		}
 	}
 
-	//!TODO patches need to cover the mod patches as well
 	if(patches) {
 		auto group = Mods::ModsGroup();
 		if(group) {
@@ -878,8 +878,10 @@ int gui_operate(std::shared_ptr<Spelunky> spelunk, char* icon)
 			gsd = std::make_shared<GameStateDetector>(dp);
 			info_hooks = std::make_shared<GameHooks>(spelunky, dp);
 			gcd = std::make_shared<GameChangeDetector>(dp, info_hooks);
+			
 			chp = std::make_shared<CustomHudPatch>(dp);
 			chp->perform();
+			patches->add("chp", chp);
 
 			init_special_mods();
 			init_level_editor();
