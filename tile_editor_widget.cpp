@@ -2,6 +2,7 @@
 #include "tile_description.h"
 
 //TODO save editor picker state
+//TODO checkpoint system
 
 bool EditorWidget::allow_input() {
 	if(!key_press)
@@ -348,6 +349,10 @@ int EditorWidget::handle_key(int key) {
 
 	case '`': //place down currently picked tile
 		if(!shift_down) {
+			if(alt_down) { //do nothing if alt is down for intuition purposes (alt + tile -> picker, alt + picker.tile() -> picker results in no operation)
+				return 1;
+			}
+			
 			timeline.push_state();
 
 			if(picker.tile())
@@ -500,6 +505,7 @@ int EditorWidget::handle_key(int key) {
 					}
 				}
 				else {
+					picker.select(tile);
 					hint_bar->set_tile(tile, arm, nullptr);
 				}
 
