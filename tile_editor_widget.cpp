@@ -70,6 +70,7 @@ void EditorWidget::clear_chunks() {
 		esb->clear();
 	}
 
+	update_hint_bar();
 	status(STATE_CHUNK_WRITE);
 }
 
@@ -303,6 +304,7 @@ int EditorWidget::handle_key(int key) {
 				cursor.put('0');
 				shift_env_right(1);
 				parent()->redraw();
+				update_hint_bar();
 				status(STATE_CHUNK_WRITE);
 			}
 		}
@@ -315,6 +317,7 @@ int EditorWidget::handle_key(int key) {
 			if(!ctrl_down)
 				shift_env_left(1);
 			parent()->redraw();
+			update_hint_bar();
 			status(STATE_CHUNK_WRITE);
 		}
 		return 1;
@@ -324,6 +327,7 @@ int EditorWidget::handle_key(int key) {
 			timeline.push_state();
 			cursor.put('0');
 			parent()->redraw();
+			update_hint_bar();
 			status(STATE_CHUNK_WRITE);
 		}
 		return 1;
@@ -355,6 +359,7 @@ int EditorWidget::handle_key(int key) {
 			
 			shift_env_right(1);
 			status(STATE_CHUNK_WRITE);
+			update_hint_bar();
 
 			parent()->redraw();
 			return 1;
@@ -364,6 +369,7 @@ int EditorWidget::handle_key(int key) {
 		if(ctrl_down) {
 			cursor_fill(cursor.rsx(), cursor.rsy());
 			status(STATE_CHUNK_WRITE);
+			update_hint_bar();
 			return 1;
 		}
 
@@ -372,6 +378,7 @@ int EditorWidget::handle_key(int key) {
 			cursor.s(0, 0);
 			cursor.e(cursor.cc_width() - 1, cursor.cc_height() - 1);
 			parent()->redraw();
+			update_hint_bar();
 			return 1;
 		}
 
@@ -393,6 +400,7 @@ int EditorWidget::handle_key(int key) {
 				timeline.rewind();
 				parent()->redraw();
 				status(STATE_CHUNK_PASTE);
+				update_hint_bar();
 			}
 			return 1;
 		}
@@ -403,6 +411,7 @@ int EditorWidget::handle_key(int key) {
 				timeline.forward();
 				parent()->redraw();
 				status(STATE_CHUNK_WRITE);
+				update_hint_bar();
 			}
 			return 1;
 		}
@@ -422,6 +431,7 @@ int EditorWidget::handle_key(int key) {
 			clipboard = cursor.encode();
 			cursor.put('0');
 			status(STATE_CHUNK_WRITE);
+			update_hint_bar();
 			parent()->redraw();
 			return 1;
 		}
@@ -432,6 +442,7 @@ int EditorWidget::handle_key(int key) {
 				timeline.push_state();
 				cursor.decode(clipboard);
 				status(STATE_CHUNK_PASTE);
+				update_hint_bar();
 				parent()->redraw();
 			}
 			return 1;
@@ -491,6 +502,7 @@ int EditorWidget::handle_key(int key) {
 					hint_bar->set_tile(tile, arm, nullptr);
 				}
 
+				update_hint_bar();
 				parent()->redraw();
 			}
 			return 1;
