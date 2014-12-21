@@ -378,7 +378,6 @@ int EditorWidget::handle_key(int key) {
 			cursor.s(0, 0);
 			cursor.e(cursor.cc_width() - 1, cursor.cc_height() - 1);
 			parent()->redraw();
-			update_hint_bar();
 			return 1;
 		}
 
@@ -492,17 +491,18 @@ int EditorWidget::handle_key(int key) {
 			char tile = Fl::event_text()[0];
 			if(tp->valid_tile(tile)) {
 				//do not put down tile if alt. Alt+Tile = pick tile only
-				if(!alt_down && cursor.in_bounds()) {
-					timeline.push_state();
-					cursor.put(tile);
-					shift_env_right(1);
-					status(STATE_CHUNK_WRITE);
+				if(!alt_down) {
+					if(cursor.in_bounds()) {
+						timeline.push_state();
+						cursor.put(tile);
+						shift_env_right(1);
+						status(STATE_CHUNK_WRITE);
+					}
 				}
 				else {
 					hint_bar->set_tile(tile, arm, nullptr);
 				}
 
-				update_hint_bar();
 				parent()->redraw();
 			}
 			return 1;
