@@ -5,7 +5,9 @@
 //TODO level range selection
 //TODO sort entity types
 //TODO update menus with new options
+//TODO scroll entity list upon arrow keys off bounds
 //TODO documentation
+//TODO middle click = erase
 
 bool EditorWidget::allow_input() {
 	if(!key_press)
@@ -531,9 +533,9 @@ void EditorWidget::cursor_finish_move() {
 	move_drag_start = std::pair<int, int>(-1, -1);
 }
 
-void EditorWidget::cursor_build(int rx, int ry, bool drag) {
-	char tile = picker.tile();
-	int entity = picker.entity();
+void EditorWidget::cursor_build(int rx, int ry, bool drag, char default_tile) {
+	char tile = default_tile ? default_tile : picker.tile();
+	int entity = default_tile ? 0 : picker.entity();
 
 	if(tile == 0 && entity == 0)
 		return;
@@ -611,7 +613,10 @@ int EditorWidget::handle(int evt) {
 		}
 		else if(Fl::event_state() & FL_BUTTON2) {
 			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
-			cursor_fill(cpos.first, cpos.second);
+			if(cpos.first >= 0 && cpos.second >= 0) {
+				timeline.push_state();
+				cursor_build(Fl::event_x(), Fl::event_y(), false, '0');
+			}
 		}
 
 		return 1;
@@ -630,6 +635,12 @@ int EditorWidget::handle(int evt) {
 			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
 			if(cpos.first >= 0 && cpos.second >= 0) {
 				cursor_build(Fl::event_x(), Fl::event_y(), true);
+			}
+		}
+		else if(Fl::event_state() & FL_BUTTON2) {
+			auto cpos = chunkcoord_pos(Fl::event_x(), Fl::event_y());
+			if(cpos.first >= 0 && cpos.second >= 0) {
+				cursor_build(Fl::event_x(), Fl::event_y(), true, '0');
 			}
 		}
 

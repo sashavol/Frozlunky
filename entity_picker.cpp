@@ -29,17 +29,20 @@ void EntityList::shift_selection(int dy) {
 		value(1);
 	}
 	else {
-		idx += dy;
-		if(idx < 1)
-			idx = 1;
+		if(idx+dy < 1)
+			dy = 1-idx;
 		else if(idx > size()) 
-			idx = size();
+			dy = size()-idx;
+
+		idx += dy;
 
 		if(idx-dy >= 1 && idx-dy <= size()) {
 			select(idx-dy, 0);
 		}
 		value(idx);
 	}
+
+	//std::cout << "scrollbar max: " << this->scrollbar.maximum() << ", min: " << this->scrollbar.minimum() << std::endl;
 }
 
 int EntityList::handle(int evt) {
@@ -118,6 +121,7 @@ void PickButton::do_pick() {
 	ep->hide();
 	ep->editor->hint_bar->set_entity(id, nullptr);
 	ep->editor->parent()->redraw();
+	ep->editor->parent()->take_focus();
 }
 
 PickButton::PickButton(int x, int y, int w, int h) : Fl_Button(x, y, w, h, "Pick Entity") {

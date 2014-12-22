@@ -12,8 +12,10 @@ private:
 	int w;
 	int h;
 
+	EntitySpawnBuilder::const_iterator entity_find(int x, int y) const;
+
 public:
-	static std::pair<float, float> map(int cx, int cy);
+	static std::pair<float, float> map(int cx, int cy, int entity=0);
 	static std::pair<int, int> unmap(float x, float y);
 	
 	EntitySpawnLayer(std::shared_ptr<EntitySpawnBuilder> builder, int w, int h);

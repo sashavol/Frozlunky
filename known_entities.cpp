@@ -109,7 +109,7 @@ namespace KnownEntities {
 		(216, "Arrow Shaft")
 		(217, "Olmec Enemy Spawn Projectile")
 		(218, "Water Splash")
-		(219, "Player Entity")
+		(219, "Co-Op Player Item Bag")
 		(220, "Ball & Chain (without Chain)")
 		(221, "Smoke Poof")
 		(222, "222 [Unknown]")

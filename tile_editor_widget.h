@@ -121,7 +121,7 @@ private:
 	
 	std::pair<int, int> last_build;
 	std::pair<int, int> build_dim;
-	void cursor_build(int rx, int ry, bool drag);
+	void cursor_build(int rx, int ry, bool drag, char default_tile = 0);
 
 	void compute_u();
 
