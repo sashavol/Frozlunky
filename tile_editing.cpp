@@ -7,6 +7,7 @@
 #include "level_forcer.h"
 #include "resource_editor.h"
 #include "resource_editor_gui.h"
+#include "entity_picker.h"
 #include "gui.h"
 #include "syllabic.h"
 
@@ -38,7 +39,7 @@ public: \
 	virtual int handle(int evt) override; \
 }
 
-//TODO save picker state
+
 
 //OPT add simulation widget to the overview page, should simulate a chosen area's chunks
 static Fl_Window* window = nullptr;
@@ -362,6 +363,7 @@ namespace TileEditing {
 			for(auto&& e : editors) {
 				std::shared_ptr<EntitySpawnBuilder> esb = e.second->get_entity_builder();
 				if(esb) {
+					e.second->get_picker().get_recent_entities().clear();
 					esb->clear();
 				}
 			}
@@ -444,15 +446,33 @@ namespace TileEditing {
 				if(mget(area_lookup, e.first).second == "%")
 					continue;
 
+				std::shared_ptr<EntitySpawnBuilder> esb = e.second->get_entity_builder();
+				if(std::distance(esb->begin(), esb->end()) == 0)
+					continue;
+				
 				pugi::xml_node level = entities.append_child(SafeXMLName(e.first).c_str());
 
-				std::shared_ptr<EntitySpawnBuilder> esb = e.second->get_entity_builder();
 				if(esb) {
 					for(auto&& et : *esb) {
 						pugi::xml_node entity = level.append_child("entity");
 						entity.append_attribute("id").set_value(et.second.entity);
 						entity.append_attribute("x").set_value(et.second.x);
 						entity.append_attribute("y").set_value(et.second.y);
+					}
+				}
+			}
+
+			pugi::xml_node editorsn = xmld.append_child("editors");
+			for(auto&& e : editors) {
+				if(e.second->get_entity_builder()) {
+					std::vector<int>& recent_entities = e.second->get_picker().get_recent_entities();
+					if(recent_entities.empty())
+						continue;
+					
+					pugi::xml_node level = editorsn.append_child(SafeXMLName(e.first).c_str());
+					pugi::xml_node picker = level.append_child("picker");
+					for(int entity : recent_entities) {
+						picker.append_child("entity").append_attribute("id").set_value(entity);
 					}
 				}
 			}
@@ -612,6 +632,9 @@ namespace TileEditing {
 
 							if(esb) {
 								for(pugi::xml_node et : level.children()) {
+									if(std::string(et.name()) != "entity")
+										continue;
+
 									pugi::xml_attribute xa = et.attribute("x"),
 														ya = et.attribute("y"),
 														ida = et.attribute("id");
@@ -627,6 +650,35 @@ namespace TileEditing {
 					}
 				}
 
+				pugi::xml_node editorsn = xmld.child("editors");
+				if(!editorsn.empty()) {
+					for(pugi::xml_node level : editorsn.children()) {
+						std::string area = AreaName(level.name());
+						if(area == "") {
+							continue;
+						}
+
+						pugi::xml_node pickern = level.child("picker");
+						if(!pickern.empty()) {
+							std::vector<int>& picker_entities = editors[area]->get_picker().get_recent_entities();
+							for(pugi::xml_node entity : pickern.children()) {
+								if(std::string(entity.name()) != "entity") {
+									continue;
+								}
+
+								pugi::xml_attribute ida = entity.attribute("id");
+								if(ida.empty()) {
+									throw std::runtime_error("Encountered invalid editor picker");
+								}
+
+								int id = ida.as_int();
+								if(id != 0) {
+									picker_entities.push_back(id);
+								}
+							}
+						}
+					}
+				}
 
 				SetActiveFile(file);
 				unsaved_changes = false;
@@ -730,6 +782,18 @@ namespace TileEditing {
 			else if(state == STATE_REQ_RESOURCE_EDITOR) {
 				if(!resource_editor_window->visible()) {
 					resource_editor_window->show();
+				}
+			}
+			else if(state == STATE_REQ_ENTITY_PICKER) {
+				if(!current_area_editor.empty()) {
+					EditorWidget* target_area = editors[current_area_editor];
+					if(target_area->get_entity_builder()) {
+						EntityPicker* picker = new EntityPicker(target_area);
+						picker->callback([](Fl_Widget* w) {
+							delete static_cast<EntityPicker*>(w);
+						});
+						picker->show();
+					}
 				}
 			}
 			else if(state == STATE_REQ_DEFAULT_SWAP) {

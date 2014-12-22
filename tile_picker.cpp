@@ -29,12 +29,6 @@ void TilePicker::draw() {
 			px = x;
 		}
 	}
-	
-	//align
-	if(px != x) {
-		py += yu;
-		px = x;
-	}
 
 	for(int entity : recent_entities) {
 		draw_entity(entity, px, py, xu, yu);
@@ -78,11 +72,6 @@ int TilePicker::entity(int rx, int ry) {
 		}
 	}
 
-	if(px != x) {
-		py += yu;
-		px = x;
-	}
-	
 	for(int entity : recent_entities) {
 		if(rx >= px && rx < px+xu && ry >= py && ry < py+yu) {
 			return entity;
@@ -111,11 +100,6 @@ std::pair<int, int> TilePicker::elem_position(char tile, int entity) {
 			py += yu;
 			px = x;
 		}
-	}
-
-	if(px != x) {
-		py += yu;
-		px = x;
 	}
 		
 	for(int e : recent_entities) {
@@ -174,7 +158,7 @@ void TilePicker::entity_select(int entity) {
 	entity_selected = entity;
 }
 
-const std::vector<int>& TilePicker::get_recent_entities() {
+std::vector<int>& TilePicker::get_recent_entities() {
 	return recent_entities;
 }
 

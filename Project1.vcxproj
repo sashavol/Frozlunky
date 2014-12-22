@@ -87,6 +87,7 @@
     <ClCompile Include="daily.cpp" />
     <ClCompile Include="dark_possible.cpp" />
     <ClCompile Include="disable_ctrlmenu_patch.cpp" />
+    <ClCompile Include="entity_picker.cpp" />
     <ClCompile Include="entity_spawn_builder.cpp" />
     <ClCompile Include="entity_spawn_layer.cpp" />
     <ClCompile Include="force_controller_attrs.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="chunk_cursor.h" />
     <ClInclude Include="chunk_timeline.h" />
     <ClInclude Include="entity_insert_gui.h" />
+    <ClInclude Include="entity_picker.h" />
     <ClInclude Include="entity_spawn_builder.h" />
     <ClInclude Include="entity_spawn_layer.h" />
     <ClInclude Include="known_entities.h" />

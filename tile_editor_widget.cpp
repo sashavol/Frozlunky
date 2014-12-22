@@ -1,8 +1,11 @@
 #include "tile_editor_widget.h"
 #include "tile_description.h"
 
-//TODO save editor picker state
 //TODO checkpoint system
+//TODO level range selection
+//TODO sort entity types
+//TODO update menus with new options
+//TODO documentation
 
 bool EditorWidget::allow_input() {
 	if(!key_press)
@@ -160,7 +163,7 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 		auto ccpos = chunkcoord_pos(rx, ry);
 
 		if(!drag) {
-			move_drag_start = std::pair<int, int>(ccpos.first, ccpos.second);
+			move_drag_start = std::make_pair(ccpos.first, ccpos.second);
 
 			cursor.s(ccpos.first, ccpos.second);
 			cursor.e(ccpos.first, ccpos.second);
@@ -182,7 +185,7 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 			hint_bar->set_tile(tile, arm, c);
 	}
 	else {
-		move_drag_start = std::pair<int, int>(-1, -1);
+		move_drag_start = std::make_pair(-1, -1);
 		
 		int entity = picker.entity(rx, ry);
 		if(entity != 0) {
@@ -249,7 +252,7 @@ int EditorWidget::handle_key(int key) {
 		}
 		return 1;
 
-	case 65361:
+	case 65361: //left
 		if(alt_down) {
 			shift_picker_cursor(-1, 0);
 			parent()->redraw();
@@ -269,7 +272,7 @@ int EditorWidget::handle_key(int key) {
 		parent()->redraw();
 		return 1;
 
-	case 65363:
+	case 65363: //right
 		if(alt_down) {
 			shift_picker_cursor(1, 0);
 			parent()->redraw();
@@ -347,7 +350,7 @@ int EditorWidget::handle_key(int key) {
 		alt_down = true;
 		return 1;
 
-	case '`': //place down currently picked tile
+	case '`': //`: place down currently picked tile
 		if(!shift_down) {
 			if(alt_down) { //do nothing if alt is down for intuition purposes (alt + tile -> picker, alt + picker.tile() -> picker results in no operation)
 				return 1;
@@ -370,7 +373,7 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 102: //f: fill
+	case 102: //ctrl+f: fill at cursor
 		if(ctrl_down) {
 			cursor_fill(cursor.rsx(), cursor.rsy());
 			status(STATE_CHUNK_WRITE);
@@ -378,7 +381,7 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 97: //a
+	case 97: //ctrl+a: select all
 		if(ctrl_down) {
 			cursor.s(0, 0);
 			cursor.e(cursor.cc_width() - 1, cursor.cc_height() - 1);
@@ -386,7 +389,7 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 115: //s
+	case 115: //ctrl+s: save + apply
 		if(ctrl_down) {
 			tp->apply_chunks();
 			
@@ -398,7 +401,7 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 122: //z: undo
+	case 122: //ctrl+z: undo
 		if(ctrl_down) {
 			if(!read_only) {
 				timeline.rewind();
@@ -409,7 +412,7 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 					
-	case 121: //y: redo
+	case 121: //ctrl+y: redo
 		if(ctrl_down) {
 			if(!read_only) {
 				timeline.forward();
@@ -420,7 +423,7 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 99: //c: copy
+	case 99: //ctrl+c: copy
 		if(ctrl_down) {
 			if(cursor.in_bounds()) {
 				clipboard = cursor.encode();
@@ -429,7 +432,7 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 			
-	case 120: //x: cut
+	case 120: //ctrl+x: cut
 		if(ctrl_down) {
 			timeline.push_state();
 			clipboard = cursor.encode();
@@ -440,7 +443,7 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 118: //v
+	case 118: //ctrl+v: paste
 		if(ctrl_down) {
 			if(cursor.in_bounds() && !clipboard.empty()) {
 				timeline.push_state();
@@ -452,13 +455,13 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 'o':
+	case 'o': //ctrl+o: open level pack
 		if(ctrl_down) {
 			status(STATE_REQ_OPEN);
 			return 1;
 		}
 
-	case 'r':
+	case 'r': //ctrl+r: randomize seed, ctrl+shift+r: open resource editor
 		if(ctrl_down) {
 			if(shift_down)
 				status(STATE_REQ_RESOURCE_EDITOR);
@@ -467,13 +470,19 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 'd':
+	case 'p': //ctrl+p: pick entity
+		if(ctrl_down) {
+			status(STATE_REQ_ENTITY_PICKER);
+			return 1;
+		}
+
+	case 'd': //ctrl+d: swap to default viewer
 		if(ctrl_down) {
 			status(STATE_REQ_DEFAULT_SWAP);
 			return 1;
 		}
 
-	case 'n': //n: new file
+	case 'n': //ctrl+n: clear level, ctrl+shift+n: new level pack
 		if(ctrl_down) {
 			if(shift_down) {
 				status(STATE_REQ_NEW_FILE);
@@ -485,13 +494,13 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 'e': //e: force level
+	case 'e': //ctrl+e: force level toggle
 		if(ctrl_down) {
 			status(STATE_REQ_TOGGLE_FORCE_LEVEL);
 			return 1;
 		}
 
-	default:
+	default: //*: place down typed character as tile, alt+*: pick typed character tile
 		{
 			char tile = Fl::event_text()[0];
 			if(tp->valid_tile(tile)) {

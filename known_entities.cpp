@@ -1,8 +1,11 @@
 #include "known_entities.h"
 #include <boost/assign.hpp>
 #include <map>
+#include <boost/algorithm/string.hpp>
 
 namespace KnownEntities {
+	using namespace boost::algorithm;
+
 	/*static int entity_ids[] = {1,2,3,4,5,7,9,10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,30,31,32,
 		33,34,35,36,37,38,39,40,41,42,43,44,45,46,48,49,50,51,53,54,55,56,57,59,60,61,62,63,64,65,66,67,68,
 		69,70,71,72,74,75,76,77,78,79,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,
@@ -18,6 +21,8 @@ namespace KnownEntities {
 		1046,1047,1048,1049,1050,1051,1052,1053,1055,1056,1057,1058,1059,1060,1061,1062,1063,1064,1065,
 		1066,1067,1068,2001,3000,3001,3002,3003,3004,3005,9095,9097};*/
 	
+	//TODO order known entities by type for default
+
 	static std::map<int, std::string> fast_entities;
 	static map_type entities = boost::assign::map_list_of
 		(100, "Chest")
@@ -89,7 +94,7 @@ namespace KnownEntities {
 		(194, "Falling Icicle Projectile")
 		(195, "Broken Ice Projectiles")
 		(196, "Water Splash Projectile")
-		(197, "Activated Alien Laser Projectile")
+		(197, "Alien Forcefield Ground Laser")
 		(198, "198 [Unknown]")
 		(203, "Freeze Ray Projectile")
 		(204, "204 [Unknown]")
@@ -112,7 +117,7 @@ namespace KnownEntities {
 		(224, "Ending Cutscene Camel")
 		(225, "Kill Target")
 		(226, "Activated Kill Target Laser")
-		(227, "Breaking Mothership Lights")
+		(227, "Mothership Lights")
 		(228, "Broken Web Pouch")
 		(229, "Ankh Respawn Timed Event Trigger")
 		(230, "Ankh Respawn Animation")
@@ -121,7 +126,7 @@ namespace KnownEntities {
 		(233, "Magma Flame Animation")
 		(234, "Anubis II Spawner")
 		(235, "TNT")
-		(236, "Breaking Spinner Spider Thread")
+		(236, "Spinner Spider Thread")
 		(237, "Destroyed Cobweb")
 		(238, "238 [Unknown Animation]")
 		(239, "Decoy Yang")
@@ -232,7 +237,7 @@ namespace KnownEntities {
 		(1048, "Alien Queen")
 		(1049, "Black Knight")
 		(1050, "Golden Monkey")
-		(1051, "Female Damsel")
+		(1051, "Succubus")
 		(1052, "Horse Head")
 		(1053, "Ox Face")
 		(1055, "King Yama Body")
@@ -292,5 +297,96 @@ namespace KnownEntities {
 		}
 		
 		return 0;
+	}
+
+
+	///////////
+	// searching
+	///////////
+
+	static double score_max_consec(const std::string* s1p, const std::string* s2p) {
+		if(s2p->size() < s1p->size())
+			std::swap(s1p, s2p);
+
+		const std::string& s1 = *s1p;
+		const std::string& s2 = *s2p;
+		
+		int max_cons = 0;
+
+		for(int p2 = 0, m2 = s2.size(); p2 < m2; ++p2) {
+			int cons = 0;
+			for(int p1 = 0, m1 = s1.size(); p1 < m1 && p1+p2 < m2; ++p1) {
+				if(s1[p1] == s2[p2+p1]) {
+					cons++;
+				}
+			}	
+			max_cons = std::max(max_cons, cons);
+		}
+
+		return max_cons / (double)s1.size();
+	}
+	
+	static double score_charcomp(const std::string& s1, const std::string& s2) {
+		int same = 0;
+		for(char c1 : s1) {
+			for(char c2 : s2) {
+				if(c1 == c2)
+					same++;
+			}
+		}
+		return same / (double)(s1.size()*s2.size());
+	}
+
+	static double score_base_equality(const std::string* s1, const std::string* s2) {
+		if(s1->size() > s2->size())
+			std::swap(s1, s2);
+
+		const std::string& a = *s1;
+		const std::string& b = *s2;
+
+		int count = 0;
+		for(int p1 = 0, m1 = a.size(); p1 < m1; ++p1) {
+			if(a[p1] == b[p1])
+				count++;
+		}
+
+		return (double)count / (double)a.size();
+	}
+
+	static void string_normalize(std::string& str) {
+		trim(str);
+		to_upper(str);
+		replace_all(str, " ", "");
+	}
+
+	std::vector<std::string> Search(const std::string& query) {
+		if(query.empty())
+			return std::vector<std::string>();
+
+		auto split_pred = boost::is_any_of(" ");
+		
+		std::string comp_query = query;
+		string_normalize(comp_query);
+
+		std::map<std::string, double> scores;
+		std::vector<std::string> out;
+		
+		for(const map_type::value_type& et : entities) {
+			std::string comp = et.second;
+			string_normalize(comp);
+			
+			if(comp == comp_query)
+				scores[et.second] = 10000;
+			else
+				scores[et.second] = (score_base_equality(&comp, &comp_query) + score_max_consec(&comp, &comp_query) + score_charcomp(comp, comp_query));
+			
+			out.push_back(et.second);
+		}
+
+		std::sort(out.begin(), out.end(), [&](const std::string& a, const std::string& b) {
+			return scores[a] > scores[b];
+		});
+
+		return out;
 	}
 }

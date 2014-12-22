@@ -5,7 +5,7 @@
 #include <FL/fl_draw.H>
 #include <set>
 
-#define MAX_RECENT_ENTITIES 14
+#define MAX_RECENT_ENTITIES 28
 
 class TilePicker {
 private:
@@ -32,7 +32,7 @@ public:
 	char tile();
 	int entity();
 
-	const std::vector<int>& get_recent_entities();
+	std::vector<int>& get_recent_entities();
 	
 	void entity_select(int entity);
 	void select(char tile);
