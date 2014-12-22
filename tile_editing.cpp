@@ -23,7 +23,6 @@
 #include <unordered_map>
 #include <fstream>
 #include <functional>
-#include <thread>
 
 #include <boost/assign.hpp> 
 #include <boost/algorithm/string.hpp>
@@ -50,7 +49,7 @@ static std::shared_ptr<DerandomizePatch> dp;
 static std::shared_ptr<GameHooks> gh;
 static std::shared_ptr<ResourceEditor> resource_editor;
 static ResourceEditorWindow* resource_editor_window;
-static std::thread worker_thread;
+static HANDLE worker_thread = 0;
 static std::function<void(bool)> display_cb;
 static bool initialized = false;
 
@@ -967,28 +966,31 @@ namespace TileEditing {
 		controls[group]->update();
 	}
 
+	static DWORD __stdcall worker_thread_(void*) {
+		while(true) {
+			if(tp->is_active()) {
+				std::string area = current_game_level();
+
+				mut_level_seeds.lock();
+				auto it = level_seeds.find(area);
+				if(it != level_seeds.end()) {
+					if(seeder->get_seed() != it->second) {
+						seeder->seed(it->second);
+					}
+				}
+				mut_level_seeds.unlock();
+
+				resource_editor->cycle();
+			}
+
+			Sleep(2);
+		}
+	}
+
 	//worker thread: currently used for setting level seed
 	static void construct_worker_thread() {
-		worker_thread = std::thread([=]() {
-			while(true) {
-				if(tp->is_active()) {
-					std::string area = current_game_level();
-
-					mut_level_seeds.lock();
-					auto it = level_seeds.find(area);
-					if(it != level_seeds.end()) {
-						if(seeder->get_seed() != it->second) {
-							seeder->seed(it->second);
-						}
-					}
-					mut_level_seeds.unlock();
-
-					resource_editor->cycle();
-				}
-
-				std::this_thread::sleep_for(std::chrono::milliseconds(2));
-			}
-		});
+		DWORD tid;
+		worker_thread = CreateThread(NULL, 0, worker_thread_, NULL, 0, &tid);
 	}
 
 
