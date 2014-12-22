@@ -18,6 +18,13 @@ void EntityList::load_list(const std::vector<std::string>& entities) {
 	}
 }
 
+//computes the minimum required y visibility
+int EntityList::selected_y() {
+	if(value() == 0)
+		return 0;
+	else
+		return (value()-1)*incr_height();
+}
 
 void EntityList::shift_selection(int dy) {
 	if(size() == 0)
@@ -42,7 +49,16 @@ void EntityList::shift_selection(int dy) {
 		value(idx);
 	}
 
-	//std::cout << "scrollbar max: " << this->scrollbar.maximum() << ", min: " << this->scrollbar.minimum() << std::endl;
+	int sel_y = selected_y();
+	int curr_top = this->scrollbar.value();
+	int curr_bottom = curr_top + this->h() - this->incr_height();
+
+	if(!(sel_y >= curr_top && sel_y <= curr_bottom)) {
+		if(dy > 0)
+			this->topline(value());
+		else
+			this->bottomline(value());
+	}
 }
 
 int EntityList::handle(int evt) {

@@ -15,6 +15,9 @@
 #include <iomanip>
 
 class EntityList : public Fl_Multi_Browser {
+private:
+	int selected_y();
+
 public:
 	EntityList(int x, int y, int w, int h);
 

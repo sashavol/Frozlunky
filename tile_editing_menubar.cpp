@@ -63,6 +63,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("bRandomize Level Seed", tg_('r', true, false, false, "Ctrl+R"))
 		("cClear Level", tg_('n', true, false, false, "Ctrl+N"))
 		("dResource Editor", tg_('r', true, true, false, "Ctrl+Shift+R"))
+		("eEntity Picker", tg_('p', true, false, false, "Ctrl+P"))
 	)
 	("dCursor", map_list_of
 		("aSelect Entire Level", tg_('a', true, false, false, "Ctrl+A"))
@@ -71,6 +72,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("hClear Tile", tg_(65535, false, false, false, "Delete"))
 		("iClear Tile + Right", tg_(32, false, false, false, "Space"))
 		("jClear Tile + Left", tg_(65288, false, false, false, "Backspace"))
+		("Place Picked Tile/Entity", tg_('`', false, false, false, "Tilde Key"))
 	);
 
 TileEditingMenuBar::KeyTrigger::KeyTrigger(int key, bool ctrl, bool shift, bool alt, const std::string& hotkey_text) :

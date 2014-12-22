@@ -1,13 +1,14 @@
 #include "tile_editor_widget.h"
 #include "tile_description.h"
 
+//OPT arrow traps?
+
 //TODO checkpoint system
 //TODO level range selection
-//TODO sort entity types
-//TODO update menus with new options
+
 //TODO scroll entity list upon arrow keys off bounds
 //TODO documentation
-//TODO middle click = erase
+
 
 bool EditorWidget::allow_input() {
 	if(!key_press)
