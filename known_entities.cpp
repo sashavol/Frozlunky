@@ -164,7 +164,7 @@ namespace KnownEntities {
 		(114, "Skull")
 		(120, "Boulder")
 		(121, "Push Block")
-		(122, "Arrow (with tip)")
+		(122, "Arrow")
 		(216, "Arrow Shaft")
 		(164, "Snowball")
 		(172, "Piranha Skeleton")

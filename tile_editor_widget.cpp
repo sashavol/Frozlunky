@@ -232,22 +232,6 @@ int EditorWidget::handle_key(int key) {
 	cursor_finish_move();
 
 	switch(key) {
-	case 0xFFBE: //F1
-		status(STATE_REQ_RESIZE_1);
-		return 1;
-	
-	case 0xFFBF: //F2
-		status(STATE_REQ_RESIZE_2);
-		return 1;
-	
-	case 0xFFC0: //F3
-		status(STATE_REQ_RESIZE_3);
-		return 1;
-
-	case 0xFFC1: //F4
-		status(STATE_REQ_RESIZE_4);
-		return 1;
-
 	case 65289: //tab
 		if(shift_down)
 			status(STATE_REQ_TAB_REVERSE);
@@ -389,6 +373,30 @@ int EditorWidget::handle_key(int key) {
 			update_hint_bar();
 
 			parent()->redraw();
+			return 1;
+		}
+
+	case 0xFFBE: //F1
+		if(ctrl_down) {
+			status(STATE_REQ_RESIZE_1);
+			return 1;
+		}
+	
+	case 0xFFBF: //F2
+		if(ctrl_down) {
+			status(STATE_REQ_RESIZE_2);
+			return 1;
+		}
+	
+	case 0xFFC0: //F3
+		if(ctrl_down) {
+			status(STATE_REQ_RESIZE_3);
+			return 1;
+		}
+
+	case 0xFFC1: //F4
+		if(ctrl_down) {
+			status(STATE_REQ_RESIZE_4);
 			return 1;
 		}
 

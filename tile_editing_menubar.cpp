@@ -48,8 +48,8 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("bOpen Level Pack", tg_('o', true, false, false, "Ctrl+O"))
 		("cSave + Apply", tg_('s', true, false, false, "Ctrl+S"))
 		("dSave as..", tg_('s', true, true, false, "Ctrl+Shift+S"))
-		("eSwitch Editor", tg_(65289, false, false, false, "(Shift+) Tab"))
-		("fSwap to Default Editor", tg_('d', true, false, false, "Ctrl+D"))
+		("iSwitch Editor", tg_(65289, false, false, false, "(Shift+) Tab"))
+		("jSwap to Default Editor", tg_('d', true, false, false, "Ctrl+D"))
 	)
 	("bEdit", map_list_of
 		("aUndo", tg_('z', true, false, false, "Ctrl+Z"))
@@ -58,21 +58,27 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("dCopy", tg_('c', true, false, false, "Ctrl+C"))
 		("ePaste", tg_('v', true, false, false, "Ctrl+V"))
 	)
-	("cLevel", map_list_of
+	("cWindow", map_list_of
+		("eSize: 1x", tg_(0xFFBE, true, false, false, "Ctrl+F1"))
+		("fSize: 2x", tg_(0xFFBF, true, false, false, "Ctrl+F2"))
+		("gSize: 3x", tg_(0xFFC0, true, false, false, "Ctrl+F3"))
+		("hSize: 4x", tg_(0xFFC1, true, false, false, "Ctrl+F4"))
+	)
+	("dLevel", map_list_of
 		("aForce Level", tg_('e', true, false, false, "Ctrl+E"))
 		("bRandomize Level Seed", tg_('r', true, false, false, "Ctrl+R"))
 		("cClear Level", tg_('n', true, false, false, "Ctrl+N"))
 		("dResource Editor", tg_('r', true, true, false, "Ctrl+Shift+R"))
 		("eEntity Picker", tg_('p', true, false, false, "Ctrl+P"))
 	)
-	("dCursor", map_list_of
+	("eCursor", map_list_of
 		("aSelect Entire Level", tg_('a', true, false, false, "Ctrl+A"))
 		("bReset Cursor Size", tg_(65307, false, false, false, "(Shift+) Esc"))
 		("cFlood Fill", tg_(102, true, false, false, "Ctrl+F"))
 		("hClear Tile", tg_(65535, false, false, false, "Delete"))
 		("iClear Tile + Right", tg_(32, false, false, false, "Space"))
 		("jClear Tile + Left", tg_(65288, false, false, false, "Backspace"))
-		("Place Picked Tile/Entity", tg_('`', false, false, false, "Tilde Key"))
+		("kPlace Picked Tile or Entity", tg_('`', false, false, false, "Tilde Key"))
 	);
 
 TileEditingMenuBar::KeyTrigger::KeyTrigger(int key, bool ctrl, bool shift, bool alt, const std::string& hotkey_text) :

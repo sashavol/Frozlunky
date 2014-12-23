@@ -5,7 +5,7 @@
 #include <FL/fl_draw.H>
 #include <set>
 
-#define MAX_RECENT_ENTITIES 22
+#define MAX_RECENT_ENTITIES 14
 
 class TilePicker {
 private:
