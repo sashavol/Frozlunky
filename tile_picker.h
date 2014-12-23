@@ -9,6 +9,7 @@
 
 class TilePicker {
 private:
+	Fl_Widget* parent;
 	int x, y, w, h, xu, yu, htiles;
 	std::set<char> tiles;
 	std::vector<int> recent_entities;
@@ -17,7 +18,7 @@ private:
 	AreaRenderMode arm;
 
 public:
-	TilePicker(AreaRenderMode arm, const std::set<char>& tiles, int x, int y, int w, int h, int xu, int yu);
+	TilePicker(Fl_Widget* parent, AreaRenderMode arm, const std::set<char>& tiles, int x, int y, int w, int h, int xu, int yu);
 
 	void draw();
 	char tile(int rx, int ry);

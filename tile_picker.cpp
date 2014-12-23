@@ -1,7 +1,8 @@
 #include "tile_picker.h"
 
-TilePicker::TilePicker(AreaRenderMode arm, const std::set<char>& tiles, int x, int y, int w, int h, int xu, int yu)
-	:   tiles(tiles), 
+TilePicker::TilePicker(Fl_Widget* parent, AreaRenderMode arm, const std::set<char>& tiles, int x, int y, int w, int h, int xu, int yu)
+	:   parent(parent),
+		tiles(tiles), 
 		x(x), 
 		y(y), 
 		w(w), 
@@ -23,6 +24,8 @@ void TilePicker::resize(int x, int y, int w, int h, int xu, int yu) {
 }
 
 void TilePicker::draw() {
+	fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, x, y, w, h, parent->parent()->color());
+
 	int px = x, py = y;
 	for(char c : tiles) {
 		draw_tile(c, px, py, xu, yu, arm);
