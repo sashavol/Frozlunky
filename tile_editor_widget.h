@@ -53,6 +53,7 @@ public:
 
 	AreaRenderMode arm;
 
+	int last_w, last_h;
 	int cnk_render_w, cnk_render_h;
 	int xu, yu;
 
@@ -123,7 +124,7 @@ private:
 	std::pair<int, int> build_dim;
 	void cursor_build(int rx, int ry, bool drag, char default_tile = 0);
 
-	void compute_u();
+	void ensure_size();
 
 public:
 	//throws std::invalid_argument if key does nothing.

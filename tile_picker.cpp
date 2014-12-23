@@ -13,6 +13,15 @@ TilePicker::TilePicker(AreaRenderMode arm, const std::set<char>& tiles, int x, i
 		arm(arm)
 	{}
 
+void TilePicker::resize(int x, int y, int w, int h, int xu, int yu) {
+	this->x = x;
+	this->y = y;
+	this->w = w;
+	this->h = h;
+	this->xu = xu;
+	this->yu = yu;
+}
+
 void TilePicker::draw() {
 	int px = x, py = y;
 	for(char c : tiles) {

@@ -695,17 +695,6 @@ int EditorWidget::handle(int evt) {
 }
 
 
-//we now make assumptions about the staticity of the chunks being passed.
-void EditorWidget::compute_u() {
-	Chunk* cnk = *chunks.begin();
-	int ch = cnk->get_height(), cw = cnk->get_width();
-	int maxw = cnk_render_w, maxh = cnk_render_h;
-	fit_chunk_aspect(cnk, maxw, maxh);
-
-	xu = maxw / cw;
-	yu = maxh / ch;
-}
-
 template <typename Numeric_>
 static Numeric_ clamp_(Numeric_ s, Numeric_ e, Numeric_ v) {
 	return min(e, max(s, v));
@@ -727,6 +716,11 @@ void EditorWidget::update_hint_bar() {
 
 EditorWidget::~EditorWidget() {}
 
+#define PICKER_X_ES_OFFS 23
+#define PICKER_WIDTH 45
+#define PICKER_XU 15
+#define PICKER_YU 15
+
 EditorWidget::EditorWidget(AreaRenderMode arm, 
 						   std::shared_ptr<StaticChunkPatch> tp, 
 						   std::shared_ptr<EntitySpawnBuilder> esb,
@@ -745,6 +739,8 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 	cnk_render_h(104),
 	xu(0),
 	yu(0),
+	last_w(0),
+	last_h(0),
 	ctrl_down(false),
 	shift_down(false),
 	alt_down(false),
@@ -754,12 +750,9 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 	timeline(chunks, esb),
 	move_drag_start(-1, -1),
 	arm(arm),
-	picker(arm, tp->valid_tiles(), x + w - 87, y, 45, h, 15, 15),
+	picker(arm, tp->valid_tiles(), scrollbar->x() + PICKER_X_ES_OFFS, y, PICKER_WIDTH, h, PICKER_XU, PICKER_YU),
 	cursor(chunks, esb, extended_mode ? 2 : 4, read_only)
 {
-	//allocate width for sidebar
-	w -= 60;
-	
 	std::fill(mouse_down, mouse_down+sizeof(mouse_down), false);
 
 	if(chunks.empty()) {
@@ -767,10 +760,10 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 		return;
 	}
 
+	ensure_size();
+
 	//default picker to air
 	picker.select('0');
-
-	compute_u();
 
 	double ratio = this->h() / (double)(get_chunk_render_pos(*chunks.rbegin()).second - this->y());
 	if(ratio >= 1.0) {
@@ -923,26 +916,9 @@ std::pair<int, int> EditorWidget::get_chunk_render_pos(Chunk* cnk) {
 	throw std::runtime_error("Chunk from non-native editor.");
 }
 
-void EditorWidget::fit_chunk_aspect(Chunk* cnk, int& maxw, int& maxh) {
-	int ch = cnk->get_height(), cw = cnk->get_width();
-	if(cw < ch) {
-		if(maxw < maxh)
-			maxh = ch * maxw / cw;
-		else
-			maxw = cw * maxh / ch;
-	}
-	else {
-		if(maxw < maxh)
-			maxw = cw * maxh / ch;
-		else
-			maxh = ch * maxw / cw;
-	}
-}
-
 void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) {
 	int ch = cnk->get_height(), cw = cnk->get_width();
-	fit_chunk_aspect(cnk, maxw, maxh);
-
+	
 	int xu = maxw / cw, yu = maxh / ch;
 	int ymin = this->y(), ymax = this->y() + cnk_render_h*4 - 1;
 
@@ -982,7 +958,7 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 					draw_tile(tile, dp.first, dp.second, xu, yu, arm);
 				}
 				else if(dp.second + yu >= ymin || dp.second < ymax) {
-					std::pair<int,int> start = dp, end = std::pair<int,int>(dp.first+xu-1, dp.second+yu-1);
+					std::pair<int,int> start = dp, end = std::make_pair(dp.first+xu-1, dp.second+yu-1);
 					start.second = clamp_(ymin, ymax, dp.second);
 					end.second = clamp_(ymin, ymax, end.second);
 					if(end.second - start.second > 5) {
@@ -1008,7 +984,28 @@ void EditorWidget::render_cursor() {
 	fl_rect(s.first, s.second, e.first - s.first + xu, e.second - s.second + yu, 0xFF000000);
 }
 
+void EditorWidget::ensure_size() {
+	if(last_w != w() || last_h != h()) {
+		int hchunks = 4;
+		int htiles = hchunks*CHUNK_WIDTH;
+		xu = (sidebar_scrollbar->x() - x() - 5) / htiles;
+		yu = xu;
+
+		cnk_render_w = xu*CHUNK_WIDTH;
+		cnk_render_h = yu*CHUNK_HEIGHT;
+
+		int picker_w = (x()+w()) - (sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5) - 40;
+		int picker_x = sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5;
+		picker.resize(picker_x, y(), picker_w, h(), picker_w/3, picker_w/3);
+		
+		last_w = w();
+		last_h = h();
+	}
+}
+
 void EditorWidget::draw() {
+	ensure_size();
+	
 	int x = this->x(), y = this->y();
 	int hc = 0;
 

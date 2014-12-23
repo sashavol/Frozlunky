@@ -22,6 +22,7 @@ public:
 	void draw();
 	char tile(int rx, int ry);
 	int entity(int rx, int ry);
+	void resize(int x, int y, int w, int h, int xu, int yu);
 
 private:
 	std::pair<int, int> elem_position(char tile, int entity);
