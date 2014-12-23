@@ -46,6 +46,7 @@ struct TimeInfo {
 class GameHooks {
 public:
 	std::shared_ptr<Spelunky> spel;
+	std::shared_ptr<DerandomizePatch> dp;
 
 private:
 	bool is_valid;
@@ -87,8 +88,6 @@ private:
 	signed int lvl_mothership_offset;
 
 	BYTE game_damsel_offset;
-
-	std::shared_ptr<DerandomizePatch> dp;
 
 	bool discover_steamid();
 	bool discover_gold_count();

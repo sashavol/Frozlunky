@@ -46,6 +46,7 @@ static Fl_Window* window = nullptr;
 static Fl_Group* editor_group = nullptr;
 static std::shared_ptr<StaticChunkPatch> tp;	
 static std::shared_ptr<LevelForcer> level_forcer;
+static std::shared_ptr<LevelRedirect> level_redirect;
 static std::shared_ptr<Seeder> seeder;
 static std::shared_ptr<DerandomizePatch> dp;
 static std::shared_ptr<GameHooks> gh;
@@ -1024,6 +1025,11 @@ namespace TileEditing {
 				}
 				mut_level_seeds.unlock();
 
+				if(!level_forcer->enabled()) {
+					level_redirect->cycle();
+				}
+
+				level_forcer->cycle();
 				resource_editor->cycle();
 			}
 
@@ -1212,6 +1218,7 @@ namespace TileEditing {
 		}
 
 		level_forcer = std::make_shared<LevelForcer>(dp, gh);
+		level_redirect = std::make_shared<LevelRedirect>(gh);
 
 		std::string first_editor = construct_window();
 		window->callback([](Fl_Widget* widget) {
@@ -1226,6 +1233,10 @@ namespace TileEditing {
 		}
 
 		if(!level_forcer->valid()) {
+			return false;
+		}
+
+		if(!level_redirect->valid()) {
 			return false;
 		}
 
