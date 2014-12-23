@@ -139,10 +139,14 @@ void EditorWidget::shift_env_last(int u) {
 
 void EditorWidget::shift_picker_cursor(int dx, int dy) {
 	picker.try_move(dx, dy);
-	if(picker.tile())
+	if(picker.tile()) {
 		hint_bar->set_tile(picker.tile(), arm, nullptr);
-	else if(picker.entity())
+		hint_bar->redraw();
+	}
+	else if(picker.entity()) {
 		hint_bar->set_entity(picker.entity(), nullptr);
+		hint_bar->redraw();
+	}
 }
 
 int EditorWidget::mouse_event_id() {
@@ -181,13 +185,7 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 			cursor.e(ex, ey);
 		}
 
-
-		int entity = cursor.entity_get();
-		char tile = cursor.get();
-		if(entity)
-			hint_bar->set_entity(entity, c);
-		else if(tile)
-			hint_bar->set_tile(tile, arm, c);
+		update_hint_bar();
 	}
 	else {
 		move_drag_start = std::make_pair(-1, -1);
@@ -1012,7 +1010,7 @@ void EditorWidget::ensure_size() {
 		cnk_render_w = xu*CHUNK_WIDTH;
 		cnk_render_h = yu*CHUNK_HEIGHT;
 
-		int picker_w = (x()+w() - 5) - (sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5);
+		int picker_w = (x()+w() - 5) - (sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5) + 3;
 		int picker_x = sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5;
 		picker.resize(picker_x, y(), picker_w, h(), picker_w/4, picker_w/4);
 		

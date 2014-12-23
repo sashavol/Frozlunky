@@ -898,10 +898,12 @@ namespace TileEditing {
 			if(current_area_editor != "") {
 				EditorWidget* last = editors[current_area_editor];
 				EditorWidget* curr = editors[area];
+				
 				curr->shift_down = last->shift_down;
 				curr->alt_down = last->alt_down;
 				curr->ctrl_down = last->ctrl_down;
 				std::memcpy(curr->mouse_down, last->mouse_down, sizeof(curr->mouse_down));
+
 				last->hide();
 				last->sidebar_scrollbar->hide();
 				last->hint_bar->hide();
@@ -909,14 +911,25 @@ namespace TileEditing {
 				last->sidebar_scrollbar->hide();
 				last->hint_bar->hide();
 			}
-			
-			EditorWidget* ew = editors[current_area_editor = area];
+			current_area_editor = area;
+
+			EditorWidget* ew = editors[area];
 			ew->activate();
 			ew->sidebar_scrollbar->activate();
 			ew->hint_bar->activate();
+			
+			//show implicitly invokes FL_UNFOCUS on editor, so we have to store input data on editor switch
+			bool shift_down = ew->shift_down, alt_down = ew->alt_down, ctrl_down = ew->ctrl_down, mouse_down[3];
+			std::memcpy(mouse_down, ew->mouse_down, sizeof(mouse_down));
+
 			ew->show();
 			ew->sidebar_scrollbar->show();
 			ew->hint_bar->show();
+
+			std::memcpy(ew->mouse_down, mouse_down, sizeof(mouse_down));
+			ew->shift_down = shift_down;
+			ew->ctrl_down = ctrl_down;
+			ew->alt_down = alt_down;
 
 			ForceCurrentLevel(!!flcb_force->value());
 
