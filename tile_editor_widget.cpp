@@ -789,17 +789,21 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 	//default picker to air
 	picker.select('0');
 
-	double ratio = this->h() / (double)(get_chunk_render_pos(*chunks.rbegin()).second - this->y());
-	if(ratio >= 1.0) {
+	int vtiles = (get_chunk_render_pos(*chunks.rbegin()).second + yu*CHUNK_HEIGHT - this->y())/yu;
+	int screen_vtiles = this->h() / yu;
+
+	if(screen_vtiles >= vtiles) {
 		sidebar_scrollbar->deactivate();
 		sidebar_scrollbar->slider_size(1.0);
+		use_scrollbar = false;
 	}
 	else { 
+		use_scrollbar = true;
 		sidebar_scrollbar->activate();
-		sidebar_scrollbar->slider_size(ratio);
+		sidebar_scrollbar->slider_size(this->h() / (double)(get_chunk_render_pos(*chunks.rbegin()).second + yu*CHUNK_HEIGHT - this->y()));
 		sidebar_scrollbar->type(FL_VERTICAL);
-		sidebar_scrollbar->bounds(0, get_chunk_render_pos(*chunks.rbegin()).second);
-		sidebar_scrollbar->step(10);
+		sidebar_scrollbar->bounds(0, vtiles - CHUNK_HEIGHT);
+		sidebar_scrollbar->step(1);
 
 		sidebar_scrollbar->callback([](Fl_Widget* wid) {
 			wid->redraw();
@@ -817,11 +821,11 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 
 		if(render_pos(cursor.rex(), cursor.rey()).second >= this->y() + cnk_render_h*4) {
 			std::pair<int, int> bottom = chunkcoord_pos(this->x(), this->y() + this->h() - 1);
-			affect(yu*(cursor.rey() - bottom.second + 10));
+			affect(cursor.rey() - bottom.second + CHUNK_HEIGHT);
 		}
 		else if(render_pos(cursor.rsx(), cursor.rsy()).second < this->y()) {
 			std::pair<int, int> zero = chunkcoord_pos(this->x(), this->y());
-			affect(yu*(cursor.rsy() - zero.second - 10));
+			affect(cursor.rsy() - zero.second + 1 - CHUNK_HEIGHT);
 		}
 	});
 
@@ -833,7 +837,7 @@ Chunk* EditorWidget::find_chunk(int rx, int ry) {
 	int x = this->x(), y = this->y();
 	int hc = 0;
 
-	ry += sidebar_scrollbar->value();
+	ry += sidebar_scrollbar->value()*yu;
 
 	for(Chunk* c : chunks) {
 		if((rx >= x && rx < x + cnk_render_w)
@@ -893,7 +897,7 @@ std::pair<int, int> EditorWidget::render_pos(int tx, int ty) {
 	int xc = 0, yc = 0;
 	int hc = 0;
 
-	y -= sidebar_scrollbar->value();
+	y -= sidebar_scrollbar->value()*yu;
 	
 	for(Chunk* c : chunks) {
 		if((tx >= xc && tx < xc + c->get_width())
@@ -926,7 +930,7 @@ std::pair<int, int> EditorWidget::get_chunk_render_pos(Chunk* cnk) {
 
 	for(Chunk* c : chunks) {
 		if(c == cnk)
-			return std::pair<int, int>(x, y - sidebar_scrollbar->value());
+			return std::pair<int, int>(x, y - sidebar_scrollbar->value()*yu);
 
 		hc++;
 		x += cnk_render_w;
@@ -1035,7 +1039,7 @@ void EditorWidget::draw() {
 
 	//render regular tiles
 	for(Chunk* c : chunks) {
-		int rx = x, ry = y - sidebar_scrollbar->value();
+		int rx = x, ry = y - sidebar_scrollbar->value()*yu;
 
 		if(ry >= this->y() - cnk_render_h && ry < this->h() + cnk_render_h) {
 			render_chunk(c, rx, ry, cnk_render_w, cnk_render_h);
@@ -1077,7 +1081,7 @@ void EditorScrollbar::set_parent_editor(EditorWidget* editor) {
 
 int EditorScrollbar::handle(int evt) {
 	if(evt == 5 || evt == 0x13 || evt == FL_PUSH || evt == FL_RELEASE) {
-		auto par = parent();
+		auto par = this->window();
 		if(par)
 			par->redraw();
 	}

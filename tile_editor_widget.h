@@ -60,7 +60,8 @@ public:
 	int last_w, last_h;
 	int cnk_render_w, cnk_render_h;
 	int xu, yu;
-
+	
+	bool use_scrollbar;
 	Fl_Scrollbar* sidebar_scrollbar;
 	TileEditingHintbar* hint_bar;
 

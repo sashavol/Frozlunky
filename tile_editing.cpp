@@ -915,7 +915,9 @@ namespace TileEditing {
 
 			EditorWidget* ew = editors[area];
 			ew->activate();
-			ew->sidebar_scrollbar->activate();
+			if(ew->use_scrollbar) {
+				ew->sidebar_scrollbar->activate();
+			}
 			ew->hint_bar->activate();
 			
 			//show implicitly invokes FL_UNFOCUS on editor, so we have to store input data on editor switch
