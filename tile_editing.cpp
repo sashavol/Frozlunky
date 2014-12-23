@@ -825,6 +825,9 @@ namespace TileEditing {
 			else if(state == STATE_REQ_RESIZE_1) {
 				resize_window(1);
 			}
+			else if(state == STATE_REQ_RESIZE_1_5) {
+				resize_window(1.3);
+			}
 			else if(state == STATE_REQ_RESIZE_2) {
 				resize_window(1.6);
 			}

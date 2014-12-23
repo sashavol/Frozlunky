@@ -384,17 +384,23 @@ int EditorWidget::handle_key(int key) {
 	
 	case 0xFFBF: //F2
 		if(ctrl_down) {
-			status(STATE_REQ_RESIZE_2);
+			status(STATE_REQ_RESIZE_1_5);
 			return 1;
 		}
 	
 	case 0xFFC0: //F3
 		if(ctrl_down) {
-			status(STATE_REQ_RESIZE_3);
+			status(STATE_REQ_RESIZE_2);
 			return 1;
 		}
 
 	case 0xFFC1: //F4
+		if(ctrl_down) {
+			status(STATE_REQ_RESIZE_3);
+			return 1;
+		}
+
+	case 0xFFC2: //F5
 		if(ctrl_down) {
 			status(STATE_REQ_RESIZE_4);
 			return 1;

@@ -59,10 +59,11 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("ePaste", tg_('v', true, false, false, "Ctrl+V"))
 	)
 	("cWindow", map_list_of
-		("eSize: 1x", tg_(0xFFBE, true, false, false, "Ctrl+F1"))
-		("fSize: 2x", tg_(0xFFBF, true, false, false, "Ctrl+F2"))
-		("gSize: 3x", tg_(0xFFC0, true, false, false, "Ctrl+F3"))
-		("hSize: 4x", tg_(0xFFC1, true, false, false, "Ctrl+F4"))
+		("aSize: 1x", tg_(0xFFBE, true, false, false, "Ctrl+F1"))
+		("bSize: 1.5x", tg_(0xFFBF, true, false, false, "Ctrl+F2"))
+		("cSize: 2x", tg_(0xFFC0, true, false, false, "Ctrl+F3"))
+		("dSize: 3x", tg_(0xFFC1, true, false, false, "Ctrl+F4"))
+		("eSize: 4x", tg_(0xFFC2, true, false, false, "Ctrl+F5"))
 	)
 	("dLevel", map_list_of
 		("aForce Level", tg_('e', true, false, false, "Ctrl+E"))

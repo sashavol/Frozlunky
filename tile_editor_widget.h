@@ -50,6 +50,7 @@ enum Direction {
 #define STATE_REQ_RESIZE_2 (1 << 17)
 #define STATE_REQ_RESIZE_3 (1 << 18)
 #define STATE_REQ_RESIZE_4 (1<< 19)
+#define STATE_REQ_RESIZE_1_5 (1 << 20)
 
 class EditorWidget : public Fl_Widget {
 public:
