@@ -33,7 +33,7 @@ void TilePicker::draw() {
 		}
 
 		px += xu;
-		if(px > x+w) {
+		if(px+xu >= x+w) {
 			py += yu;
 			px = x;
 		}
@@ -48,7 +48,7 @@ void TilePicker::draw() {
 		}
 
 		px += xu;
-		if(px > x+w) {
+		if(px+xu >= x+w) {
 			py += yu;
 			px = x;
 		}
@@ -63,7 +63,7 @@ char TilePicker::tile(int rx, int ry) {
 		}
 			
 		px += xu;
-		if(px > x+w) {
+		if(px+xu >= x+w) {
 			py += yu;
 			px = x;
 		}
@@ -75,7 +75,7 @@ int TilePicker::entity(int rx, int ry) {
 	int px = x, py = y;
 	for(char c : tiles) {
 		px += xu;
-		if(px > x+w) {
+		if(px+xu >= x+w) {
 			py += yu;
 			px = x;
 		}
@@ -87,7 +87,7 @@ int TilePicker::entity(int rx, int ry) {
 		}
 			
 		px += xu;
-		if(px > x+w) {
+		if(px+xu >= x+w) {
 			py += yu;
 			px = x;
 		}
@@ -105,7 +105,7 @@ std::pair<int, int> TilePicker::elem_position(char tile, int entity) {
 		}
 
 		px += xu;
-		if(px > x+w) {
+		if(px+xu >= x+w) {
 			py += yu;
 			px = x;
 		}
@@ -117,7 +117,7 @@ std::pair<int, int> TilePicker::elem_position(char tile, int entity) {
 		}
 		
 		px += xu;
-		if(px > x+w) {
+		if(px+xu >= x+w) {
 			py += yu;
 			px = x;
 		}

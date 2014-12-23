@@ -232,6 +232,22 @@ int EditorWidget::handle_key(int key) {
 	cursor_finish_move();
 
 	switch(key) {
+	case 0xFFBE: //F1
+		status(STATE_REQ_RESIZE_1);
+		return 1;
+	
+	case 0xFFBF: //F2
+		status(STATE_REQ_RESIZE_2);
+		return 1;
+	
+	case 0xFFC0: //F3
+		status(STATE_REQ_RESIZE_3);
+		return 1;
+
+	case 0xFFC1: //F4
+		status(STATE_REQ_RESIZE_4);
+		return 1;
+
 	case 65289: //tab
 		if(shift_down)
 			status(STATE_REQ_TAB_REVERSE);
@@ -986,17 +1002,15 @@ void EditorWidget::render_cursor() {
 
 void EditorWidget::ensure_size() {
 	if(last_w != w() || last_h != h()) {
-		int hchunks = 4;
-		int htiles = hchunks*CHUNK_WIDTH;
-		xu = (sidebar_scrollbar->x() - x() - 5) / htiles;
-		yu = xu;
+		yu = h() / (4*CHUNK_HEIGHT);
+		xu = yu;
 
 		cnk_render_w = xu*CHUNK_WIDTH;
 		cnk_render_h = yu*CHUNK_HEIGHT;
 
-		int picker_w = (x()+w()) - (sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5) - 40;
+		int picker_w = (x()+w() - 5) - (sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5);
 		int picker_x = sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5;
-		picker.resize(picker_x, y(), picker_w, h(), picker_w/3, picker_w/3);
+		picker.resize(picker_x, y(), picker_w, h(), picker_w/4, picker_w/4);
 		
 		last_w = w();
 		last_h = h();

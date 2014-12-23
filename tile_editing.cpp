@@ -28,7 +28,8 @@
 #include <boost/algorithm/string.hpp>
 #include <pugixml.hpp>
 
-
+#define WINDOW_WIDTH  780
+#define WINDOW_HEIGHT 510
 #define WINDOW_BASE_TITLE "Level Editor"
 
 #define BUTTON_CLASS(NAME, LABEL) \
@@ -42,6 +43,7 @@ public: \
 
 //OPT add simulation widget to the overview page, should simulate a chosen area's chunks
 static Fl_Window* window = nullptr;
+static Fl_Group* editor_group = nullptr;
 static std::shared_ptr<StaticChunkPatch> tp;	
 static std::shared_ptr<LevelForcer> level_forcer;
 static std::shared_ptr<Seeder> seeder;
@@ -713,6 +715,12 @@ namespace TileEditing {
 			}
 		}
 
+		static void resize_window(double mult) {
+			window->resizable(editor_group);
+			window->size(int(WINDOW_WIDTH*mult), int(WINDOW_HEIGHT*mult));
+			window->size_range(int(WINDOW_WIDTH*mult), int(WINDOW_HEIGHT*mult), int(WINDOW_WIDTH*mult), int(WINDOW_HEIGHT*mult));
+		}
+
 		static void status_handler(unsigned state) {
 			if(state == STATE_CHUNK_WRITE || state == STATE_CHUNK_PASTE || state == STATE_RESERVED1) {
 				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file) + "* (Save to Apply)").c_str());
@@ -814,6 +822,18 @@ namespace TileEditing {
 				}
 				::window->redraw();
 			}
+			else if(state == STATE_REQ_RESIZE_1) {
+				resize_window(1);
+			}
+			else if(state == STATE_REQ_RESIZE_2) {
+				resize_window(1.6);
+			}
+			else if(state == STATE_REQ_RESIZE_3) {
+				resize_window(2.0);
+			}
+			else if(state == STATE_REQ_RESIZE_4) {
+				resize_window(2.5);
+			}
 		}
 		
 		static void _singlechunks(Chunk* c, std::function<void(Chunk*)> cb) {
@@ -882,15 +902,21 @@ namespace TileEditing {
 				curr->alt_down = last->alt_down;
 				curr->ctrl_down = last->ctrl_down;
 				std::memcpy(curr->mouse_down, last->mouse_down, sizeof(curr->mouse_down));
-				window->remove(last);
-				window->remove(last->sidebar_scrollbar);
-				window->remove(last->hint_bar);
+				last->hide();
+				last->sidebar_scrollbar->hide();
+				last->hint_bar->hide();
+				last->deactivate();
+				last->sidebar_scrollbar->hide();
+				last->hint_bar->hide();
 			}
 			
 			EditorWidget* ew = editors[current_area_editor = area];
-			window->add(ew);
-			window->add(ew->sidebar_scrollbar);
-			window->add(ew->hint_bar);
+			ew->activate();
+			ew->sidebar_scrollbar->activate();
+			ew->hint_bar->activate();
+			ew->show();
+			ew->sidebar_scrollbar->show();
+			ew->hint_bar->show();
 
 			ForceCurrentLevel(!!flcb_force->value());
 
@@ -1022,13 +1048,13 @@ namespace TileEditing {
 //menu bar y offset
 #define MB_Y_OFFSET 27
 	static std::string construct_window() {
-		Fl_Window* cons = new TileEditingWindow(780, 510, WINDOW_BASE_TITLE);
+		Fl_Window* cons = new TileEditingWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_BASE_TITLE);
 		window = cons;
 
 		cons->begin();
 
 		//construct menu bar, callback is executed when key event needs execution
-		new TileEditingMenuBar(0, 0, 780, 25, [=](TileEditingMenuBar::KeyTrigger trigger) {
+		new TileEditingMenuBar(0, 0, WINDOW_WIDTH, 25, [=](TileEditingMenuBar::KeyTrigger trigger) {
 			EditorWidget* editor = editors[current_area_editor];
 			if(editor) {
 				editor->shift_down = trigger.shift;
@@ -1076,6 +1102,7 @@ namespace TileEditing {
 		});
 
 		btn_randomize = new SeedRandomize(input_seed, 400+175, 2+425+MB_Y_OFFSET, 120, 20);
+		editor_group = new Fl_Group(165, 5+MB_Y_OFFSET, 615, 420);
 		cons->end();
 
 		std::string valid_editor;
@@ -1108,7 +1135,7 @@ namespace TileEditing {
 							edited.push_back(chunks[i]);
 						}
 					}
-					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, edited, true);
+					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 615, 420, es, hint_bar, edited, true);
 				}
 				else if(area.second == "%") { //default read-only
 					std::vector<Chunk*> relevant;
@@ -1116,11 +1143,22 @@ namespace TileEditing {
 						if(c->get_width() == CHUNK_WIDTH && c->get_height() == CHUNK_HEIGHT)
 							relevant.push_back(c);
 					}
-					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, relevant, false, true);
+					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 615, 420, es, hint_bar, relevant, false, true);
 				}
 				else {
-					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 545 + 90, 420, es, hint_bar, chunks);
+					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 615, 420, es, hint_bar, chunks);
 				}
+
+				editor_group->add(ew);
+				editor_group->add(ew->hint_bar);
+				editor_group->add(ew->sidebar_scrollbar);
+
+				ew->hide();
+				ew->hint_bar->hide();
+				ew->sidebar_scrollbar->hide();
+				ew->deactivate();
+				ew->hint_bar->deactivate();
+				ew->sidebar_scrollbar->hide();
 
 				es->set_parent_editor(ew);
 				ew->status_callback(IO::status_handler);
