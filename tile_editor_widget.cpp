@@ -6,8 +6,10 @@
 //TODO checkpoint system
 //TODO level range selection
 
-//TODO scroll entity list upon arrow keys off bounds
 //TODO documentation
+//TODO fix scrollbars not reaching end on higher resizes
+
+#define TILE_FONT_SIZE 11
 
 
 bool EditorWidget::allow_input() {
@@ -932,6 +934,8 @@ std::pair<int, int> EditorWidget::get_chunk_render_pos(Chunk* cnk) {
 	throw std::runtime_error("Chunk from non-native editor.");
 }
 
+
+
 void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) {
 	int ch = cnk->get_height(), cw = cnk->get_width();
 	
@@ -963,7 +967,7 @@ void EditorWidget::render_chunk(Chunk* cnk, int px, int py, int maxw, int maxh) 
 		render_bounds();
 	}
 	
-	fl_font(FL_SCREEN, min(xu, yu)-2);
+	fl_font(FL_SCREEN, TILE_FONT_SIZE);
 	for(int cy = 0; cy < ch; cy++) {
 		for(int cx = 0; cx < cw; cx++) {
 			char tile = cnk->tile(cx, cy);

@@ -65,7 +65,10 @@ public:
 		
 		p++;
 		states.erase(states.begin()+p, states.end());
-		entity_states.erase(entity_states.begin()+p, entity_states.end());
+		
+		if(esb) {
+			entity_states.erase(entity_states.begin()+p, entity_states.end());
+		}
 	}
 
 	void rewind() {

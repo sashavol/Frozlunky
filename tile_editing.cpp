@@ -1101,14 +1101,14 @@ namespace TileEditing {
 			}
 		});
 
-		btn_randomize = new SeedRandomize(input_seed, 400+175, 2+425+MB_Y_OFFSET, 120, 20);
+		btn_randomize = new SeedRandomize(input_seed, 575, 1+425+MB_Y_OFFSET, 110, 22);
 		editor_group = new Fl_Group(165, 5+MB_Y_OFFSET, 615, 420);
 		cons->end();
 
 		std::string valid_editor;
 		for(auto&& area : area_lookup) {
 			EditorScrollbar* es = new EditorScrollbar(690, 5+MB_Y_OFFSET, 15, 420);
-			TileEditingHintbar* hint_bar = new TileEditingHintbar(165, window->h()-30+1, 535, 25);
+			TileEditingHintbar* hint_bar = new TileEditingHintbar(165, window->h()-30+1, es->x() - 165 - 5, 25);
 
 			std::vector<Chunk*> chunks = tp->query_chunks(area.second);
 
