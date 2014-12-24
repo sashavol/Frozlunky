@@ -948,6 +948,8 @@ namespace TileEditing {
 
 				level_forcer->cycle();
 				resource_editor->cycle();
+
+				gh->set_dark_level(false);
 			}
 
 			Sleep(2);

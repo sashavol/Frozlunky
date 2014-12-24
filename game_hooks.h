@@ -86,6 +86,7 @@ private:
 	signed int lvl_yeti_offset;
 	signed int lvl_blackmkt_offset;
 	signed int lvl_mothership_offset;
+	signed int lvl_dark_offset;
 
 	BYTE game_damsel_offset;
 
@@ -158,11 +159,14 @@ public:
 
 	bool fullscreen();
 
-
 	signed worm_offset();
 	signed blackmkt_offset();
 	signed haunted_mansion_offset();
 	signed yeti_offset();
 	signed cog_offset();
 	signed mothership_offset();
+
+	signed dark_level_offset();
+	void set_dark_level(bool v);
+	bool dark_level();
 };

@@ -500,15 +500,12 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 'l': //ctrl+shift+L: open level settings
-		if(ctrl_down && shift_down) {
-			status(STATE_REQ_LEVEL_SETTINGS);
-			return 1;
-		}
-
-	case 'p': //ctrl+p: pick entity
+	case 'p': //ctrl+p: pick entity, ctrl+shift+p: open project settings
 		if(ctrl_down) {
-			status(STATE_REQ_ENTITY_PICKER);
+			if(shift_down)
+				status(STATE_REQ_LEVEL_SETTINGS);
+			else
+				status(STATE_REQ_ENTITY_PICKER);
 			return 1;
 		}
 

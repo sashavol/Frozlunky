@@ -765,6 +765,10 @@ static std::string lvl_cog_mask = "x......x.x.x..x";
 static BYTE lvl_mothership_find[] = {0xE9,0xCC,0xCC,0xCC,0xCC,0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x74,0xCC,0x8D,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0x8B,0xCC,0x8B,0xCC,0xE8};
 static std::string lvl_mothership_mask = "x....x......x.x....x.x.x.x";
 
+//+2
+static BYTE lvl_dark_find[] = {0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0x00,0x74,0xCC,0x8B,0xCC,0xE8,0xCC,0xCC,0xCC,0xCC,0x84,0xCC,0x74,0xCC,0x6A};
+static std::string lvl_dark_mask = "x.....xx.x.x....x.x.x";
+
 bool GameHooks::discover_level_flags() {
 	lvl_hmansion_offset = 0;
 	lvl_worm_offset = 0;
@@ -772,6 +776,19 @@ bool GameHooks::discover_level_flags() {
 	lvl_yeti_offset = 0;
 	lvl_blackmkt_offset = 0;
 	lvl_mothership_offset = 0;
+	lvl_dark_offset = 0;
+
+	lvl_dark_offset = (signed int)spel->get_stored_hook("lvl_dark_offset");
+	if(!lvl_dark_offset) {
+		Address cont = spel->find_mem(lvl_dark_find, lvl_dark_mask);
+		if(!cont) {
+			DBG_EXPR(std::cout << "[GameHooks] Failed to find dark level flag." << std::endl);
+			return false;
+		}
+		spel->read_mem(cont + 2, &lvl_dark_offset, sizeof(signed int));
+		spel->store_hook("lvl_dark_offset", lvl_dark_offset);
+		DBG_EXPR(std::cout << "[GameHooks] lvl_dark_offset = " << lvl_dark_offset << std::endl);
+	}
 
 	lvl_worm_offset = spel->get_stored_hook("lvl_worm_offset");
 	if(!lvl_worm_offset) {
@@ -870,4 +887,26 @@ signed GameHooks::cog_offset() {
 
 signed GameHooks::mothership_offset() {
 	return lvl_mothership_offset;
+}
+
+signed GameHooks::dark_level_offset() {
+	return lvl_dark_offset;
+}
+
+void GameHooks::set_dark_level(bool v) {
+	Address game;
+	spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
+
+	char val = v ? 1 : 0;
+	spel->write_mem(game + dark_level_offset(), &val, sizeof(char));
+}
+
+bool GameHooks::dark_level() {
+	Address game;
+	spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
+
+	char val;
+	spel->read_mem(game + dark_level_offset(), &val, sizeof(char));
+
+	return !!val;
 }

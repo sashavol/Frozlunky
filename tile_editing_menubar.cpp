@@ -69,7 +69,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("aForce Level", tg_('e', true, false, false, "Ctrl+E"))
 		("dClear Level", tg_('n', true, false, false, "Ctrl+N"))
 		("eResource Editor", tg_('r', true, true, false, "Ctrl+Shift+R"))
-		("fLevel Settings", tg_('l', true, true, false, "Ctrl+Shift+L"))
+		("fProject Settings", tg_('p', true, true, false, "Ctrl+Shift+P"))
 		("gEntity Picker", tg_('p', true, false, false, "Ctrl+P"))
 	)
 	("eCursor", map_list_of
