@@ -269,62 +269,6 @@ struct AreaControls {
 	}
 };
 
-struct SeedInput : public Fl_Input {
-private:
-	std::function<void(std::string)> seed_update;
-
-public:
-	SeedInput(int x, int y, int w, int h, decltype(seed_update) update) : Fl_Input(x,y,w,h, "Level Seed: "), seed_update(update) {
-		this->textfont(4);
-	}
-
-	void update() {
-		seed_update(std::string(this->value()));
-	}
-
-	virtual int handle(int evt) override {
-		if(evt == 0xC || evt == FL_KEYBOARD) {
-			if(Fl::focus() == this) {
-				update();
-			}
-			else
-				return 0;
-		}
-		else if(evt == FL_FOCUS) {
-			return 0;
-		}
-
-		return Fl_Input::handle(evt);
-	}
-};
-
-struct SeedRandomize : public Fl_Button {
-	SeedInput* input;
-	
-	SeedRandomize(SeedInput* input, int x, int y, int w, int h) : Fl_Button(x, y, w, h, "Randomize"), input(input) {}
-
-	virtual int handle(int evt) override {
-		if(evt == 2) {
-			std::string current = input->value();
-			std::string prefix = "";
-			auto prefp = current.find(":");
-			if(prefp != std::string::npos) {
-				prefix = current.substr(0, prefp);
-			}
-			else {
-				prefix = current;
-			}
-
-			input->value((prefix + ":" + Syllabic::MakePhoneticString(2)).c_str());
-			input->update();
-		}
-		else if(evt == FL_FOCUS) {
-			return 0;
-		}
-
-		return Fl_Button::handle(evt);
-	}
-};
 
 static std::map<std::string, AreaControls*> controls;
 
@@ -333,12 +277,7 @@ namespace TileEditing {
 	static std::string current_area_editor;
 	static std::map<std::string, EditorWidget*> editors;
 	static Fl_Check_Button* flcb_force;
-	static std::mutex mut_level_seeds;
-	static std::map<std::string, std::string> level_seeds;
 
-	static SeedInput* input_seed;
-	static SeedRandomize* btn_randomize;
-	
 	static void SetCurrentEditor(const std::string& area);
 	static void ForceCurrentLevel(bool r);
 
@@ -358,15 +297,6 @@ namespace TileEditing {
 			tp->apply_chunks(); //apply chunks upon setting active file to guarantee newly active file is not unapplied
 		}
 
-		static void InitializeEmptySeeds() {
-			srand((unsigned int)time(0));
-			for(auto&& seed : level_seeds) {
-				if(seed.second.empty()) {
-					seed.second = std::string(":") + Syllabic::MakePhoneticString(2);
-				}
-			}
-		}
-
 		static void InitializeEmptyEntities() {
 			for(auto&& e : editors) {
 				std::shared_ptr<EntitySpawnBuilder> esb = e.second->get_entity_builder();
@@ -378,21 +308,7 @@ namespace TileEditing {
 		}
 
 		static void NewFile() {
-			mut_level_seeds.lock();
-			
-			for(auto&& area : area_lookup) {
-				level_seeds[area.first] = std::string();
-			}
-
 			TileDefault::SetToDefault(tp->get_chunks());
-			InitializeEmptySeeds();
-
-			if(!current_area_editor.empty()) {
-				input_seed->value(level_seeds[current_area_editor].c_str());
-			}
-
-			mut_level_seeds.unlock();
-
 
 			InitializeEmptyEntities();
 
@@ -427,18 +343,7 @@ namespace TileEditing {
 
 		static void EncodeToFile() {
 			pugi::xml_document xmld;
-			pugi::xml_node seeds = xmld.append_child("seeds");
-
-			mut_level_seeds.lock();
-			for(auto&& seed : level_seeds) {
-				if(!seed.second.empty() && !editors[seed.first]->read_only) {
-					pugi::xml_node level = seeds.append_child(SafeXMLName(seed.first).c_str());
-					pugi::xml_node data = level.append_child(pugi::xml_node_type::node_pcdata);
-					data.set_value(seed.second.c_str());
-				}
-			}
-			mut_level_seeds.unlock();
-
+	
 			pugi::xml_node settings = xmld.append_child("settings");
 			{
 				pugi::xml_node redirect = settings.append_child("redirect");
@@ -551,42 +456,6 @@ namespace TileEditing {
 				}
 
 				request_soft_seed_lock();
-
-				mut_level_seeds.lock();
-				for(auto&& level : level_seeds) {
-					level.second = "";
-				}
-
-				pugi::xml_node seeds = xmld.child("seeds");
-				if(!seeds.empty()) {
-					for(pugi::xml_node child : seeds.children()) {
-						if(std::distance(child.children().begin(), child.children().end()) == 0) {
-							mut_level_seeds.unlock();
-							throw std::runtime_error(std::string("Invalid seed format for ") + child.name());
-						}
-
-						pugi::xml_node data = *child.children().begin();
-						if(data.type() != pugi::xml_node_type::node_pcdata) {
-							mut_level_seeds.unlock();
-							throw std::runtime_error(std::string("Invalid seed format, expected node_pcdata as child of ") + child.name());
-						}
-
-						std::string area = AreaName(child.name());
-						if(!area.empty() && level_seeds.find(area) != level_seeds.end()) {
-							level_seeds[area] = data.value();
-						
-							if(area == current_area_editor) {
-								input_seed->value(data.value());
-							}
-						}
-						else {
-							DBG_EXPR(std::cout << "[TileEditing] Warning: Level seeds contained unknown level: " << child.name() << std::endl);
-						}
-					}
-				}
-
-				InitializeEmptySeeds();
-				mut_level_seeds.unlock();
 
 				level_redirect->reset();
 				pugi::xml_node settings = xmld.child("settings");
@@ -835,13 +704,6 @@ namespace TileEditing {
 					}
 				}
 			}
-			else if(state == STATE_REQ_RANDOMIZE) {
-				btn_randomize->handle(2);
-			}
-			else if(state == STATE_REQ_BLANK_SEED) {
-				input_seed->value("~");
-				input_seed->update();
-			}
 			else if(state == STATE_REQ_RESOURCE_EDITOR) {
 				if(!resource_editor_window->visible()) {
 					resource_editor_window->show();
@@ -954,7 +816,6 @@ namespace TileEditing {
 		}
 
 		controls[area_group(area)]->btns[area]->deactivate();
-		input_seed->value(level_seeds[area].c_str());
 
 		auto ed = editors[area];
 		
@@ -1075,15 +936,10 @@ namespace TileEditing {
 		while(true) {
 			if(tp->is_active()) {
 				std::string area = current_game_level();
-
-				mut_level_seeds.lock();
-				auto it = level_seeds.find(area);
-				if(it != level_seeds.end()) {
-					if(seeder->get_seed() != it->second) {
-						seeder->seed(it->second);
-					}
+				
+				if(seeder->get_seed() != "~") {
+					seeder->seed("~");
 				}
-				mut_level_seeds.unlock();
 
 				if(!level_forcer->enabled())
 					level_redirect->cycle();
@@ -1178,15 +1034,7 @@ namespace TileEditing {
 			ForceCurrentLevel(!!static_cast<Fl_Check_Button*>(cbox)->value());
 		});
 
-		
-		input_seed = new SeedInput(400, 425+MB_Y_OFFSET, 170, 25, [=](std::string seed) {
-			if(!current_area_editor.empty()) {
-				IO::status_handler(STATE_RESERVED1);
-				level_seeds[current_area_editor] = seed;
-			}
-		});
 
-		btn_randomize = new SeedRandomize(input_seed, 575, 1+425+MB_Y_OFFSET, 110, 22);
 		editor_group = new Fl_Group(165, 5+MB_Y_OFFSET, 615, 420);
 		cons->end();
 

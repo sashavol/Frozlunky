@@ -37,7 +37,6 @@ enum Direction {
 #define STATE_RESERVED1   (1 << 4)
 #define STATE_REQ_TAB (1 << 5)
 #define STATE_REQ_TAB_REVERSE (1 << 6)
-#define STATE_REQ_RANDOMIZE (1 << 7)
 #define STATE_REQ_OPEN (1 << 8)
 #define STATE_REQ_DEFAULT_SWAP (1 << 9)
 #define STATE_REQ_SAVE	       (1 << 10)
@@ -52,7 +51,6 @@ enum Direction {
 #define STATE_REQ_RESIZE_4 (1<< 19)
 #define STATE_REQ_RESIZE_1_5 (1 << 20)
 #define STATE_REQ_LEVEL_SETTINGS (1 << 21)
-#define STATE_REQ_BLANK_SEED (1 << 22)
 
 class EditorWidget : public Fl_Widget {
 public:

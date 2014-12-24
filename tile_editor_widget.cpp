@@ -494,18 +494,9 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
-	case 'r': //ctrl+r: randomize seed, ctrl+shift+r: open resource editor
-		if(ctrl_down) {
-			if(shift_down)
-				status(STATE_REQ_RESOURCE_EDITOR);
-			else
-				status(STATE_REQ_RANDOMIZE);
-			return 1;
-		}
-
-	case 'b':
+	case 'r': //ctrl+shift+r: open resource editor
 		if(ctrl_down && shift_down) {
-			status(STATE_REQ_BLANK_SEED);
+			status(STATE_REQ_RESOURCE_EDITOR);
 			return 1;
 		}
 

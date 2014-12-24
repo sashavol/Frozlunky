@@ -104,7 +104,8 @@ void LevelRedirect::cycle() {
 		last_checkpoint = lvl;
 	}
 
-	if(!game_started && level_start != LB_DEFAULT_START) {
+	if(!game_started && (checkpoint_mode || level_start != LB_DEFAULT_START)) {
+		std::cout << "last_checkpoint = " << last_checkpoint << std::endl;
 		write_level(last_checkpoint);
 	}
 
