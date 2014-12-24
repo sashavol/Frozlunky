@@ -760,7 +760,12 @@ namespace TileEditing {
 
 		static void status_handler(unsigned state) {
 			if(state == STATE_CHUNK_WRITE || state == STATE_CHUNK_PASTE || state == STATE_RESERVED1) {
-				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file) + "* (Save to Apply)").c_str());
+				window->copy_label((std::string(WINDOW_BASE_TITLE " - ") + TileUtil::GetBaseFilename(current_file) + "* (Unsaved Changes)").c_str());
+				
+				//OPT: tp->apply_chunks() performs a lot of memory-intensive operations
+				//		However, it seems to operate within a reasonable speed on most systems, so
+				//		we'll keep automatic chunk apply for now.
+				tp->apply_chunks();
 				unsaved_changes = true;
 			}
 			else if(state == STATE_REQ_SAVE) {
