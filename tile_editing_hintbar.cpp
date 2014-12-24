@@ -38,10 +38,10 @@ void TileEditingHintbar::update_label() {
 		}
 	}
 	else if(entity) {
-		oss << "Entity: " << KnownEntities::GetName(entity);
+		oss << "Picked Entity: " << KnownEntities::GetName(entity);
 	}
 	else if(tile) {
-		oss << "Picked tile: " << Description::TileDescription(tile, area);
+		oss << "Picked Tile: " << Description::TileDescription(tile, area);
 	}
 
 	text = oss.str();

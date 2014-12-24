@@ -136,6 +136,7 @@ void PickButton::do_pick() {
 	ep->picker->entity_select(id);
 	ep->hide();
 	ep->editor->hint_bar->set_entity(id, nullptr);
+	ep->editor->hint_bar->redraw();
 	ep->editor->parent()->redraw();
 	ep->editor->parent()->take_focus();
 }

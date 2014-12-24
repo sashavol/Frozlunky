@@ -192,12 +192,14 @@ void EditorWidget::cursor_move(int rx, int ry, bool drag) {
 		int entity = picker.entity(rx, ry);
 		if(entity != 0) {
 			hint_bar->set_entity(entity, nullptr);
+			hint_bar->redraw();
 			picker.entity_select(entity);
 		}
 		else {
 			char ptile = picker.tile(rx, ry);
 			if(ptile != 0) {
 				hint_bar->set_tile(ptile, arm, nullptr);
+				hint_bar->redraw();
 				picker.select(ptile);
 			}
 		}
