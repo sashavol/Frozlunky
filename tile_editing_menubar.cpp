@@ -46,7 +46,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 	("aFile", map_list_of
 		("aNew Level Pack", tg_('n', true, true, false, "Ctrl+Shift+N"))
 		("bOpen Level Pack", tg_('o', true, false, false, "Ctrl+O"))
-		("cSave + Apply", tg_('s', true, false, false, "Ctrl+S"))
+		("cSave", tg_('s', true, false, false, "Ctrl+S"))
 		("dSave as..", tg_('s', true, true, false, "Ctrl+Shift+S"))
 		("eSwitch Editor", tg_(65289, false, false, false, "(Shift+) Tab"))
 		("fSwap to Default Editor", tg_('d', true, false, false, "Ctrl+D"))
