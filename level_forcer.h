@@ -50,9 +50,12 @@ public:
 	std::atomic<int> level_olmec;
 	std::atomic<int> level_yama;
 
+	std::atomic<int> last_checkpoint;
+	std::atomic<bool> checkpoint_mode;
+	
 	std::atomic<bool> game_started;
 	std::atomic<int> last_state;
-
+	
 private:
 	std::shared_ptr<Spelunky> spel;
 	std::shared_ptr<GameHooks> gh;

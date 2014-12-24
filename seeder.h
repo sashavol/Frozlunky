@@ -28,6 +28,7 @@ private:
 
 
 	void crazy_seed(int crazy, const std::string& seed, int crazyval=0);
+	void blank_seed();
 
 public:
 	~Seeder() {

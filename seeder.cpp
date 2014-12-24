@@ -1,5 +1,21 @@
 #include "seeder.h"
 
+void Seeder::blank_seed() {
+	if(!dp->is_active()) {
+		dp->perform();
+	}
+
+	const int size = RAND_ARR_SIZE/sizeof(int);
+	Address bytes = dp->random_bytes_address();
+	int bytes_data[size] = {};
+
+	for(int i = 0; i < size; i++) {
+		bytes_data[i] = 1 + (i % 8)*30;
+	}
+
+	dp->spel->write_mem(bytes, bytes_data, size*sizeof(int));
+}
+
 void Seeder::crazy_seed(int crazy, const std::string& seed, int crazyval) 
 {
 	if(!dp->is_active()) {
@@ -110,7 +126,12 @@ void Seeder::seed(const std::string& seed_str)
 		boost::algorithm::to_lower(special_check);
 		boost::algorithm::trim(special_check);
 
-		if(special_check == "mediumlunky") {
+		if(special_check == "~") {
+			blank_seed();
+			mut_seed.unlock();
+			return;
+		}
+		else if(special_check == "mediumlunky") {
 			crazy_seed(12, "mediumlunky");
 			mut_seed.unlock();
 			return;

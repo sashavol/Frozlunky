@@ -503,6 +503,12 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
+	case 'b':
+		if(ctrl_down && shift_down) {
+			status(STATE_REQ_BLANK_SEED);
+			return 1;
+		}
+
 	case 'l': //ctrl+shift+L: open level settings
 		if(ctrl_down && shift_down) {
 			status(STATE_REQ_LEVEL_SETTINGS);

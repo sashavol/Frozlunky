@@ -18,6 +18,7 @@ private:
 	Fl_Choice* level_starting;
 	Fl_Choice* level_olmec;
 	Fl_Choice* level_yama;
+	Fl_Check_Button* checkpoints_enabled;
 
 public:
 	LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect);

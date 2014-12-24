@@ -445,6 +445,8 @@ namespace TileEditing {
 				redirect.append_child("start").append_attribute("to").set_value(level_redirect->level_start);
 				redirect.append_child("olmec").append_attribute("to").set_value(level_redirect->level_olmec);
 				redirect.append_child("yama").append_attribute("to").set_value(level_redirect->level_yama);
+
+				settings.append_child("checkpoints").append_attribute("active").set_value(level_redirect->checkpoint_mode);
 			}
 
 			pugi::xml_node resources = xmld.append_child("resources");
@@ -601,6 +603,14 @@ namespace TileEditing {
 						level_proc("start", level_redirect->level_start);
 						level_proc("olmec", level_redirect->level_olmec);
 						level_proc("yama", level_redirect->level_yama);
+					}
+
+					pugi::xml_node checkpoints = settings.child("checkpoints");
+					if(!checkpoints.empty()) {
+						pugi::xml_attribute active = checkpoints.attribute("active");
+						if(!active.empty()) {
+							level_redirect->checkpoint_mode = active.as_bool();
+						}
 					}
 				}
 				level_settings_window->update();
@@ -827,6 +837,10 @@ namespace TileEditing {
 			}
 			else if(state == STATE_REQ_RANDOMIZE) {
 				btn_randomize->handle(2);
+			}
+			else if(state == STATE_REQ_BLANK_SEED) {
+				input_seed->value("~");
+				input_seed->update();
 			}
 			else if(state == STATE_REQ_RESOURCE_EDITOR) {
 				if(!resource_editor_window->visible()) {
@@ -1071,9 +1085,10 @@ namespace TileEditing {
 				}
 				mut_level_seeds.unlock();
 
-				if(!level_forcer->enabled()) {
+				if(!level_forcer->enabled())
 					level_redirect->cycle();
-				}
+				else
+					level_redirect->last_checkpoint = int(level_redirect->level_start);
 
 				level_forcer->cycle();
 				resource_editor->cycle();

@@ -18,7 +18,7 @@ static int choice_level(int idx) {
 }
 
 LevelSettingsWindow::LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect) : 
-	Fl_Double_Window(272, 208, "Level Settings"),
+	Fl_Double_Window(272, 248, "Level Settings"),
 	redirect(redirect),
 	status_fn([](int){})
 {
@@ -76,9 +76,16 @@ LevelSettingsWindow::LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect
 		
 		o->end();
 	} // Fl_Group* o
-	{ Fl_Check_Button* o = new Fl_Check_Button(10, 136, 255, 25, "Quick Restart resets to failed level");
+	{ Fl_Check_Button* o = new Fl_Check_Button(10, 136, 255, 25, "Quick Restart resets to current level");
 		o->down_box(FL_DOWN_BOX);
-		//TODO
+		o->value(redirect->checkpoint_mode);
+
+		o->callback(cfn_cb, cfn.wrap([=](Fl_Widget*) {
+			redirect->checkpoint_mode = !!o->value();
+			status_fn(STATE_CHUNK_WRITE);
+		}));
+
+		checkpoints_enabled = o;
 	} // Fl_Check_Button* o
 	this->end();
 }
@@ -91,6 +98,5 @@ void LevelSettingsWindow::update() {
 	level_starting->value(redirect->level_start - 1);
 	level_olmec->value(redirect->level_olmec - 1);
 	level_yama->value(redirect->level_yama  - 1);
-
-	//TODO quick restart checkpoints update
+	checkpoints_enabled->value(redirect->checkpoint_mode);
 }

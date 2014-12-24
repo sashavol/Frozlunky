@@ -74,6 +74,8 @@ LevelRedirect::LevelRedirect(std::shared_ptr<GameHooks> gh) :
 	level_start(LB_DEFAULT_START),
 	level_olmec(LB_DEFAULT_OLMEC),
 	level_yama(LB_DEFAULT_YAMA),
+	last_checkpoint(LB_DEFAULT_START),
+	checkpoint_mode(false),
 	last_state(-1)
 {}
 
@@ -87,7 +89,7 @@ void LevelRedirect::cycle() {
 	int state = gh->game_state();
 	int lvl = gh->current_level();
 
-	if(game_started && (state == STATE_LOBBY || state == STATE_GAMEOVER_HUD)) {
+	if(game_started && (state == STATE_LOBBY || state == STATE_GAMEOVER_HUD || state == STATE_MAINMENU)) {
 		game_started = false;
 	}
 	
@@ -95,8 +97,15 @@ void LevelRedirect::cycle() {
 		game_started = true;
 	}
 
+	if(!checkpoint_mode || state == STATE_LOBBY || state == STATE_MAINMENU) {
+		last_checkpoint = int(level_start);
+	}
+	else if(state == STATE_PLAYING || state == STATE_INPUTLOCK_LEVELSTART) {
+		last_checkpoint = lvl;
+	}
+
 	if(!game_started && level_start != LB_DEFAULT_START) {
-		write_level(level_start);
+		write_level(last_checkpoint);
 	}
 
 	if(level_olmec != LB_DEFAULT_OLMEC) {

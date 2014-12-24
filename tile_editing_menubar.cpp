@@ -68,10 +68,11 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 	("dLevel", map_list_of
 		("aForce Level", tg_('e', true, false, false, "Ctrl+E"))
 		("bRandomize Level Seed", tg_('r', true, false, false, "Ctrl+R"))
-		("cClear Level", tg_('n', true, false, false, "Ctrl+N"))
-		("dResource Editor", tg_('r', true, true, false, "Ctrl+Shift+R"))
-		("eLevel Settings", tg_('l', true, true, false, "Ctrl+Shift+L"))
-		("fEntity Picker", tg_('p', true, false, false, "Ctrl+P"))
+		("cAttempt Blank Seed", tg_('b', true, true, false, "Ctrl+Shift+B"))
+		("dClear Level", tg_('n', true, false, false, "Ctrl+N"))
+		("eResource Editor", tg_('r', true, true, false, "Ctrl+Shift+R"))
+		("fLevel Settings", tg_('l', true, true, false, "Ctrl+Shift+L"))
+		("gEntity Picker", tg_('p', true, false, false, "Ctrl+P"))
 	)
 	("eCursor", map_list_of
 		("aSelect Entire Level", tg_('a', true, false, false, "Ctrl+A"))
