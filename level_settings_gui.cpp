@@ -18,7 +18,7 @@ static int choice_level(int idx) {
 }
 
 LevelSettingsWindow::LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect) : 
-	Fl_Double_Window(272, 248, "Level Settings"),
+	Fl_Double_Window(272, 218, "Level Settings"),
 	redirect(redirect),
 	status_fn([](int){})
 {

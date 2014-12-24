@@ -3,11 +3,9 @@
 
 //OPT arrow traps?
 
-//TODO checkpoint system
-//TODO level range selection
-
+//TODO switch ~ seed to random regular seed upon tab back to regular frozlunky
+//TODO dark level control
 //TODO documentation
-//TODO fix scrollbars not reaching end on higher resizes
 
 #define TILE_FONT_SIZE 11
 
