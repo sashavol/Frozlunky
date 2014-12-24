@@ -579,8 +579,6 @@ void EditorWidget::cursor_build(int rx, int ry, bool drag, char default_tile) {
 			cursor.entity_put(entity);
 		else if(tile)
 			cursor.put(tile);
-		
-		status(STATE_CHUNK_WRITE);
 	};
 
 	if(drag) {
@@ -655,6 +653,14 @@ int EditorWidget::handle(int evt) {
 		mouse_down[mouse_event_id()] = false;
 		if(Fl::event_state() & FL_BUTTON1) {
 			cursor_finish_move();
+		}
+		else {
+			std::cout << ":D build_dim.first -> " << build_dim.first << std::endl;
+			//just finished drawing onto chunks, now signal completion
+			if(build_dim.first > -1) {
+				status(STATE_CHUNK_WRITE);
+				build_dim = std::make_pair(-1, -1);
+			}
 		}
 		return 1;
 
@@ -778,6 +784,7 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 	last_dir(Direction::UP),
 	timeline(chunks, esb),
 	move_drag_start(-1, -1),
+	build_dim(-1, -1),
 	arm(arm),
 	picker(this, arm, tp->valid_tiles(), scrollbar->x() + PICKER_X_ES_OFFS, y, PICKER_WIDTH, h, PICKER_XU, PICKER_YU),
 	cursor(chunks, esb, extended_mode ? 2 : 4, read_only)
