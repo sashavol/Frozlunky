@@ -655,7 +655,6 @@ int EditorWidget::handle(int evt) {
 			cursor_finish_move();
 		}
 		else {
-			std::cout << ":D build_dim.first -> " << build_dim.first << std::endl;
 			//just finished drawing onto chunks, now signal completion
 			if(build_dim.first > -1) {
 				status(STATE_CHUNK_WRITE);
@@ -1034,9 +1033,9 @@ void EditorWidget::ensure_size() {
 		cnk_render_w = xu*CHUNK_WIDTH;
 		cnk_render_h = yu*CHUNK_HEIGHT;
 
-		int picker_w = (x()+w() - 5) - (sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5) + 3;
+		int picker_w = (x()+w() - 5) - (sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5);
 		int picker_x = sidebar_scrollbar->x() + sidebar_scrollbar->w() + 5;
-		picker.resize(picker_x, y(), picker_w, h(), picker_w/4, picker_w/4);
+		picker.resize(picker_x, y(), picker_w+5, h(), picker_w/4, picker_w/4);
 		
 		last_w = w();
 		last_h = h();
