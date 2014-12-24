@@ -7,6 +7,7 @@
 #include "level_forcer.h"
 #include "resource_editor.h"
 #include "resource_editor_gui.h"
+#include "level_settings_gui.h"
 #include "entity_picker.h"
 #include "gui.h"
 #include "syllabic.h"
@@ -39,6 +40,10 @@ public: \
 	virtual int handle(int evt) override; \
 }
 
+template <typename Numeric_>
+static Numeric_ clamp_(Numeric_ s, Numeric_ e, Numeric_ v) {
+	return min(e, max(s, v));
+}
 
 
 //OPT add simulation widget to the overview page, should simulate a chosen area's chunks
@@ -52,6 +57,7 @@ static std::shared_ptr<DerandomizePatch> dp;
 static std::shared_ptr<GameHooks> gh;
 static std::shared_ptr<ResourceEditor> resource_editor;
 static ResourceEditorWindow* resource_editor_window;
+static LevelSettingsWindow* level_settings_window;
 static HANDLE worker_thread = 0;
 static std::function<void(bool)> display_cb;
 static bool initialized = false;
@@ -393,6 +399,9 @@ namespace TileEditing {
 			resource_editor->reset();
 			resource_editor_window->update();
 
+			level_redirect->reset();
+			level_settings_window->update();
+
 			IO::SetActiveFile("");
 			unsaved_changes = false;
 		}
@@ -429,6 +438,14 @@ namespace TileEditing {
 				}
 			}
 			mut_level_seeds.unlock();
+
+			pugi::xml_node settings = xmld.append_child("settings");
+			{
+				pugi::xml_node redirect = settings.append_child("redirect");
+				redirect.append_child("start").append_attribute("to").set_value(level_redirect->level_start);
+				redirect.append_child("olmec").append_attribute("to").set_value(level_redirect->level_olmec);
+				redirect.append_child("yama").append_attribute("to").set_value(level_redirect->level_yama);
+			}
 
 			pugi::xml_node resources = xmld.append_child("resources");
 			for(auto&& res : *resource_editor) {
@@ -568,6 +585,25 @@ namespace TileEditing {
 
 				InitializeEmptySeeds();
 				mut_level_seeds.unlock();
+
+				level_redirect->reset();
+				pugi::xml_node settings = xmld.child("settings");
+				if(!settings.empty()) {
+					pugi::xml_node redirect = settings.child("redirect");
+					if(!redirect.empty()) {
+						auto level_proc = [=](const char* elem, std::atomic<int>& target) {
+							pugi::xml_node n = redirect.child(elem);
+							if(!n.attribute("to").empty()) {
+								target = clamp_(LEVEL_1_1, LEVEL_5_4, n.attribute("to").as_int());
+							}
+						};
+						
+						level_proc("start", level_redirect->level_start);
+						level_proc("olmec", level_redirect->level_olmec);
+						level_proc("yama", level_redirect->level_yama);
+					}
+				}
+				level_settings_window->update();
 
 				resource_editor->reset();
 				pugi::xml_node resources = xmld.child("resources");
@@ -790,6 +826,11 @@ namespace TileEditing {
 			else if(state == STATE_REQ_RESOURCE_EDITOR) {
 				if(!resource_editor_window->visible()) {
 					resource_editor_window->show();
+				}
+			}
+			else if(state == STATE_REQ_LEVEL_SETTINGS) {
+				if(!level_settings_window->visible()) {
+					level_settings_window->show();
 				}
 			}
 			else if(state == STATE_REQ_ENTITY_PICKER) {
@@ -1205,6 +1246,9 @@ namespace TileEditing {
 		::dp = dp;
 		::gh = gh;
 
+		level_forcer = std::make_shared<LevelForcer>(dp, gh);
+		level_redirect = std::make_shared<LevelRedirect>(gh);
+
 		{
 			std::vector<std::string> areas;
 			for(auto&& area : area_lookup) {
@@ -1214,11 +1258,12 @@ namespace TileEditing {
 			}
 			::resource_editor = std::make_shared<ResourceEditor>(gh, current_game_level, areas);
 			::resource_editor_window = new ResourceEditorWindow(resource_editor, areas, current_game_level, "1-1");
+			
+			::level_settings_window = new LevelSettingsWindow(level_redirect);
+			
 			resource_editor_window->status_bind(IO::status_handler);
+			level_settings_window->status_bind(IO::status_handler);
 		}
-
-		level_forcer = std::make_shared<LevelForcer>(dp, gh);
-		level_redirect = std::make_shared<LevelRedirect>(gh);
 
 		std::string first_editor = construct_window();
 		window->callback([](Fl_Widget* widget) {

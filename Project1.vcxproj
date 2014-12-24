@@ -109,6 +109,7 @@
     <ClCompile Include="items.cpp" />
     <ClCompile Include="known_entities.cpp" />
     <ClCompile Include="level_forcer.cpp" />
+    <ClCompile Include="level_settings_gui.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mods.cpp" />
     <ClCompile Include="netplay_connection.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="entity_spawn_layer.h" />
     <ClInclude Include="known_entities.h" />
     <ClInclude Include="level_forcer.h" />
+    <ClInclude Include="level_settings_gui.h" />
     <ClInclude Include="resource_editor.h" />
     <ClInclude Include="resource_editor_gui.h" />
     <ClInclude Include="static_area_patch.h" />

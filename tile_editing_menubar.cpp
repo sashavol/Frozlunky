@@ -48,8 +48,8 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("bOpen Level Pack", tg_('o', true, false, false, "Ctrl+O"))
 		("cSave + Apply", tg_('s', true, false, false, "Ctrl+S"))
 		("dSave as..", tg_('s', true, true, false, "Ctrl+Shift+S"))
-		("iSwitch Editor", tg_(65289, false, false, false, "(Shift+) Tab"))
-		("jSwap to Default Editor", tg_('d', true, false, false, "Ctrl+D"))
+		("eSwitch Editor", tg_(65289, false, false, false, "(Shift+) Tab"))
+		("fSwap to Default Editor", tg_('d', true, false, false, "Ctrl+D"))
 	)
 	("bEdit", map_list_of
 		("aUndo", tg_('z', true, false, false, "Ctrl+Z"))
@@ -70,16 +70,17 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("bRandomize Level Seed", tg_('r', true, false, false, "Ctrl+R"))
 		("cClear Level", tg_('n', true, false, false, "Ctrl+N"))
 		("dResource Editor", tg_('r', true, true, false, "Ctrl+Shift+R"))
-		("eEntity Picker", tg_('p', true, false, false, "Ctrl+P"))
+		("eLevel Settings", tg_('l', true, true, false, "Ctrl+Shift+L"))
+		("fEntity Picker", tg_('p', true, false, false, "Ctrl+P"))
 	)
 	("eCursor", map_list_of
 		("aSelect Entire Level", tg_('a', true, false, false, "Ctrl+A"))
 		("bReset Cursor Size", tg_(65307, false, false, false, "(Shift+) Esc"))
 		("cFlood Fill", tg_(102, true, false, false, "Ctrl+F"))
-		("hClear Tile", tg_(65535, false, false, false, "Delete"))
-		("iClear Tile + Right", tg_(32, false, false, false, "Space"))
-		("jClear Tile + Left", tg_(65288, false, false, false, "Backspace"))
-		("kPlace Picked Tile or Entity", tg_('`', false, false, false, "Tilde Key"))
+		("dClear Tile", tg_(65535, false, false, false, "Delete"))
+		("eClear Tile + Right", tg_(32, false, false, false, "Space"))
+		("fClear Tile + Left", tg_(65288, false, false, false, "Backspace"))
+		("gPlace Picked Tile or Entity", tg_('`', false, false, false, "Tilde Key"))
 	);
 
 TileEditingMenuBar::KeyTrigger::KeyTrigger(int key, bool ctrl, bool shift, bool alt, const std::string& hotkey_text) :
