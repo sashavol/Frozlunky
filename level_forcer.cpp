@@ -131,4 +131,5 @@ void LevelRedirect::reset() {
 	level_start = LB_DEFAULT_START;
 	level_olmec = LB_DEFAULT_OLMEC;
 	level_yama = LB_DEFAULT_YAMA;
+	checkpoint_mode = false;
 }

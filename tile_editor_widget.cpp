@@ -5,6 +5,7 @@
 
 //TODO switch ~ seed to random regular seed upon tab back to regular frozlunky
 //TODO dark level control
+//TODO add entities to default template
 //TODO documentation
 
 #define TILE_FONT_SIZE 11
