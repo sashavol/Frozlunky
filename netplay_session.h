@@ -14,7 +14,7 @@
 #include "antipause_patch.h"
 #include "save_manager.h"
 
-#define INPUT_BUFFER_MAX_DEFAULT 6
+#define INPUT_BUFFER_MAX_DEFAULT 8
 
 enum NetplaySessionCloseEvent {
 	NS_UNKNOWN, NS_DESYNC, NS_CORRUPT_DATA, NS_REQUESTED, NS_LOST_CONNECTION
