@@ -65,7 +65,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(ICE_CAVES, "Yeti spawn"))
 	(';', map_list_of
 		(TUTORIAL, "Idol + Damsel side-by-side spawn")
-		(ICE_CAVES, "'Psychic presence' triple lasers")
+		(ICE_CAVES, "'Psychic presence' triple force field")
 		(TEMPLE, "Idol + Damsel side-by-side spawn"))
 	('=', map_list_of
 		(TUTORIAL, "Wooden platform"))
@@ -76,7 +76,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	('B', map_list_of
 		(TUTORIAL, "Idol trap stone platform tile"))
 	('C', map_list_of
-		(TUTORIAL, "Non-movable push block"))
+		(TUTORIAL, "Non-movable push block")
+		(HELL, "Crate"))
 	('D', map_list_of
 		(TUTORIAL, "Damsel")
 		(MINES, "Inactive")
@@ -144,7 +145,7 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(TUTORIAL, "Inactive outside shops"))
 	('X', map_list_of
 		(TUTORIAL, "Giant spider spawn")
-		(JUNGLE, "'Psychic presence' alien spawn")
+		(JUNGLE, "Alien Lord spawn")
 		(HELL, "Horsehead / Oxface spawn"))
 	('Y', map_list_of
 		(TUTORIAL, "Yeti King spawn")
@@ -202,8 +203,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(JUNGLE, "Inactive, crashes game")
 		(WORM, "Inactive"))
 	('q', map_list_of
-		(TUTORIAL, "Unmodified terrain tile")
-		(HELL, "Unmodified brick tile"))
+		(TUTORIAL, "Unmodified anti-obstacle terrain tile")
+		(HELL, "Unmodified anti-obstacle brick tile"))
 	('r', map_list_of
 		(TUTORIAL, "Probabilistic temple/terrain/push block tile"))
 	('s', map_list_of

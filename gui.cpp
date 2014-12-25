@@ -166,6 +166,7 @@ void init_level_editor() {
 		}
 		else {
 			stcp->undo();
+			seeder->seed(std::string(":") + Syllabic::MakePhoneticString(2));
 			window->show();
 		}
 	});

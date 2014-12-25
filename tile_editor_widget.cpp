@@ -1,9 +1,6 @@
 #include "tile_editor_widget.h"
 #include "tile_description.h"
 
-//OPT arrow traps?
-
-//TODO switch ~ seed to random regular seed upon tab back to regular frozlunky
 //TODO dark level control
 //TODO add entities to default template
 //TODO documentation
@@ -1070,11 +1067,15 @@ void EditorWidget::draw() {
 	if(esb) {
 		//TODO this rendering operation is very slow because of render_pos call, improve performance of either render_pos or this
 		//render entity spawners
+		
+		int ymin = this->y(), ymax = this->y() + h() - yu;
 		for(auto&& es : *esb) {
 			const EntitySpawnBuilder::EntitySpawn& eto = es.second;
 			std::pair<int, int> unmapped = EntitySpawnLayer::unmap(eto.x, eto.y);
 			auto rpos = render_pos(unmapped.first, unmapped.second);
-			draw_entity(eto.entity, rpos.first, rpos.second, xu, yu);
+			if(rpos.second >= ymin && rpos.second < ymax) {
+				draw_entity(eto.entity, rpos.first, rpos.second, xu, yu);
+			}
 		}
 	}
 

@@ -309,8 +309,11 @@ namespace TileEditing {
 
 		static void NewFile() {
 			TileDefault::SetToDefault(tp->get_chunks());
-
+			
 			InitializeEmptyEntities();
+			for(auto&& editor : editors) {
+				TileDefault::SetEntitiesToDefault(editor.first, editor.second->get_entity_builder());
+			} //TODO
 
 			resource_editor->reset();
 			resource_editor_window->update();
@@ -343,7 +346,22 @@ namespace TileEditing {
 
 		static void EncodeToFile() {
 			pugi::xml_document xmld;
-	
+			
+			pugi::xml_node editorsn = xmld.append_child("editors");
+			for(auto&& e : editors) {
+				if(e.second->get_entity_builder()) {
+					std::vector<int>& recent_entities = e.second->get_picker().get_recent_entities();
+					if(recent_entities.empty())
+						continue;
+					
+					pugi::xml_node level = editorsn.append_child(SafeXMLName(e.first).c_str());
+					pugi::xml_node picker = level.append_child("picker");
+					for(int entity : recent_entities) {
+						picker.append_child("entity").append_attribute("id").set_value(entity);
+					}
+				}
+			}
+
 			pugi::xml_node settings = xmld.append_child("settings");
 			{
 				pugi::xml_node redirect = settings.append_child("redirect");
@@ -384,21 +402,6 @@ namespace TileEditing {
 						entity.append_attribute("id").set_value(et.second.entity);
 						entity.append_attribute("x").set_value(et.second.x);
 						entity.append_attribute("y").set_value(et.second.y);
-					}
-				}
-			}
-
-			pugi::xml_node editorsn = xmld.append_child("editors");
-			for(auto&& e : editors) {
-				if(e.second->get_entity_builder()) {
-					std::vector<int>& recent_entities = e.second->get_picker().get_recent_entities();
-					if(recent_entities.empty())
-						continue;
-					
-					pugi::xml_node level = editorsn.append_child(SafeXMLName(e.first).c_str());
-					pugi::xml_node picker = level.append_child("picker");
-					for(int entity : recent_entities) {
-						picker.append_child("entity").append_attribute("id").set_value(entity);
 					}
 				}
 			}
