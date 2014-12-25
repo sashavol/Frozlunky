@@ -211,7 +211,7 @@ namespace KnownEntities {
 		(190, "Roulette Barricade")
 		(227, "Mothership Lights")
 		(244, "Haunted Castle Banner")
-		(245, "Mounted Lightable Torch")
+		(245, "Mounted Lightable Torch Holder")
 
 		//level obstacles
 		(197, "Alien Forcefield Ground Laser")

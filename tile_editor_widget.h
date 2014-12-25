@@ -54,6 +54,9 @@ enum Direction {
 
 class EditorWidget : public Fl_Widget {
 public:
+	std::shared_ptr<bool> dark_status;
+
+public:
 	bool read_only;
 
 	AreaRenderMode arm;

@@ -10,6 +10,7 @@
 
 class StaticChunkPatch : public Patch {
 private:
+	std::shared_ptr<GameHooks> gh;
 	std::shared_ptr<DerandomizePatch> dp;
 	std::shared_ptr<Seeder> seeder;
 	std::shared_ptr<TilePatch> tp;
@@ -22,7 +23,7 @@ private:
 	bool is_valid;
 
 public:
-	StaticChunkPatch(std::shared_ptr<DerandomizePatch> spel, std::shared_ptr<TilePatch> tp, std::shared_ptr<Seeder> seeder);
+	StaticChunkPatch(std::shared_ptr<GameHooks> gh, std::shared_ptr<TilePatch> tp, std::shared_ptr<Seeder> seeder);
 	~StaticChunkPatch();
 
 	virtual bool _perform() override;

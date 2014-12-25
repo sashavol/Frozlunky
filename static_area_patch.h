@@ -13,7 +13,10 @@ class StaticAreaPatch : public Patch {
 private:
 	std::string name;
 	std::shared_ptr<DerandomizePatch> dp;
+	std::shared_ptr<GameHooks> gh;
 	std::map<int, std::shared_ptr<EntitySpawnBuilder>> builders;
+	std::map<int, std::shared_ptr<bool>> dark_levels;
+	std::map<int, Address> dark_level_valaddrs;
 
 	Address gen_fn;
 	Address gen_fn_end;
@@ -59,7 +62,7 @@ public:
 	//lvl_end   -> end level # (exclusive)
 	//if lvl_start == -1, single chunk applied statically across all levels
 	~StaticAreaPatch();
-	StaticAreaPatch(const std::string& name, std::shared_ptr<DerandomizePatch> dp, Address gen_fn, int lvl_start, int lvl_end, bool single_level=false, int level_chunks=16);
+	StaticAreaPatch(const std::string& name, std::shared_ptr<GameHooks> gh, Address gen_fn, int lvl_start, int lvl_end, bool single_level=false, int level_chunks=16);
 	
 	bool valid() override;
 
@@ -69,6 +72,7 @@ public:
 	std::vector<Chunk*> get_chunks();
 	std::vector<SingleChunk*> root_chunks();
 	std::shared_ptr<EntitySpawnBuilder> entity_builder(int lvl);
+	std::shared_ptr<bool> dark_status(int lvl);
 
 	const std::string& get_name();
 	int level_start();

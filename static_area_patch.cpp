@@ -33,6 +33,13 @@ static BYTE cnkseg_jmpout[] = {0xE9,0xAA,0xAA,0xAA,0xAA};
 */
 static BYTE builder_call[] = {0xE8,0xAA,0xAA,0xAA,0xAA};
 
+/*
+	AA (+3) -> Current game ptr
+	BB (+9) -> Dark level offset
+	CC (+13) -> Dark value bool
+*/
+static BYTE dark_set[] = {0x60, 0x8B,0x35,0xAA,0xAA,0xAA,0xAA, 0xC6, 0x86, 0xBB,0xBB,0xBB,0xBB, 0xCC, 0x61};
+
 static Address find_end(std::shared_ptr<Spelunky> spel, Address start_addr) {
 	static BYTE end_find[] = {0x83, 0xC4, 0xCC, 0xC3};
 	static BYTE end2_find[] = {0x83, 0xC4, 0xCC, 0xC2};
@@ -273,9 +280,10 @@ StaticAreaPatch::~StaticAreaPatch() {
 	chunks.clear();
 }
 
-StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<DerandomizePatch> dp, Address gen_fn, int lvl_start, int lvl_end, bool single_level, int lvl_chunks) : 
-	Patch(dp->spel),
-	dp(dp),
+StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<GameHooks> gh, Address gen_fn, int lvl_start, int lvl_end, bool single_level, int lvl_chunks) : 
+	Patch(gh->spel),
+	dp(gh->dp),
+	gh(gh),
 	gen_fn(gen_fn),
 	lvl_start(lvl_start),
 	lvl_end(lvl_end),
@@ -325,7 +333,7 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<Derand
 		return;
 	}
 
-	//construct entity spawn builders
+	//construct entity spawn builders / dark status
 	if(!single_level) {
 		for(int lvl = lvl_start; lvl < lvl_end; ++lvl) {
 			std::shared_ptr<EntitySpawnBuilder> builder = std::make_shared<EntitySpawnBuilder>(dp);
@@ -335,6 +343,7 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<Derand
 				return;
 			}
 			builders[lvl] = builder;
+			dark_levels[lvl] = std::make_shared<bool>(false);
 		}
 	}
 	else {
@@ -345,8 +354,10 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<Derand
 			return;
 		}
 		
+		std::shared_ptr<bool> dark = std::make_shared<bool>(false);
 		for(int lvl = lvl_start; lvl < lvl_end; ++lvl) {
 			builders[lvl] = builder;
+			dark_levels[lvl] = dark;
 		}
 	}
 
@@ -435,7 +446,7 @@ bool StaticAreaPatch::_perform() {
 	//base
 	spel->write_mem(sr, base_opcode, sizeof(base_opcode));
 	spel->write_mem(sr+2, &eaxmov_opcode, sizeof(BYTE));
-
+	
 	const Address game_ptr = dp->game_ptr();
 	const Address level_offs = dp->current_level_offset();
 	spel->write_mem(sr+5, &game_ptr, sizeof(Address));
@@ -451,7 +462,7 @@ bool StaticAreaPatch::_perform() {
 		spel->write_mem(sr+ 2, &blvl, sizeof(BYTE));
 
 		signed int cnkseg_size = sizeof(cnkseg_opcode)+sizeof(cnkseg_jmpout)+jmpout_pre_size;
-		signed int diff = (sr + sizeof(lvlseg_opcode) + sizeof(builder_call) + lvl_chunks*cnkseg_size) - (sr+3+6);
+		signed int diff = (sr + sizeof(lvlseg_opcode) + sizeof(builder_call) + sizeof(dark_set) + lvl_chunks*cnkseg_size) - (sr+3+6);
 		spel->write_mem(sr + 5, &diff, sizeof(signed int));
 
 		sr += sizeof(lvlseg_opcode);
@@ -468,17 +479,30 @@ bool StaticAreaPatch::_perform() {
 			signed char cnkdiff = (signed char)cnkseg_size - 5;
 			if(c == 0) {
 				cnkdiff += sizeof(builder_call);
+				cnkdiff += sizeof(dark_set);
 			}
 			spel->write_mem(sr+4, &cnkdiff, sizeof(signed char));
 
 			sr += sizeof(cnkseg_opcode);
 			
-			//entity spawning
+			//entity spawning + set dark level
 			if(c == 0) {
+				//call entity builder
 				signed int calldiff = builders[lvl]->subroutine_addr() - (sr + 5);
 				spel->write_mem(sr, builder_call, sizeof(builder_call));
 				spel->write_mem(sr+1, &calldiff, sizeof(Address));
 				sr += sizeof(builder_call);
+
+				//set dark level flag
+				signed int dark_offs = gh->dark_level_offset();
+				char val = (*(dark_levels[lvl])) ? 1 : 0;
+				spel->write_mem(sr, dark_set, sizeof(dark_set));
+				spel->write_mem(sr+3, &game_ptr, sizeof(Address));
+				spel->write_mem(sr+9, &dark_offs, sizeof(signed int));
+				spel->write_mem(sr+13, &val, sizeof(char));
+				dark_level_valaddrs[lvl] = sr+13;
+
+				sr += sizeof(dark_set);
 			}
 			
 			std::memcpy(prej, jmpout_pre, jmpout_pre_size);
@@ -552,6 +576,15 @@ void StaticAreaPatch::apply_chunks() {
 			updated.insert(builder.second.get());
 		}
 	}
+
+	for(auto&& lvl : dark_levels) {
+		char val = *lvl.second ? 1 : 0;
+		spel->write_mem(dark_level_valaddrs[lvl.first], &val, sizeof(char));
+	}
+}
+
+std::shared_ptr<bool> StaticAreaPatch::dark_status(int lvl) {
+	return dark_levels[lvl];
 }
 
 std::shared_ptr<EntitySpawnBuilder> StaticAreaPatch::entity_builder(int lvl) {

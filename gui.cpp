@@ -145,7 +145,7 @@ int ChunkEditorButton::handle(int evt) {
 
 void init_level_editor() {
 	std::shared_ptr<TilePatch> tp(new TilePatch(spelunky));
-	stcp = std::make_shared<StaticChunkPatch>(dp, tp, seeder);
+	stcp = std::make_shared<StaticChunkPatch>(info_hooks, tp, seeder);
 	Mods::ModsGroup()->add("stcp", stcp);
 	Mods::ModsGroup()->add("tp", tp);
 

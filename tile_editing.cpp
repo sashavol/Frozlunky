@@ -277,6 +277,7 @@ namespace TileEditing {
 	static std::string current_area_editor;
 	static std::map<std::string, EditorWidget*> editors;
 	static Fl_Check_Button* flcb_force;
+	static Fl_Check_Button* flcb_dark;
 
 	static void SetCurrentEditor(const std::string& area);
 	static void ForceCurrentLevel(bool r);
@@ -307,9 +308,17 @@ namespace TileEditing {
 			}
 		}
 
+		static void InitializeLevelFlags() {
+			for(auto&& e : editors) {
+				*e.second->dark_status = false;
+			}
+		}
+
 		static void NewFile() {
 			TileDefault::SetToDefault(tp->get_chunks());
-			
+
+			InitializeLevelFlags();
+
 			InitializeEmptyEntities();
 			for(auto&& editor : editors) {
 				TileDefault::SetEntitiesToDefault(editor.first, editor.second->get_entity_builder());
@@ -320,6 +329,10 @@ namespace TileEditing {
 
 			level_redirect->reset();
 			level_settings_window->update();
+
+			if(!current_area_editor.empty()) {
+				flcb_dark->value(*(editors[current_area_editor]->dark_status));
+			}
 
 			IO::SetActiveFile("");
 			unsaved_changes = false;
@@ -383,6 +396,14 @@ namespace TileEditing {
 				level.append_attribute("bombs").set_value(r.bombs);
 				level.append_attribute("ropes").set_value(r.ropes);
 				level.append_attribute("health").set_value(r.health);
+			}
+
+			pugi::xml_node dark = xmld.append_child("dark");
+			for(auto&& e : editors) {
+				if(mget(area_lookup, e.first).second == "%")
+					continue;
+
+				dark.append_child(SafeXMLName(e.first).c_str()).append_attribute("dark").set_value(*e.second->dark_status);
 			}
 
 			pugi::xml_node entities = xmld.append_child("entities");
@@ -485,6 +506,8 @@ namespace TileEditing {
 						}
 					}
 				}
+				//OPT: race condition if player is in-game while loading level
+				level_redirect->last_checkpoint = int(level_redirect->level_start);
 				level_settings_window->update();
 
 				resource_editor->reset();
@@ -512,6 +535,17 @@ namespace TileEditing {
 				}
 				resource_editor_window->update();
 
+				InitializeLevelFlags();
+				pugi::xml_node dark = xmld.child("dark");
+				if(!dark.empty()) {
+					for(pugi::xml_node level : dark.children()) {
+						std::string area = AreaName(level.name());
+
+						if(area != "" && !level.attribute("dark").empty()) {
+							*editors[area]->dark_status = level.attribute("dark").as_bool();
+						}
+					}
+				}
 
 				std::vector<SingleChunk*> scs = tp->root_chunks();
 				pugi::xml_node chunks = xmld.child("chunks");
@@ -539,7 +573,6 @@ namespace TileEditing {
 						}
 					}
 				}
-
 
 				InitializeEmptyEntities();
 				pugi::xml_node entities = xmld.child("entities");
@@ -598,6 +631,12 @@ namespace TileEditing {
 							}
 						}
 					}
+				}
+
+
+				//update controls
+				if(!current_area_editor.empty()) {
+					flcb_dark->value(*(editors[current_area_editor]->dark_status));
 				}
 
 				SetActiveFile(file);
@@ -861,6 +900,7 @@ namespace TileEditing {
 			ew->ctrl_down = ctrl_down;
 			ew->alt_down = alt_down;
 
+			flcb_dark->value(*ew->dark_status);
 			ForceCurrentLevel(!!flcb_force->value());
 
 			ew->take_focus();
@@ -940,7 +980,13 @@ namespace TileEditing {
 			if(tp->is_active()) {
 				std::string area = current_game_level();
 				
-				if(seeder->get_seed() != "~") {
+				//bosses use regular seed ($), levels use specialized blank seed (~)
+				if(area == "Olmec (4-4)" || area == "Yama (5-4)") {
+					if(seeder->get_seed() != "$") {
+						seeder->seed("$");
+					}
+				}
+				else if(seeder->get_seed() != "~") {
 					seeder->seed("~");
 				}
 
@@ -951,8 +997,6 @@ namespace TileEditing {
 
 				level_forcer->cycle();
 				resource_editor->cycle();
-
-				gh->set_dark_level(false);
 			}
 
 			Sleep(2);
@@ -1028,7 +1072,7 @@ namespace TileEditing {
 			}
 		}
 
-		flcb_force = new NF_CheckButton(165, 2+425+MB_Y_OFFSET, 100, 20, "Force level to game");
+		flcb_force = new NF_CheckButton(165, 2+425+MB_Y_OFFSET, 150, 20, "Force level to game");
 		flcb_force->value(0);
 		
 		if(!level_forcer->valid()) {
@@ -1039,6 +1083,13 @@ namespace TileEditing {
 			ForceCurrentLevel(!!static_cast<Fl_Check_Button*>(cbox)->value());
 		});
 
+		flcb_dark = new NF_CheckButton(320, 2+425+MB_Y_OFFSET, 100, 20, "Dark level");
+		flcb_dark->callback([](Fl_Widget* cbox) {
+			if(!current_area_editor.empty()) {
+				*(editors[current_area_editor]->dark_status) = !!static_cast<Fl_Check_Button*>(cbox)->value();
+				IO::status_handler(STATE_CHUNK_WRITE);
+			}
+		});
 
 		editor_group = new Fl_Group(165, 5+MB_Y_OFFSET, 615, 420);
 		cons->end();
@@ -1058,14 +1109,16 @@ namespace TileEditing {
 
 				AreaRenderMode arm = area.second != "%" ? mode_from_name(area.first) : AreaRenderMode::INVALID;
 				
+				std::pair<std::shared_ptr<StaticAreaPatch>, int> area_patch;
 				std::shared_ptr<EntitySpawnBuilder> esb;
 				if(!chunks.empty()) {
-					std::pair<std::shared_ptr<StaticAreaPatch>, int> area_patch = tp->parent(chunks[0]);
+					area_patch = tp->parent(chunks[0]);
 					esb = area_patch.first ? area_patch.first->entity_builder(area_patch.second) : nullptr;
 				}
 
 				//special handling for worm editor construction
 				EditorWidget* ew;
+				
 				if(area.first == "Worm") {
 					std::vector<Chunk*> edited;
 					for(size_t i = 0; i < chunks.size(); i++) {
@@ -1086,6 +1139,11 @@ namespace TileEditing {
 				else {
 					ew = new EditorWidget(arm, tp, esb, 165, 5+MB_Y_OFFSET, 615, 420, es, hint_bar, chunks);
 				}
+
+				if(area_patch.first)
+					ew->dark_status = area_patch.first->dark_status(area_patch.second);
+				else
+					ew->dark_status = std::make_shared<bool>(); //irrelevant bool pointer
 
 				editor_group->add(ew);
 				editor_group->add(ew->hint_bar);

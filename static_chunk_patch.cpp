@@ -14,9 +14,10 @@ StaticChunkPatch::~StaticChunkPatch() {
 	}
 }
 
-StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::shared_ptr<TilePatch> tp, std::shared_ptr<Seeder> seeder) : 
-	Patch(dp->spel),
-	dp(dp),
+StaticChunkPatch::StaticChunkPatch(std::shared_ptr<GameHooks> gh, std::shared_ptr<TilePatch> tp, std::shared_ptr<Seeder> seeder) : 
+	Patch(gh->spel),
+	dp(gh->dp),
+	gh(gh),
 	seeder(seeder),
 	tp(tp),
 	is_valid(true),
@@ -41,20 +42,20 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<DerandomizePatch> dp, std::sh
 
 	jngl_anticrash_orig = new BYTE[sizeof(jngl_anticrash_mod)];
 	spel->read_mem(jngl_anticrash_addr, jngl_anticrash_orig, sizeof(jngl_anticrash_mod));
-
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Tutorial", dp, tp->get_gen_fn("LevelGen_TutorialCnk"), 1, 3+1)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Mines", dp, tp->get_gen_fn("LevelGen_MinesCnk"), 1, 4+1)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Jungle", dp, tp->get_gen_fn("LevelGen_JungleGeneralCnk"), 5, 8+1)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("JungleBlackMarket", dp, tp->get_gen_fn("LevelGen_JungleBlackMarketCnk"), 5, 8+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("JungleHauntedCastle", dp, tp->get_gen_fn("LevelGen_JungleHauntedMansionCnk"), 5, 8+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCaves", dp, tp->get_gen_fn("LevelGen_IceCavesGeneralCnk"), 9, 12+1)));
+	
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Tutorial", gh, tp->get_gen_fn("LevelGen_TutorialCnk"), 1, 3+1)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Mines", gh, tp->get_gen_fn("LevelGen_MinesCnk"), 1, 4+1)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Jungle", gh, tp->get_gen_fn("LevelGen_JungleGeneralCnk"), 5, 8+1)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("JungleBlackMarket", gh, tp->get_gen_fn("LevelGen_JungleBlackMarketCnk"), 5, 8+1, true)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("JungleHauntedCastle", gh, tp->get_gen_fn("LevelGen_JungleHauntedMansionCnk"), 5, 8+1, true)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCaves", gh, tp->get_gen_fn("LevelGen_IceCavesGeneralCnk"), 9, 12+1)));
 	//OPT add support for mothership
 	//saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesSpaceship", dp, tp->get_gen_fn("LevelGen_IceCavesSpaceshipCnk"), 9, 12+1, true)));
 	//saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesYeti", dp, tp->get_gen_fn("LevelGen_IceCavesYetiCnk"), 9, 12+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", dp, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 46)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Temple", dp, tp->get_gen_fn("LevelGen_TempleCnk"), 13, 15+1)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("TempleOlmec", dp, tp->get_gen_fn("LevelGen_OlmecCnk"), 16, 16+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Hell", dp, tp->get_gen_fn("LevelGen_HellCnk"), 17, 20+1)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", gh, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 46)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Temple", gh, tp->get_gen_fn("LevelGen_TempleCnk"), 13, 15+1)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("TempleOlmec", gh, tp->get_gen_fn("LevelGen_OlmecCnk"), 16, 16+1, true)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Hell", gh, tp->get_gen_fn("LevelGen_HellCnk"), 17, 20+1)));
 
 	bool suc = false;
 	for(auto&& sap : saps) {
