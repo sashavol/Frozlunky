@@ -8,10 +8,18 @@ void ResourceEditor::Resources::set(std::shared_ptr<GameHooks> gh) {
 	for(int p = 0; p < MAX_PLAYERS; ++p) {
 		if(bombs > -1)
 			gh->set_bombs(p, bombs);
+		else
+			gh->set_bombs(p, RE_DEFAULT_BOMBS);
+
 		if(ropes > -1)
 			gh->set_ropes(p, ropes);
+		else
+			gh->set_ropes(p, RE_DEFAULT_ROPES);
+		
 		if(health > -1)
 			gh->set_health(p, health);
+		else
+			gh->set_health(p, RE_DEFAULT_HEALTH);
 	}
 }
 
@@ -39,7 +47,7 @@ void ResourceEditor::cycle() {
 			}
 		}
 	}
-	else if(state == STATE_LOBBY || state == STATE_GAMEOVER_HUD) {
+	else if(state == STATE_LOBBY || state == STATE_GAMEOVER_HUD || state == STATE_MAINMENU) {
 		last_level = "";
 	}
 }

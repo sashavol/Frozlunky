@@ -273,6 +273,7 @@ struct AreaControls {
 static std::map<std::string, AreaControls*> controls;
 
 namespace TileEditing {
+	static std::mutex cycle_mutex;
 	static std::string prior_nondefault_editor;
 	static std::string current_area_editor;
 	static std::map<std::string, EditorWidget*> editors;
@@ -315,6 +316,8 @@ namespace TileEditing {
 		}
 
 		static void NewFile() {
+			cycle_mutex.lock();
+
 			TileDefault::SetToDefault(tp->get_chunks());
 
 			InitializeLevelFlags();
@@ -336,6 +339,8 @@ namespace TileEditing {
 
 			IO::SetActiveFile("");
 			unsaved_changes = false;
+
+			cycle_mutex.unlock();
 		}
 
 		static std::string SafeXMLName(std::string level) {
@@ -358,6 +363,8 @@ namespace TileEditing {
 		}
 
 		static void EncodeToFile() {
+			cycle_mutex.lock();
+
 			pugi::xml_document xmld;
 			
 			pugi::xml_node editorsn = xmld.append_child("editors");
@@ -429,7 +436,8 @@ namespace TileEditing {
 
 			pugi::xml_node node = xmld.append_child("chunks");
 			if(!node) { 
-				throw std::runtime_error("Failed to create chunks node.");	
+				cycle_mutex.unlock();
+				throw std::runtime_error("Failed to create chunks node.");
 			}
 
 			for(SingleChunk* c : tp->root_chunks()) {
@@ -439,20 +447,26 @@ namespace TileEditing {
 			}
 
 			if(!xmld.save_file(current_file.c_str())) {
+				cycle_mutex.unlock();
 				throw std::runtime_error("Failed to write document.");
 			}
 
 			SetActiveFile(current_file);
 
 			unsaved_changes = false;
+			
+			cycle_mutex.unlock();
 		}
 
 		static void LoadFile(const std::string& file) {
+			cycle_mutex.lock();
+
 			std::ifstream fst(file, std::ios::in);
 			if(!fst.is_open()) {
 				//create file if not exists
 				std::ofstream ofs(file, std::ios::out);
 				if(!ofs.is_open()) {
+					cycle_mutex.unlock();
 					throw std::runtime_error("Failed to create file.");
 				}
 				else {
@@ -471,6 +485,7 @@ namespace TileEditing {
 				fst.close();
 				pugi::xml_document xmld;
 				if(!xmld.load_file(file.c_str())) {
+					cycle_mutex.unlock();
 					throw std::runtime_error("XML Parser failed to load file.");
 				}
 
@@ -527,6 +542,7 @@ namespace TileEditing {
 												healtha = level.attribute("health");
 
 							if(bombsa.empty() || ropesa.empty() || healtha.empty()) {
+								cycle_mutex.unlock();
 								throw std::runtime_error("Encountered invalid resource specifier.");
 							}
 
@@ -553,15 +569,19 @@ namespace TileEditing {
 				std::vector<SingleChunk*> scs = tp->root_chunks();
 				pugi::xml_node chunks = xmld.child("chunks");
 				if(chunks.empty()) {
+					cycle_mutex.unlock();
 					throw std::runtime_error("Invalid format.");
 				}
 
 				for(pugi::xml_node cnk : chunks) {
-					if(std::distance(cnk.children().begin(), cnk.children().end()) != 1)
+					if(std::distance(cnk.children().begin(), cnk.children().end()) != 1) {
+						cycle_mutex.unlock();
 						throw std::runtime_error("Invalid format.");
+					}
 
 					pugi::xml_node data = *(cnk.children().begin());
 					if(data.type() != pugi::xml_node_type::node_pcdata)  {
+						cycle_mutex.unlock();
 						throw std::runtime_error("Invalid node format, expected node_pcdata.");
 					}
 
@@ -596,6 +616,7 @@ namespace TileEditing {
 														ida = et.attribute("id");
 
 									if(xa.empty() || ya.empty() || ida.empty()) {
+										cycle_mutex.unlock();
 										throw std::runtime_error("Encountered invalid entity.");
 									}
 
@@ -624,6 +645,7 @@ namespace TileEditing {
 
 								pugi::xml_attribute ida = entity.attribute("id");
 								if(ida.empty()) {
+									cycle_mutex.unlock();
 									throw std::runtime_error("Encountered invalid editor picker");
 								}
 
@@ -645,6 +667,8 @@ namespace TileEditing {
 				SetActiveFile(file);
 				unsaved_changes = false;
 			}
+
+			cycle_mutex.unlock();
 		}
 
 		static void SaveAs() {
@@ -995,6 +1019,7 @@ namespace TileEditing {
 
 	static DWORD __stdcall worker_thread_(void*) {
 		while(true) {
+			cycle_mutex.lock();
 			if(tp->is_active()) {
 				std::string area = current_game_level();
 				
@@ -1019,6 +1044,7 @@ namespace TileEditing {
 				level_forcer->cycle();
 				resource_editor->cycle();
 			}
+			cycle_mutex.unlock();
 
 			Sleep(2);
 		}
