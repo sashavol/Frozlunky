@@ -1220,7 +1220,7 @@ namespace TileEditing {
 					areas.push_back(area.first);
 				}
 			}
-			::resource_editor = std::make_shared<ResourceEditor>(gh, current_game_level, areas);
+			::resource_editor = std::make_shared<ResourceEditor>(gh, level_redirect, current_game_level, areas);
 			::resource_editor_window = new ResourceEditorWindow(resource_editor, areas, current_game_level, "1-1");
 			
 			::level_settings_window = new LevelSettingsWindow(level_redirect);

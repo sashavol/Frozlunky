@@ -11,6 +11,7 @@ namespace KnownEntities {
 	const map_type& All();
 	std::string GetName(int entity);
 	int GetID(const std::string& name);
+	unsigned GetColor(int entity);
 
 	std::vector<std::string> Search(const std::string& query);
 }

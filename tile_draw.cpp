@@ -131,14 +131,7 @@ void draw_tile(char tile, int x, int y, int w, int h, AreaRenderMode arm) {
 ////////////
 
 Fl_Color entity_color(int entity) {
-	switch(entity) {
-	case 170: //too dark with default coloring scheme
-		return 0xABDBEF00;
-	case 1059:
-		return 0xFDBA9E00;
-	default:
-		return (entity*0x1233427F) & 0xFFFFFF00;
-	}	
+	return KnownEntities::GetColor(entity);
 }
 
 void draw_entity(int entity, int x, int y, int w, int h) {

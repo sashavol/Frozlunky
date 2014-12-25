@@ -4,29 +4,30 @@
 
 ResourceEditor::Resources::Resources() : bombs(-1), ropes(-1), health(-1) {}
 
-void ResourceEditor::Resources::set(std::shared_ptr<GameHooks> gh) {
+void ResourceEditor::Resources::set(std::shared_ptr<GameHooks> gh, bool starting_level) {
 	for(int p = 0; p < MAX_PLAYERS; ++p) {
 		if(bombs > -1)
 			gh->set_bombs(p, bombs);
-		else
+		else if(starting_level)
 			gh->set_bombs(p, RE_DEFAULT_BOMBS);
 
 		if(ropes > -1)
 			gh->set_ropes(p, ropes);
-		else
+		else if(starting_level)
 			gh->set_ropes(p, RE_DEFAULT_ROPES);
 		
 		if(health > -1)
 			gh->set_health(p, health);
-		else
+		else if(starting_level)
 			gh->set_health(p, RE_DEFAULT_HEALTH);
 	}
 }
 
 ///////
 
-ResourceEditor::ResourceEditor(std::shared_ptr<GameHooks> gh, std::function<std::string()> level_getter, const std::vector<std::string>& areas) : 
+ResourceEditor::ResourceEditor(std::shared_ptr<GameHooks> gh, std::shared_ptr<LevelRedirect> redirect, std::function<std::string()> level_getter, const std::vector<std::string>& areas) : 
 	gh(gh), 
+	redirect(redirect),
 	last_level(""),
 	level_getter(level_getter)
 {
@@ -40,9 +41,11 @@ void ResourceEditor::cycle() {
 
 	if(state == STATE_INPUTLOCK_LEVELSTART || state == STATE_PLAYING) {
 		std::string level = level_getter();
+		bool starting_level = gh->current_level() == redirect->level_start;
+
 		for(auto&& level_res : resources) {
 			if(level == level_res.first && last_level != level_res.first) {
-				level_res.second.set(gh);
+				level_res.second.set(gh, starting_level);
 				last_level = level;
 			}
 		}

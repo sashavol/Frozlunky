@@ -2,6 +2,7 @@
 
 #include "derandom.h"
 #include "game_hooks.h"
+#include "level_forcer.h"
 #include <map>
 #include <string>
 #include <functional>
@@ -28,7 +29,7 @@ public:
 
 		Resources();
 		
-		void set(std::shared_ptr<GameHooks> gh);
+		void set(std::shared_ptr<GameHooks> gh, bool starting_level);
 	};
 
 private:
@@ -37,11 +38,12 @@ private:
 	std::function<std::string()> level_getter;
 	std::string last_level;
 	
+	std::shared_ptr<LevelRedirect> redirect;
 	std::shared_ptr<GameHooks> gh;
 	std::shared_ptr<Spelunky> spel;
 
 public:
-	ResourceEditor(std::shared_ptr<GameHooks> gh, std::function<std::string()> level_getter, const std::vector<std::string>&  areas);
+	ResourceEditor(std::shared_ptr<GameHooks> gh, std::shared_ptr<LevelRedirect> redirect, std::function<std::string()> level_getter, const std::vector<std::string>&  areas);
 
 	Resources& res(const std::string& area);
 	std::map<std::string, Resources>::const_iterator begin() const;
