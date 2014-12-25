@@ -700,11 +700,6 @@ namespace TileEditing {
 			}
 		}
 
-		static bool ProjectSwitchAllowed() {
-			int state = gh->game_state();
-			return state == STATE_MAINMENU || state == STATE_GAMEOVER_HUD || state == STATE_LOBBY;
-		}
-
 		static void resize_window(double mult) {
 			window->resizable(editor_group);
 			window->size(int(WINDOW_WIDTH*mult), int(WINDOW_HEIGHT*mult));
@@ -719,6 +714,7 @@ namespace TileEditing {
 				//		However, it seems to operate within a reasonable speed on most systems, so
 				//		we'll keep automatic chunk apply for now.
 				tp->apply_chunks();
+
 				unsaved_changes = true;
 			}
 			else if(state == STATE_REQ_SAVE) {
@@ -728,11 +724,6 @@ namespace TileEditing {
 				IO::SaveAs();
 			}
 			else if(state == STATE_REQ_OPEN) {
-				if(!ProjectSwitchAllowed()) {
-					MessageBox(NULL, "You must be in the Main Menu, Lobby, or Game Over screen before switching level packs.", "Level Pack Loader", MB_OK);
-					return;
-				}
-
 				try {
 					std::string file = TileUtil::QueryTileFile(false);
 					try {
@@ -746,11 +737,6 @@ namespace TileEditing {
 				catch(std::exception&) {}
 			}
 			else if(state == STATE_REQ_NEW_FILE) {
-				if(!ProjectSwitchAllowed()) {
-					MessageBox(NULL, "You must be in the Main Menu, Lobby, or Game Over screen before making a new level pack.", "Level Pack Loader", MB_OK);
-					return;
-				}
-
 				if(unsaved_changes) {
 					int res = MessageBox(NULL, "You have unsaved changes, save before making a new file?", "New File", MB_YESNOCANCEL);
 					if(res != IDCANCEL) {

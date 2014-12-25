@@ -74,7 +74,11 @@ LevelRedirect::LevelRedirect(std::shared_ptr<GameHooks> gh) :
 	level_start(LB_DEFAULT_START),
 	level_olmec(LB_DEFAULT_OLMEC),
 	level_yama(LB_DEFAULT_YAMA),
+	last_level_start(level_start),
+	last_level_olmec(level_olmec),
+	last_level_yama(level_yama),
 	last_checkpoint(LB_DEFAULT_START),
+	reset_checkpoint(false),
 	checkpoint_mode(false),
 	last_state(-1)
 {}
@@ -96,13 +100,27 @@ void LevelRedirect::cycle() {
 	if(!game_started && (state == STATE_PLAYING || state == STATE_INPUTLOCK_LEVELSTART)) {
 		game_started = true;
 	}
-
+	
 	checkpoint_mutex.lock();
+	if(last_level_start != level_start || last_level_olmec != level_olmec || last_level_yama != level_yama) {
+		reset_checkpoint = true;
+	}
+
 	if(!checkpoint_mode || state == STATE_LOBBY || state == STATE_MAINMENU) {
 		last_checkpoint = int(level_start);
 	}
 	else if(state == STATE_PLAYING || state == STATE_INPUTLOCK_LEVELSTART) {
-		last_checkpoint = lvl;
+		if(reset_checkpoint)
+			last_checkpoint = int(level_start);
+		else
+			last_checkpoint = lvl;
+	}
+
+	if(state == STATE_LOBBY || state == STATE_MAINMENU || state == STATE_GAMEOVER_HUD) {
+		reset_checkpoint = false;
+		last_level_start = level_start;
+		last_level_olmec = level_olmec;
+		last_level_yama = level_yama;
 	}
 
 	if(!game_started && (checkpoint_mode || level_start != LB_DEFAULT_START)) {
@@ -137,5 +155,6 @@ void LevelRedirect::reset() {
 
 	checkpoint_mutex.lock();
 	last_checkpoint = LB_DEFAULT_START;
+	reset_checkpoint = true;
 	checkpoint_mutex.unlock();
 }

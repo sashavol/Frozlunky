@@ -46,6 +46,12 @@ public:
 
 //TODO
 class LevelRedirect {
+private:
+	bool reset_checkpoint;
+	int last_level_start;
+	int last_level_olmec;
+	int last_level_yama;
+
 public:
 	std::atomic<int> level_start;
 	std::atomic<int> level_olmec;
