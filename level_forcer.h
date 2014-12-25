@@ -5,6 +5,7 @@
 #include "game_hooks.h"
 #include <thread>
 #include <atomic>
+#include <mutex>
 
 #define LF_BLACK_MARKET (1 << 0)
 #define LF_CITY_OF_GOLD (1 << 1)
@@ -50,6 +51,7 @@ public:
 	std::atomic<int> level_olmec;
 	std::atomic<int> level_yama;
 
+	std::mutex checkpoint_mutex;
 	std::atomic<int> last_checkpoint;
 	std::atomic<bool> checkpoint_mode;
 	

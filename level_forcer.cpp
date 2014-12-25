@@ -97,6 +97,7 @@ void LevelRedirect::cycle() {
 		game_started = true;
 	}
 
+	checkpoint_mutex.lock();
 	if(!checkpoint_mode || state == STATE_LOBBY || state == STATE_MAINMENU) {
 		last_checkpoint = int(level_start);
 	}
@@ -107,6 +108,7 @@ void LevelRedirect::cycle() {
 	if(!game_started && (checkpoint_mode || level_start != LB_DEFAULT_START)) {
 		write_level(last_checkpoint);
 	}
+	checkpoint_mutex.unlock();
 
 	if(level_olmec != LB_DEFAULT_OLMEC) {
 		if(lvl == level_olmec-1 && state == STATE_LEVEL_TRANSITION) {
@@ -132,5 +134,8 @@ void LevelRedirect::reset() {
 	level_olmec = LB_DEFAULT_OLMEC;
 	level_yama = LB_DEFAULT_YAMA;
 	checkpoint_mode = false;
+
+	checkpoint_mutex.lock();
 	last_checkpoint = LB_DEFAULT_START;
+	checkpoint_mutex.unlock();
 }
