@@ -274,10 +274,11 @@ StaticAreaPatch::~StaticAreaPatch() {
 		insert_orig = nullptr;
 	}
 
-	for(SingleChunk* sc : chunks) {
+	for(SingleChunk* sc : *chunks) {
 		delete sc;
 	}
-	chunks.clear();
+
+	delete chunks;
 }
 
 StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<GameHooks> gh, Address gen_fn, int lvl_start, int lvl_end, bool single_level, int lvl_chunks) : 
@@ -297,7 +298,8 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<GameHo
 	jmpout_pre(nullptr),
 	jmpout_pre_size(0),
 	jmpout_addr(0),
-	is_valid(true)
+	is_valid(true),
+	chunks(new std::vector<SingleChunk*>())
 {
 	if(!gen_fn) {
 		DBG_EXPR(std::cout << "[StaticAreaPatch] Passed null gen_fn." << std::endl);
@@ -377,7 +379,7 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<GameHo
 					named_allocs[cnk_name] = lvl_alloc + CHUNK_LEN*c;
 
 					SingleChunk* cnk = new SingleChunk(cnk_name, std::string((char*)empty_chunk), CHUNK_WIDTH, CHUNK_HEIGHT);
-					chunks.push_back(cnk);
+					chunks->push_back(cnk);
 
 					level_parents[static_cast<Chunk*>(cnk)] = lvl;
 				}
@@ -392,7 +394,7 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<GameHo
 				named_allocs[cnk_name] = chunk_alloc + CHUNK_LEN*c;
 
 				SingleChunk* cnk = new SingleChunk(cnk_name, std::string((char*)empty_chunk), CHUNK_WIDTH, CHUNK_HEIGHT);
-				chunks.push_back(cnk);
+				chunks->push_back(cnk);
 
 				level_parents[static_cast<Chunk*>(cnk)] = lvl_start;
 			}
@@ -539,7 +541,7 @@ int StaticAreaPatch::level_end() {
 
 std::vector<Chunk*> StaticAreaPatch::query_chunks(const std::string& start) {
 	std::vector<Chunk*> out;
-	for(auto&& sc : chunks) {
+	for(auto&& sc : *chunks) {
 		if(sc->get_name().find(start) == 0)
 			out.push_back(sc);
 	}
@@ -549,17 +551,17 @@ std::vector<Chunk*> StaticAreaPatch::query_chunks(const std::string& start) {
 
 std::vector<Chunk*> StaticAreaPatch::get_chunks() {
 	std::vector<Chunk*> out;
-	for(auto&& sc : chunks)
+	for(auto&& sc : *chunks)
 		out.push_back(sc);
 	return out;
 }
 
 std::vector<SingleChunk*> StaticAreaPatch::root_chunks() {
-	return chunks;
+	return *chunks;
 }
 
 void StaticAreaPatch::apply_chunks() {
-	for(auto&& sc : chunks) {
+	for(auto&& sc : *chunks) {
 		Address addr = named_allocs[sc->get_name()];
 		if(!addr) {
 			DBG_EXPR(std::cout << "[StaticAreaPatch] Warning: Encountered non-native chunk during apply: " << sc->get_name() << std::endl);

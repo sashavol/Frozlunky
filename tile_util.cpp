@@ -13,7 +13,7 @@ namespace TileUtil {
 		ofn.lStructSize = sizeof(ofn);
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
-		ofn.lpstrFilter = "XML Chunk Format (.xml)\0*.xml\0";
+		ofn.lpstrFilter = "XML Chunk Format (*.xml *.txt)\0*.xml;*.txt\0";
 		
 		ofn.Flags  = OFN_PATHMUSTEXIST;
 		if(!save) {
@@ -31,7 +31,7 @@ namespace TileUtil {
 		}
 
 		std::string ret(szFile);
-		if(ret.find(".xml") != ret.size() - 4) {
+		if(ret.find(".xml") != ret.size() - 4 && ret.find(".txt") != ret.size() - 4) {
 			ret += ".xml";
 		}
 

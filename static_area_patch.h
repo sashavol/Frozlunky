@@ -30,7 +30,7 @@ private:
 	std::map<std::string, Address> named_allocs;
 	std::map<int, Address> allocs;
 	std::map<Chunk*, int> level_parents;
-	std::vector<SingleChunk*> chunks;
+	std::vector<SingleChunk*>* chunks;
 	Address chunk_alloc;
 	Address subroutine_alloc;
 
