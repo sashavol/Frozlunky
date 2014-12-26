@@ -658,6 +658,7 @@ int EditorWidget::handle(int evt) {
 			if(build_dim.first > -1) {
 				status(STATE_CHUNK_WRITE);
 				build_dim = std::make_pair(-1, -1);
+				update_hint_bar();
 			}
 		}
 		return 1;
