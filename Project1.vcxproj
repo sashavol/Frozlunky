@@ -123,6 +123,7 @@
     <ClCompile Include="registry.cpp" />
     <ClCompile Include="remote_call_patch.cpp" />
     <ClCompile Include="remove_daily.cpp" />
+    <ClCompile Include="remove_ghost_patch.cpp" />
     <ClCompile Include="resource_editor.cpp" />
     <ClCompile Include="resource_editor_gui.cpp" />
     <ClCompile Include="save_manager.cpp" />
@@ -144,6 +145,7 @@
     <ClCompile Include="tile_editor_widget.cpp" />
     <ClCompile Include="tile_patch.cpp" />
     <ClCompile Include="tile_picker.cpp" />
+    <ClCompile Include="tile_picker_search.cpp" />
     <ClCompile Include="tile_util.cpp" />
     <ClCompile Include="timer99.cpp" />
     <ClCompile Include="updates.cpp" />
@@ -165,6 +167,7 @@
     <ClInclude Include="known_entities.h" />
     <ClInclude Include="level_forcer.h" />
     <ClInclude Include="level_settings_gui.h" />
+    <ClInclude Include="remove_ghost_patch.h" />
     <ClInclude Include="resource_editor.h" />
     <ClInclude Include="resource_editor_gui.h" />
     <ClInclude Include="static_area_patch.h" />
@@ -218,6 +221,7 @@
     <ClInclude Include="tile_editor_widget.h" />
     <ClInclude Include="tile_patch.h" />
     <ClInclude Include="tile_picker.h" />
+    <ClInclude Include="tile_picker_search.h" />
     <ClInclude Include="tile_util.h" />
     <ClInclude Include="timer99.h" />
     <ClInclude Include="version.h" />

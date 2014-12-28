@@ -4,6 +4,7 @@
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 #include <set>
+#include <map>
 
 #define MAX_RECENT_ENTITIES 14
 
@@ -35,6 +36,7 @@ public:
 	int entity();
 
 	std::vector<int>& get_recent_entities();
+	std::set<char>& get_tiles();
 	
 	void entity_select(int entity);
 	void select(char tile);

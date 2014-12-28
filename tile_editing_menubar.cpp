@@ -71,6 +71,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("eResource Editor", tg_('r', true, true, false, "Ctrl+Shift+R"))
 		("fProject Settings", tg_('p', true, true, false, "Ctrl+Shift+P"))
 		("gEntity Picker", tg_('p', true, false, false, "Ctrl+P"))
+		("hTile Picker Search", tg_('t', true, false, false, "Ctrl+T"))
 	)
 	("eCursor", map_list_of
 		("aSelect Entire Level", tg_('a', true, false, false, "Ctrl+A"))

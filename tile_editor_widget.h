@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <functional>
 #include <chrono>
+#include <atomic>
 
 
 //OPT shops
@@ -51,10 +52,12 @@ enum Direction {
 #define STATE_REQ_RESIZE_4 (1<< 19)
 #define STATE_REQ_RESIZE_1_5 (1 << 20)
 #define STATE_REQ_LEVEL_SETTINGS (1 << 21)
+#define STATE_REQ_TILE_SEARCH (1 << 22)
 
 class EditorWidget : public Fl_Widget {
 public:
 	std::shared_ptr<bool> dark_status;
+	std::atomic<bool> disable_ghost;
 
 public:
 	bool read_only;

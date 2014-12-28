@@ -174,6 +174,10 @@ std::vector<int>& TilePicker::get_recent_entities() {
 	return recent_entities;
 }
 
+std::set<char>& TilePicker::get_tiles() {
+	return tiles;
+}
+
 void TilePicker::select(char tile) {
 	entity_selected = 0;
 	selected = tile;

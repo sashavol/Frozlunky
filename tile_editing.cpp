@@ -9,8 +9,10 @@
 #include "resource_editor_gui.h"
 #include "level_settings_gui.h"
 #include "entity_picker.h"
+#include "tile_picker_search.h"
 #include "gui.h"
 #include "syllabic.h"
+#include "remove_ghost_patch.h"
 
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
@@ -56,6 +58,7 @@ static std::shared_ptr<Seeder> seeder;
 static std::shared_ptr<DerandomizePatch> dp;
 static std::shared_ptr<GameHooks> gh;
 static std::shared_ptr<ResourceEditor> resource_editor;
+static std::shared_ptr<RemoveGhostPatch> remove_ghost;
 static ResourceEditorWindow* resource_editor_window;
 static LevelSettingsWindow* level_settings_window;
 static HANDLE worker_thread = 0;
@@ -279,6 +282,7 @@ namespace TileEditing {
 	static std::map<std::string, EditorWidget*> editors;
 	static Fl_Check_Button* flcb_force;
 	static Fl_Check_Button* flcb_dark;
+	static Fl_Check_Button* flcb_disable_ghost;
 
 	static void SetCurrentEditor(const std::string& area);
 	static void ForceCurrentLevel(bool r);
@@ -312,6 +316,7 @@ namespace TileEditing {
 		static void InitializeLevelFlags() {
 			for(auto&& e : editors) {
 				*e.second->dark_status = false;
+				e.second->disable_ghost = false;
 			}
 		}
 
@@ -325,7 +330,7 @@ namespace TileEditing {
 			InitializeEmptyEntities();
 			for(auto&& editor : editors) {
 				TileDefault::SetEntitiesToDefault(editor.first, editor.second->get_entity_builder());
-			} //TODO
+			}
 
 			resource_editor->reset();
 			resource_editor_window->update();
@@ -334,7 +339,9 @@ namespace TileEditing {
 			level_settings_window->update();
 
 			if(!current_area_editor.empty()) {
-				flcb_dark->value(*(editors[current_area_editor]->dark_status));
+				EditorWidget* ew = editors[current_area_editor];
+				flcb_dark->value(*(ew->dark_status));
+				flcb_disable_ghost->value(ew->disable_ghost);
 			}
 
 			IO::SetActiveFile("");
@@ -409,8 +416,9 @@ namespace TileEditing {
 			for(auto&& e : editors) {
 				if(mget(area_lookup, e.first).second == "%")
 					continue;
-
-				dark.append_child(SafeXMLName(e.first).c_str()).append_attribute("dark").set_value(*e.second->dark_status);
+				pugi::xml_node level = dark.append_child(SafeXMLName(e.first).c_str());
+				level.append_attribute("dark").set_value(*e.second->dark_status);
+				level.append_attribute("noghost").set_value(e.second->disable_ghost);
 			}
 
 			pugi::xml_node entities = xmld.append_child("entities");
@@ -560,8 +568,14 @@ namespace TileEditing {
 					for(pugi::xml_node level : dark.children()) {
 						std::string area = AreaName(level.name());
 
-						if(area != "" && !level.attribute("dark").empty()) {
-							*editors[area]->dark_status = level.attribute("dark").as_bool();
+						if(area != "") {
+							EditorWidget* ew = editors[area];
+							if(!level.attribute("dark").empty()) {
+								*ew->dark_status = level.attribute("dark").as_bool();
+							}
+							if(!level.attribute("noghost").empty()) {
+								ew->disable_ghost = level.attribute("noghost").as_bool();
+							}
 						}
 					}
 				}
@@ -661,7 +675,9 @@ namespace TileEditing {
 
 				//update controls
 				if(!current_area_editor.empty()) {
-					flcb_dark->value(*(editors[current_area_editor]->dark_status));
+					EditorWidget* ew = editors[current_area_editor];
+					flcb_dark->value(*(ew->dark_status));
+					flcb_disable_ghost->value(ew->disable_ghost);
 				}
 
 				SetActiveFile(file);
@@ -796,6 +812,16 @@ namespace TileEditing {
 					}
 				}
 			}
+			else if(state == STATE_REQ_TILE_SEARCH) {
+				if(!current_area_editor.empty()) {
+					EditorWidget* target_area = editors[current_area_editor];
+					TilePickerSearch::SearchWindow* search = new TilePickerSearch::SearchWindow(target_area);
+					search->callback([](Fl_Widget* w) {
+						delete static_cast<TilePickerSearch::SearchWindow*>(w);
+					});
+					search->show();
+				}
+			}
 			else if(state == STATE_REQ_DEFAULT_SWAP) {
 				if(mget(area_lookup, current_area_editor).second == "%") {
 					SetCurrentEditor(prior_nondefault_editor);
@@ -855,7 +881,8 @@ namespace TileEditing {
 				level_forcer->set_enabled(true);
 				return;
 			}
-
+			
+			
 			auto oper = level_force_oper[current_area_editor];
 			if(oper) {
 				oper();
@@ -890,7 +917,7 @@ namespace TileEditing {
 		auto ed = editors[area];
 		
 		if(ed) {
-			if(current_area_editor != "") {
+			if(!current_area_editor.empty()) {
 				EditorWidget* last = editors[current_area_editor];
 				EditorWidget* curr = editors[area];
 				
@@ -929,6 +956,7 @@ namespace TileEditing {
 			ew->alt_down = alt_down;
 
 			flcb_dark->value(*ew->dark_status);
+			flcb_disable_ghost->value(ew->disable_ghost);
 			ForceCurrentLevel(!!flcb_force->value());
 
 			ew->take_focus();
@@ -1008,7 +1036,9 @@ namespace TileEditing {
 			cycle_mutex.lock();
 			if(tp->is_active()) {
 				std::string area = current_game_level();
-				
+				auto editor_find = editors.find(area);
+				EditorWidget* ew = editor_find == editors.end() ? nullptr : editor_find->second;
+
 				//bosses use regular seed ($), levels use specialized blank seed (~)
 				if(area == "Olmec (4-4)" || area == "Yama (5-4)") {
 					if(seeder->get_seed() != "$") {
@@ -1017,6 +1047,19 @@ namespace TileEditing {
 				}
 				else if(seeder->get_seed() != "~") {
 					seeder->seed("~");
+				}
+
+				if(ew) {
+					if(ew->disable_ghost) {
+						if(!remove_ghost->is_active()) {
+							remove_ghost->perform();
+						}
+					}
+					else {
+						if(remove_ghost->is_active()) {
+							remove_ghost->undo();
+						}
+					}
 				}
 
 				if(!level_forcer->enabled())
@@ -1030,6 +1073,12 @@ namespace TileEditing {
 				level_forcer->cycle();
 				resource_editor->cycle();
 			}
+			else {
+				if(remove_ghost->is_active()) {
+					remove_ghost->undo();
+				}
+			}
+
 			cycle_mutex.unlock();
 
 			Sleep(2);
@@ -1078,17 +1127,19 @@ namespace TileEditing {
 
 		//construct menu bar, callback is executed when key event needs execution
 		new TileEditingMenuBar(0, 0, WINDOW_WIDTH, 25, [=](TileEditingMenuBar::KeyTrigger trigger) {
-			EditorWidget* editor = editors[current_area_editor];
-			if(editor) {
-				editor->shift_down = trigger.shift;
-				editor->alt_down = trigger.alt;
-				editor->ctrl_down = trigger.ctrl;
+			if(!current_area_editor.empty()) {
+				EditorWidget* editor = editors[current_area_editor];
+				if(editor) {
+					editor->shift_down = trigger.shift;
+					editor->alt_down = trigger.alt;
+					editor->ctrl_down = trigger.ctrl;
 				
-				editor->handle_key(trigger.key);
+					editor->handle_key(trigger.key);
 				
-				editor->shift_down = false;
-				editor->alt_down = false;
-				editor->ctrl_down = false;
+					editor->shift_down = false;
+					editor->alt_down = false;
+					editor->ctrl_down = false;
+				}
 			}
 		});
 
@@ -1116,7 +1167,7 @@ namespace TileEditing {
 			ForceCurrentLevel(!!static_cast<Fl_Check_Button*>(cbox)->value());
 		});
 
-		flcb_dark = new NF_CheckButton(320, 2+425+MB_Y_OFFSET, 100, 20, "Dark level");
+		flcb_dark = new NF_CheckButton(320, 2+425+MB_Y_OFFSET, 100, 20, "Dark Level");
 		flcb_dark->callback([](Fl_Widget* cbox) {
 			if(!current_area_editor.empty()) {
 				*(editors[current_area_editor]->dark_status) = !!static_cast<Fl_Check_Button*>(cbox)->value();
@@ -1124,6 +1175,17 @@ namespace TileEditing {
 			}
 		});
 
+		flcb_disable_ghost = new NF_CheckButton(435, 2+425+MB_Y_OFFSET, 100, 20, "Disable timed ghost");
+		flcb_disable_ghost->callback([](Fl_Widget* cbox) {
+			if(!current_area_editor.empty()) {
+				editors[current_area_editor]->disable_ghost = !!static_cast<Fl_Check_Button*>(cbox)->value();
+				IO::status_handler(STATE_CHUNK_WRITE);
+			}
+		});
+		if(!remove_ghost->valid()) {
+			flcb_disable_ghost->deactivate();
+		}
+		
 		editor_group = new Fl_Group(165, 5+MB_Y_OFFSET, 615, 420);
 		cons->end();
 
@@ -1209,6 +1271,8 @@ namespace TileEditing {
 		::seeder = seeder;
 		::dp = dp;
 		::gh = gh;
+
+		remove_ghost = std::make_shared<RemoveGhostPatch>(gh);
 
 		level_forcer = std::make_shared<LevelForcer>(dp, gh);
 		level_redirect = std::make_shared<LevelRedirect>(gh);

@@ -1,9 +1,11 @@
 #include "tile_editor_widget.h"
 #include "tile_description.h"
 
-//TODO dark level control
-//TODO add entities to default template
-//TODO documentation
+//TODO add tile picker search
+//TODO add recovery option
+//TODO monitor file for changes
+//TODO fractional bullet types
+//TODO more entity tile picker space
 
 #define TILE_FONT_SIZE 11
 
@@ -507,6 +509,12 @@ int EditorWidget::handle_key(int key) {
 			return 1;
 		}
 
+	case 't': //ctrl+t: tile search
+		if(ctrl_down) {
+			status(STATE_REQ_TILE_SEARCH);
+			return 1;
+		}
+
 	case 'd': //ctrl+d: swap to default viewer
 		if(ctrl_down) {
 			status(STATE_REQ_DEFAULT_SWAP);
@@ -786,7 +794,8 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 	build_dim(-1, -1),
 	arm(arm),
 	picker(this, arm, tp->valid_tiles(), scrollbar->x() + PICKER_X_ES_OFFS, y, PICKER_WIDTH, h, PICKER_XU, PICKER_YU),
-	cursor(chunks, esb, extended_mode ? 2 : 4, read_only)
+	cursor(chunks, esb, extended_mode ? 2 : 4, read_only),
+	disable_ghost(false)
 {
 	std::fill(mouse_down, mouse_down+sizeof(mouse_down), false);
 
