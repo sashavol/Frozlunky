@@ -73,6 +73,11 @@ public:
 
 	void rewind() {
 		if(p > 0) {
+			if(p == states.size()) {
+				push_state();
+				p--;
+			}
+
 			p--;
 			apply_state(states[p], entity_states[p]);
 		}
