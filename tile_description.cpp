@@ -30,7 +30,8 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 	(',', map_list_of
 		(TUTORIAL, "Probabilistic terrain/wood tile"))
 	('-', map_list_of
-		(TUTORIAL, "Cracking ice platform"))
+		(TUTORIAL, "Cracking ice platform")
+		(HELL, "Temple background column"))
 	('.', map_list_of
 		(TUTORIAL, "Unmodified terrain tile"))
 	('0', map_list_of
@@ -68,7 +69,9 @@ static std::map<char, std::map<AreaRenderMode, std::string>> descriptions = map_
 		(ICE_CAVES, "'Psychic presence' triple force field")
 		(TEMPLE, "Idol + Damsel side-by-side spawn"))
 	('=', map_list_of
-		(TUTORIAL, "Wooden platform"))
+		(TUTORIAL, "Wooden platform")
+		(ICE_CAVES, "Alien spaceship tile")
+		(TEMPLE, "Wooden platform"))
 	('?', map_list_of
 		(TUTORIAL, "Inactive"))
 	('A', map_list_of
