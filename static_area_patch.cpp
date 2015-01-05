@@ -1,7 +1,7 @@
 #include "static_area_patch.h"
 #include <algorithm>
 
-#define SUBROUTINE_ALLOC 2048
+#define SUBROUTINE_ALLOC 0x4000
 
 /*
 	AA (+2)  -> Register type

@@ -3,13 +3,11 @@
 
 //TODO change description of = tiles in ice caves to warn to use + instead
 //TODO change description of - in hell to be temple background
-//TODO make sure that worm is not limited to ice caves and jungle
 //TODO add recovery option
 //TODO monitor file for changes
 //TODO fractional bullet types
 //TODO more entity tile picker space
 //TODO fix redo bug, first thing undone cannot be redone
-//TODO autoload
 //TODO thwomps/tikis
 //TODO make q tiles less bright
 

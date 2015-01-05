@@ -52,7 +52,7 @@ StaticChunkPatch::StaticChunkPatch(std::shared_ptr<GameHooks> gh, std::shared_pt
 	//OPT add support for mothership
 	//saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesSpaceship", dp, tp->get_gen_fn("LevelGen_IceCavesSpaceshipCnk"), 9, 12+1, true)));
 	//saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("IceCavesYeti", dp, tp->get_gen_fn("LevelGen_IceCavesYetiCnk"), 9, 12+1, true)));
-	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", gh, tp->get_gen_fn("LevelGen_WormCnk"), 5, 12+1, true, 46)));
+	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Worm", gh, tp->get_gen_fn("LevelGen_WormCnk"), 1, 20+1, true, 46)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Temple", gh, tp->get_gen_fn("LevelGen_TempleCnk"), 13, 15+1)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("TempleOlmec", gh, tp->get_gen_fn("LevelGen_OlmecCnk"), 16, 16+1, true)));
 	saps.push_back(std::shared_ptr<StaticAreaPatch>(new StaticAreaPatch("Hell", gh, tp->get_gen_fn("LevelGen_HellCnk"), 17, 20+1)));
