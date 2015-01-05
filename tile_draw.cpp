@@ -106,6 +106,8 @@ Fl_Color tile_color(char tile) {
 		return 0xE3404A00;
 	case '.': //guaranteed tile
 		return 0x33339F00;
+	case 'q':
+		return 0xB06A2100;
 	case 's': //spikes
 		return 0xD5A59500;
 	default:
