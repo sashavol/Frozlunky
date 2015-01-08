@@ -17,6 +17,16 @@ static int choice_level(int idx) {
 	return 1 + idx;
 }
 
+void LevelSettingsWindow::inform() {
+	//reset checkpoint
+	redirect->checkpoint_mutex.lock();
+	redirect->last_checkpoint = int(redirect->level_start);
+	redirect->checkpoint_mutex.unlock();
+
+	//signal update
+	status_fn(STATE_CHUNK_WRITE);
+}
+
 LevelSettingsWindow::LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect) : 
 	Fl_Double_Window(272, 218, "Level Settings"),
 	redirect(redirect),
@@ -40,7 +50,7 @@ LevelSettingsWindow::LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect
 
 			o->callback(cfn_cb, cfn.wrap([=](Fl_Widget*) {
 				redirect->level_start = choice_level(o->value());
-				status_fn(STATE_CHUNK_WRITE); //request updated status
+				inform();
 			}));
 
 			level_starting = o;
@@ -54,7 +64,7 @@ LevelSettingsWindow::LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect
 
 			o->callback(cfn_cb, cfn.wrap([=](Fl_Widget*) {
 				redirect->level_olmec = choice_level(o->value());
-				status_fn(STATE_CHUNK_WRITE); //request updated status
+				inform();
 			}));
 
 			level_olmec = o;
@@ -68,7 +78,7 @@ LevelSettingsWindow::LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect
 
 			o->callback(cfn_cb, cfn.wrap([=](Fl_Widget*) {
 				redirect->level_yama = choice_level(o->value());
-				status_fn(STATE_CHUNK_WRITE); //request updated status
+				inform();
 			}));
 
 			level_yama = o;
@@ -82,7 +92,7 @@ LevelSettingsWindow::LevelSettingsWindow(std::shared_ptr<LevelRedirect> redirect
 
 		o->callback(cfn_cb, cfn.wrap([=](Fl_Widget*) {
 			redirect->checkpoint_mode = !!o->value();
-			status_fn(STATE_CHUNK_WRITE);
+			inform();
 		}));
 
 		checkpoints_enabled = o;
