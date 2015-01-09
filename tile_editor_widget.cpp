@@ -5,8 +5,9 @@
 //TODO monitor file for changes
 //TODO fractional bullet types
 //TODO more entity tile picker space
-//TODO fix redo bug, first thing undone cannot be redone
 //TODO thwomps/tikis
+//TODO achievement protection (Function name in IDA is ManageAchievements)
+//TODO require user to be in main menu / lobby / game over screen before switching maps (to prevent breaking newly loaded maps). This requires checking if in lobby/in-game and allowing pause menu.
 
 #define TILE_FONT_SIZE 11
 

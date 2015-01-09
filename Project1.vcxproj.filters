@@ -288,6 +288,12 @@
     <ClCompile Include="remove_ghost_patch.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="offline.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
+    <ClCompile Include="protect_achiev.cpp">
+      <Filter>Source Files\patches</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -559,6 +565,9 @@
     </ClInclude>
     <ClInclude Include="remove_ghost_patch.h">
       <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="protect_achiev.h">
+      <Filter>Header Files\patches</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

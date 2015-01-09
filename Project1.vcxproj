@@ -115,10 +115,12 @@
     <ClCompile Include="netplay_connection.cpp" />
     <ClCompile Include="netplay_session.cpp" />
     <ClCompile Include="new_game_detector.cpp" />
+    <ClCompile Include="offline.cpp" />
     <ClCompile Include="oneplayer_only.cpp" />
     <ClCompile Include="patch_group.cpp" />
     <ClCompile Include="precise_patch.cpp" />
     <ClCompile Include="preconditions.cpp" />
+    <ClCompile Include="protect_achiev.cpp" />
     <ClCompile Include="rc_io.cpp" />
     <ClCompile Include="registry.cpp" />
     <ClCompile Include="remote_call_patch.cpp" />
@@ -167,6 +169,7 @@
     <ClInclude Include="known_entities.h" />
     <ClInclude Include="level_forcer.h" />
     <ClInclude Include="level_settings_gui.h" />
+    <ClInclude Include="protect_achiev.h" />
     <ClInclude Include="remove_ghost_patch.h" />
     <ClInclude Include="resource_editor.h" />
     <ClInclude Include="resource_editor_gui.h" />
