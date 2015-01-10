@@ -95,8 +95,11 @@ int ChunkCursor::entity_get(int x, int y) const {
 	}
 
 	int ret = entity_layer->get(x, y);
-	if(get(x, y) == 'w')
-		ret |= W_TILE_BG_FLAG;
+	
+	if(ret != 0) {
+		if(get(x, y) == 'w')
+			ret |= W_TILE_BG_FLAG;
+	}
 
 	return ret;
 }
