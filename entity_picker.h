@@ -8,6 +8,7 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Multi_Browser.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Check_Button.H>
 #include "tile_picker.h"
 #include "known_entities.h"
 
@@ -54,6 +55,13 @@ public:
 	virtual int handle(int evt) override;
 };
 
+class SpecCheckButton : public Fl_Check_Button {
+public:
+	SpecCheckButton(int x, int y, int w, int h, const char* L);
+
+	virtual int handle(int evt) override;
+};
+
 class EntityPicker : public Fl_Double_Window {
 private:
 	EditorWidget* editor;
@@ -62,6 +70,8 @@ private:
 	EntitySearch* search_input;
 	PickButton* pick_button;
 	CancelButton* cancel_button;
+
+	SpecCheckButton* bg_w;
 
 public:
 	EntityPicker(EditorWidget* editor);

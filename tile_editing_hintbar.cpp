@@ -25,7 +25,12 @@ void TileEditingHintbar::update_label() {
 		oss << "Chunk: " << Description::ChunkDescription(chunk) << "  ";
 		
 		if(entity) {
-			oss << "Entity: " << KnownEntities::GetName(entity);
+			if(entity & W_TILE_BG_FLAG)
+				oss << "Submerged Entity: ";
+			else
+				oss << "Entity: ";
+		
+			oss << KnownEntities::GetName(entity);
 		}
 		else if(tile) {
 			//derive render mode from given by default, otherwise derive from chunk attributes
@@ -38,7 +43,12 @@ void TileEditingHintbar::update_label() {
 		}
 	}
 	else if(entity) {
-		oss << "Picked Entity: " << KnownEntities::GetName(entity);
+		if(entity & W_TILE_BG_FLAG)
+			oss << "Picked Submerged Entity: ";
+		else
+			oss << "Picked Entity: ";
+
+		oss << KnownEntities::GetName(entity);
 	}
 	else if(tile) {
 		oss << "Picked Tile: " << Description::TileDescription(tile, area);

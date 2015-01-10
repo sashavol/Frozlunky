@@ -4,6 +4,11 @@
 #include <boost/algorithm/string.hpp>
 #include "tile_util.h"
 
+//clears all flags from entity, does not need to be used externally for most use cases
+int raw_entity(int entity) {
+	return entity &= ~ENTITY_FLAGS;
+}
+
 namespace KnownEntities {
 	using namespace boost::algorithm;
 
@@ -473,15 +478,18 @@ namespace KnownEntities {
 	std::string GetName(int entity) {
 		ensure_fast();
 
-		auto namep = fast_entities.find(entity);
+		int raw = raw_entity(entity);
+		auto namep = fast_entities.find(raw);
 		if(namep == fast_entities.end()) {
-			return std::to_string(entity) + std::string(" [Unknown]");
+			return std::to_string(raw) + std::string(" [Unknown]");
 		}
 
 		return namep->second;
 	}
 
 	unsigned GetColor(int entity) {
+		entity = raw_entity(entity);
+
 		unsigned color = entity_colors[entity];
 		if(color)
 			return color;

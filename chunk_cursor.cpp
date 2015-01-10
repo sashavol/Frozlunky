@@ -79,10 +79,14 @@ void ChunkCursor::entity_write(int entity, int x, int y, bool zero_ti_) {
 		return;
 	}
 
-	if(zero_ti_)
-		write('0', x, y, false);
-	
-	entity_layer->put(x, y, entity);
+	if(zero_ti_) {
+		if(entity & W_TILE_BG_FLAG)
+			write('w', x, y, false);
+		else
+			write('0', x, y, false);
+	}
+
+	entity_layer->put(x, y, raw_entity(entity));
 }
 
 int ChunkCursor::entity_get(int x, int y) const {
@@ -90,7 +94,11 @@ int ChunkCursor::entity_get(int x, int y) const {
 		return 0;
 	}
 
-	return entity_layer->get(x, y);
+	int ret = entity_layer->get(x, y);
+	if(get(x, y) == 'w')
+		ret |= W_TILE_BG_FLAG;
+
+	return ret;
 }
 
 char ChunkCursor::get(int x, int y) const {
@@ -324,12 +332,10 @@ void ChunkCursor::decode(const cursor_store& store) {
 		int x = at.first - edge.first + sx;
 		int y = at.second - edge.second + sy;
 		
-		if(p.second.first != '0')
-			write(p.second.first, x, y);
-		else if(p.second.second != 0)
-			entity_write(p.second.second, x, y);
-		else
-			write('0', x, y);
+		write(p.second.first, x, y, false);
+		if(p.second.second != 0) {
+			entity_write(p.second.second, x, y, false);
+		}
 	}
 }
 

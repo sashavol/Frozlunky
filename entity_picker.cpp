@@ -133,6 +133,10 @@ void PickButton::do_pick() {
 		return;
 	}
 
+	if(ep->bg_w->value()) {
+		id |= W_TILE_BG_FLAG;
+	}
+
 	ep->picker->entity_select(id);
 	ep->hide();
 	ep->editor->hint_bar->set_entity(id, nullptr);
@@ -171,10 +175,24 @@ int CancelButton::handle(int evt) {
 	return Fl_Button::handle(evt);
 }
 
+////////////
+
+SpecCheckButton::SpecCheckButton(int x, int y, int w, int h, const char* L) : Fl_Check_Button(x, y, w, h, L) {}
+
+int SpecCheckButton::handle(int evt) {
+	switch(evt) {
+	case FL_KEYBOARD:
+	case FL_FOCUS:
+		return 0;
+	}
+
+	return Fl_Check_Button::handle(evt);
+}
+
 ///////////
 
 EntityPicker::EntityPicker(EditorWidget* editor) :
-	Fl_Double_Window(303, 258, "Entity Picker"),
+	Fl_Double_Window(303, 258 + 30, "Entity Picker"),
 	editor(editor),
 	picker(&editor->get_picker())
 {
@@ -183,9 +201,11 @@ EntityPicker::EntityPicker(EditorWidget* editor) :
 	} // Fl_Browser* o
 	{ search_input = new EntitySearch(65, 191, 230, 27);
 	} // Fl_Input* o
-	{ pick_button = new PickButton(11, 225, 159, 25);
+	{ bg_w = new SpecCheckButton(11, 191+27+5, 200, 25, "Submerge in 'w' tile (Ctrl+W)");
+	}
+	{ pick_button = new PickButton(11, 253, 159, 25);
 	} // Fl_Button* o
-	{ cancel_button = new CancelButton(175, 225, 119, 25);
+	{ cancel_button = new CancelButton(175, 253, 119, 25);
 	} // Fl_Button* o
 	this->end();
 }
@@ -213,6 +233,12 @@ int EntityPicker::handle_input_event(int evt) {
 		case 65293: //ENTER
 			pick_button->do_pick();
 			return 1;
+
+		case 'w': // ctrl+w submerge in w
+			if(ctrl_down) {
+				bg_w->value(bg_w->value() ? 0 : 1);
+				return 1;
+			}
 
 		default:
 			return search_input->handle(evt);
@@ -257,6 +283,11 @@ int EntityPicker::handle(int evt) {
 			}
 			else if(cursor_event_bounding(cancel_button)) {
 				cancel_button->handle(evt);
+				take_focus();
+				return 1;
+			}
+			else if(cursor_event_bounding(bg_w)) {
+				bg_w->handle(evt);
 				take_focus();
 				return 1;
 			}

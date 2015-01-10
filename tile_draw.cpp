@@ -137,9 +137,16 @@ Fl_Color entity_color(int entity) {
 }
 
 void draw_entity(int entity, int x, int y, int w, int h) {
-	Fl_Color centity = entity_color(entity);
+	Fl_Color centity = entity_color(raw_entity(entity));
 	const std::string& known = KnownEntities::GetName(entity);
 	char str[] = {known[0], 0};
+
+	//draw water background if entity is submerged
+	if(entity & W_TILE_BG_FLAG) {
+		Fl_Color ctile = tile_color('w');
+		fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, x, y, w, h, fl_darker(ctile));
+		fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, x, y, w-1, h-1, ctile);
+	}
 
 	fl_draw_box(FL_OVAL_BOX, x, y, w, h, fl_darker(centity));
 	fl_draw_box(FL_OVAL_BOX, x, y, w-1, h-1, centity);

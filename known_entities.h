@@ -5,6 +5,11 @@
 #include <string>
 #include <boost/assign.hpp>
 
+#define W_TILE_BG_FLAG (1 << 16)
+#define ENTITY_FLAGS (W_TILE_BG_FLAG)
+
+int raw_entity(int entity);
+
 namespace KnownEntities {
 	typedef std::vector<std::pair<int, std::string> > map_type;
 
