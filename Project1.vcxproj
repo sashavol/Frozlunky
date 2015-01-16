@@ -79,6 +79,7 @@
   <ItemGroup>
     <ClCompile Include="all_dark.cpp" />
     <ClCompile Include="antipause_patch.cpp" />
+    <ClCompile Include="antispawn.cpp" />
     <ClCompile Include="append_ai.cpp" />
     <ClCompile Include="async_input_grab.cpp" />
     <ClCompile Include="chunk_cursor.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="all_dark.h" />
     <ClInclude Include="anticrash.h" />
     <ClInclude Include="antipause_patch.h" />
+    <ClInclude Include="antispawn.h" />
     <ClInclude Include="async_input_grab.h" />
     <ClInclude Include="cfn_util.h" />
     <ClInclude Include="chunk_cursor.h" />

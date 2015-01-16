@@ -294,6 +294,9 @@
     <ClCompile Include="protect_achiev.cpp">
       <Filter>Source Files\patches</Filter>
     </ClCompile>
+    <ClCompile Include="antispawn.cpp">
+      <Filter>Source Files\special\tile_editing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -568,6 +571,9 @@
     </ClInclude>
     <ClInclude Include="protect_achiev.h">
       <Filter>Header Files\patches</Filter>
+    </ClInclude>
+    <ClInclude Include="antispawn.h">
+      <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

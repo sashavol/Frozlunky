@@ -13,6 +13,7 @@
 #include "gui.h"
 #include "syllabic.h"
 #include "remove_ghost_patch.h"
+#include "antispawn.h"
 
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
@@ -59,6 +60,7 @@ static std::shared_ptr<DerandomizePatch> dp;
 static std::shared_ptr<GameHooks> gh;
 static std::shared_ptr<ResourceEditor> resource_editor;
 static std::shared_ptr<RemoveGhostPatch> remove_ghost;
+static std::shared_ptr<AntispawnPatch> antispawn;
 static ResourceEditorWindow* resource_editor_window;
 static LevelSettingsWindow* level_settings_window;
 static HANDLE worker_thread = 0;
@@ -1062,6 +1064,10 @@ namespace TileEditing {
 					}
 				}
 
+				if(!antispawn->is_active()) {
+					antispawn->perform();
+				}
+
 				if(!level_forcer->enabled())
 					level_redirect->cycle();
 				else {
@@ -1076,6 +1082,9 @@ namespace TileEditing {
 			else {
 				if(remove_ghost->is_active()) {
 					remove_ghost->undo();
+				}
+				if(antispawn->is_active()) {
+					antispawn->undo();
 				}
 			}
 
@@ -1273,6 +1282,7 @@ namespace TileEditing {
 		::gh = gh;
 
 		remove_ghost = std::make_shared<RemoveGhostPatch>(gh);
+		antispawn = std::make_shared<AntispawnPatch>(gh);
 
 		level_forcer = std::make_shared<LevelForcer>(dp, gh);
 		level_redirect = std::make_shared<LevelRedirect>(gh);
@@ -1318,6 +1328,10 @@ namespace TileEditing {
 		}
 
 		if(!resource_editor->valid()) {
+			return false;
+		}
+
+		if(!antispawn->valid()) {
 			return false;
 		}
 

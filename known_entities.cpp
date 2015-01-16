@@ -91,7 +91,7 @@ namespace KnownEntities {
 		(528, "Ankh")
 		(529, "Hedjet")
 		(530, "Scepter")
-		(531, "Hell Bible")
+		(531, "Book of the Dead")
 		(532, "Vlad's Cape")
 		(533, "Vlad's Amulet")
 
@@ -275,14 +275,14 @@ namespace KnownEntities {
 		(193, "Cobra Venom Projectile")
 		(194, "Falling Icicle Projectile")
 		(195, "Broken Ice Projectiles")
-		(196, "Water Splash Projectile")
+		(196, "Splashing Water Projectile")
 		(203, "Freeze Ray Projectile")
 		(213, "Turret Projectile")
 		(217, "Olmec Enemy Spawn Projectile")
 		(225, "Kill Target")
 		(226, "Activated Kill Target Laser")
 		(247, "Purple Target")
-		(218, "Water Splash")
+		(218, "Splashing Water")
 		(228, "Broken Web Pouch")
 		(236, "Spinner Spider Thread")
 
@@ -305,7 +305,7 @@ namespace KnownEntities {
 		(10, "Grey Background Trigger")
 
 		//special
-		(3, "Invisible Static Entrance")
+		(3, "Invisible Static Level Exit")
 		(220, "Ball & Chain (without Chain)")
 		(211, "Character Coffin")
 		(212, "Character Ghost")
