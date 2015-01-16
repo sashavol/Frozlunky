@@ -1084,7 +1084,7 @@ void EditorWidget::draw() {
 		//TODO this rendering operation is very slow because of render_pos call, improve performance of either render_pos or this
 		//render entity spawners
 		
-		int ymin = this->y(), ymax = this->y() + h() - yu;
+		int ymin = this->y(), ymax = this->y() + h() - yu-1;
 		for(auto&& es : *esb) {
 			const EntitySpawnBuilder::EntitySpawn& eto = es.second;
 			std::pair<int, int> unmapped = EntitySpawnLayer::unmap(eto.x, eto.y);
