@@ -1,7 +1,7 @@
 #include "entity_spawn_builder.h"
 
-#define SUBROUTINE_ALLOC 16384
-#define FLOATS_ALLOC 8192
+#define SUBROUTINE_ALLOC 131072
+#define FLOATS_ALLOC 16384
 
 //[SpawnEntity(void* current_game, float x, float y, int id, bool autoadd)]
 //+0
@@ -33,9 +33,11 @@ static BYTE init_opcode[] = {
 // FF (+42) -> game ptr list offset
 // AB (+45) -> list idx offset
 // AC (+54) -> list idx offset
-//
+
+// AD (+1)  -> standard entity flag
+
 static BYTE spawn_opcode[] = {
-	0x6A, 0x01,
+	0x6A, 0xAD,
 	0x68, 0xAA,0xAA,0xAA,0xAA,
 	0xD9,0x05, 0xBB,0xBB,0xBB,0xBB,
 	0xD9,0x05, 0xCC,0xCC,0xCC,0xCC,
@@ -47,6 +49,16 @@ static BYTE spawn_opcode[] = {
 };
 
 static BYTE ret_opcode[] = {0x61, 0xC3};
+
+//Special entities (idx < 100 || idx > 9000)
+//spawn_opcode push 0 instead of 1, and
+//append the following opcodes after
+// AA (+2) -> entity obj offset
+// BB (+5) -> entity grid offset for specific entity
+static BYTE special_opcode[] = {
+	0x8B,0x51,0xAA,
+	0x89,0x82,0xBB,0xBB,0xBB,0xBB
+};
 
 EntitySpawnBuilder::EntitySpawn::EntitySpawn(float x, float y, int entity) : 
 	x(x), 
@@ -72,8 +84,9 @@ EntitySpawnBuilder::~EntitySpawnBuilder() {
 	}
 }
 
-EntitySpawnBuilder::EntitySpawnBuilder(std::shared_ptr<DerandomizePatch> dp) : 
-	dp(dp),
+EntitySpawnBuilder::EntitySpawnBuilder(std::shared_ptr<GameHooks> gh) : 
+	gh(gh),
+	dp(gh->dp),
 	spel(dp->spel),
 	is_valid(true),
 	spawn_entity_fn(0),
@@ -113,10 +126,17 @@ EntitySpawnBuilder::EntitySpawnBuilder(std::shared_ptr<DerandomizePatch> dp) :
 	update_memory();
 }
 
+bool is_special_entity(int entity) {
+	return entity < 100 || entity >= 9000;
+}
+
 void EntitySpawnBuilder::update_memory() {
 	Address flp = floats_alloc;
 	
 	Address game_ptr = dp->game_ptr();
+	signed char entity_obj_offs = gh->entity_obj_offset();
+	signed int entity_grid_base = gh->entity_grid_offset();
+	signed int row_size = gh->entity_row_size();
 
 	Address sr = subroutine_alloc;
 	spel->write_mem(sr, init_opcode, sizeof(init_opcode));
@@ -126,12 +146,16 @@ void EntitySpawnBuilder::update_memory() {
 	for(auto&& pair : entities) {
 		auto& es = pair.second;
 		if(es.entity > 0) {
+			bool special = is_special_entity(es.entity);
+			char standard_val = special ? 0 : 1;
+
 			spel->write_mem(flp, &es.x, sizeof(float));
 			spel->write_mem(flp+4, &es.y, sizeof(float));
-		
+			
 			signed int calldiff = spawn_entity_fn - (sr+29+5);
 			Address xfl = flp, yfl = flp+4;
 			spel->write_mem(sr, spawn_opcode, sizeof(spawn_opcode));
+			spel->write_mem(sr+1, &standard_val, sizeof(char));
 			spel->write_mem(sr+3, &es.entity, sizeof(int));
 			spel->write_mem(sr+9, &yfl, sizeof(Address));
 			spel->write_mem(sr+15, &xfl, sizeof(Address));
@@ -139,6 +163,17 @@ void EntitySpawnBuilder::update_memory() {
 			spel->write_mem(sr+36, &game_ptr, sizeof(Address));
 
 			sr += sizeof(spawn_opcode);
+
+			if(special) {
+				spel->write_mem(sr, special_opcode, sizeof(special_opcode));
+				spel->write_mem(sr+2, &entity_obj_offs, sizeof(signed char));
+				
+				signed int grid_pos = entity_grid_base + sizeof(int)*(row_size*(int(99.0f - es.y) + 3) + int(es.x));
+				spel->write_mem(sr+5, &grid_pos, sizeof(signed int));
+
+				sr += sizeof(special_opcode);
+			}
+
 			flp += 8;
 		}
 	}

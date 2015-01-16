@@ -57,6 +57,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("cCut", tg_('x', true, false, false, "Ctrl+X"))
 		("dCopy", tg_('c', true, false, false, "Ctrl+C"))
 		("ePaste", tg_('v', true, false, false, "Ctrl+V"))
+		("fMirror Paste", tg_('v', true, true, false, "Ctrl+Shift+V"))
 	)
 	("cWindow", map_list_of
 		("aSize: 1x", tg_(0xFFBE, true, false, false, "Ctrl+F1"))

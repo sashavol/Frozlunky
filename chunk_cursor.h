@@ -84,5 +84,5 @@ public:
 	void fill(char tile);
 	void entity_fill(int entity);
 
-	void decode(const cursor_store& store);
+	void decode(const cursor_store& store, bool horiz_mirror=false);
 };

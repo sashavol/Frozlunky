@@ -316,7 +316,7 @@ cursor_store ChunkCursor::encode() {
 	return out;
 }
 
-void ChunkCursor::decode(const cursor_store& store) {
+void ChunkCursor::decode(const cursor_store& store, bool horiz_mirror) {
 	if(!in_bounds() || read_only) {
 		return;
 	}
@@ -324,18 +324,23 @@ void ChunkCursor::decode(const cursor_store& store) {
 	int sx = rsx(), sy = rsy(), ex = rex(), ey = rey();
 
 	std::pair<int, int> edge(INT_MAX, INT_MAX);
+	std::pair<int, int> end_edge(INT_MIN, INT_MIN);
 	for(auto&& p : store) {
 		auto& at = p.first;
 		edge.first = min(at.first, edge.first);
 		edge.second = min(at.second, edge.second);
+		
+		end_edge.first = max(at.first, end_edge.first);
+		end_edge.second = max(at.second, end_edge.second);
 	}
 
+	int width = end_edge.first - edge.first + 1;
 	for(auto&& p : store) {
 		std::pair<int, int> at = p.first;
-		int x = at.first - edge.first + sx;
+		int x = (horiz_mirror ? width - (at.first - edge.first) - 1 : at.first - edge.first) + sx;
 		int y = at.second - edge.second + sy;
-		
-		write(p.second.first, x, y, false);
+
+		write(p.second.first, x, y);
 		if(p.second.second != 0) {
 			entity_write(p.second.second, x, y, false);
 		}

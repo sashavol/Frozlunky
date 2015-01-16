@@ -1,13 +1,17 @@
 #include "tile_editor_widget.h"
 #include "tile_description.h"
 
+//!TODO improve editing performance by only applying chunks after no updates have occurred for N time
 //TODO add recovery option
 //TODO monitor file for changes
 //TODO fractional bullet types
 //TODO more entity tile picker space
+//TODO remove anubis / damsels / key+chest
 //TODO thwomps/tikis
-//TODO achievement protection (Function name in IDA is ManageAchievements)
-//TODO require user to be in main menu / lobby / game over screen before switching maps (to prevent breaking newly loaded maps). This requires checking if in lobby/in-game and allowing pause menu.
+//TODO disable damsel spawn
+//TODO disable force level upon load
+
+//.TODO message boxes
 
 #define TILE_FONT_SIZE 11
 
@@ -482,7 +486,7 @@ int EditorWidget::handle_key(int key) {
 		if(ctrl_down) {
 			if(cursor.in_bounds() && !clipboard.empty()) {
 				timeline.push_state();
-				cursor.decode(clipboard);
+				cursor.decode(clipboard, shift_down);
 				status(STATE_CHUNK_PASTE);
 				update_hint_bar();
 				parent()->redraw();

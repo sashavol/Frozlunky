@@ -5,6 +5,8 @@
 #include <set>
 #include <map>
 
+bool is_special_entity(int entity);
+
 class EntitySpawnBuilder {
 public:
 	struct EntitySpawn {
@@ -23,6 +25,7 @@ public:
 	typedef holder_type::const_iterator const_iterator;
 
 private:
+	std::shared_ptr<GameHooks> gh;
 	std::shared_ptr<DerandomizePatch> dp; 
 	std::shared_ptr<Spelunky> spel;
 	bool is_valid;
@@ -38,7 +41,7 @@ private:
 	EntitySpawnBuilder(const EntitySpawnBuilder& o);
 
 public:
-	EntitySpawnBuilder(std::shared_ptr<DerandomizePatch> dp);
+	EntitySpawnBuilder(std::shared_ptr<GameHooks> gh);
 	~EntitySpawnBuilder();
 
 	void update_memory();

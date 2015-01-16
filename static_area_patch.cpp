@@ -283,8 +283,8 @@ StaticAreaPatch::~StaticAreaPatch() {
 
 StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<GameHooks> gh, Address gen_fn, int lvl_start, int lvl_end, bool single_level, int lvl_chunks) : 
 	Patch(gh->spel),
-	dp(gh->dp),
 	gh(gh),
+	dp(gh->dp),
 	gen_fn(gen_fn),
 	lvl_start(lvl_start),
 	lvl_end(lvl_end),
@@ -338,7 +338,7 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<GameHo
 	//construct entity spawn builders / dark status
 	if(!single_level) {
 		for(int lvl = lvl_start; lvl < lvl_end; ++lvl) {
-			std::shared_ptr<EntitySpawnBuilder> builder = std::make_shared<EntitySpawnBuilder>(dp);
+			std::shared_ptr<EntitySpawnBuilder> builder = std::make_shared<EntitySpawnBuilder>(gh);
 			if(!builder->valid()) {
 				DBG_EXPR(std::cout << "[StaticAreaPatch] Failed to construct valid entity builder." << std::endl);
 				is_valid = false;
@@ -349,7 +349,7 @@ StaticAreaPatch::StaticAreaPatch(const std::string& name, std::shared_ptr<GameHo
 		}
 	}
 	else {
-		std::shared_ptr<EntitySpawnBuilder> builder = std::make_shared<EntitySpawnBuilder>(dp);
+		std::shared_ptr<EntitySpawnBuilder> builder = std::make_shared<EntitySpawnBuilder>(gh);
 		if(!builder->valid()) {
 			DBG_EXPR(std::cout << "[StaticAreaPatch] Failed to construct valid entity builder." << std::endl);
 			is_valid = false;

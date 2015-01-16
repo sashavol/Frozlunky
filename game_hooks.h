@@ -90,6 +90,8 @@ private:
 
 	BYTE game_damsel_offset;
 
+	signed int ent_grid_offset;
+
 	bool discover_steamid();
 	bool discover_gold_count();
 	bool discover_timers();
@@ -100,6 +102,7 @@ private:
 	bool discover_menu_data();
 	bool discover_gfx_options();
 	bool discover_level_flags();
+	bool discover_entity_data();
 
 public:
 	GameHooks(std::shared_ptr<Spelunky> spel, std::shared_ptr<DerandomizePatch> dp);
@@ -169,4 +172,8 @@ public:
 	signed dark_level_offset();
 	void set_dark_level(bool v);
 	bool dark_level();
+
+	signed char entity_obj_offset();
+	signed int entity_grid_offset();
+	signed int entity_row_size();
 };

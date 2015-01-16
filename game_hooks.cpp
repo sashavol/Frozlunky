@@ -35,6 +35,7 @@ GameHooks::GameHooks(std::shared_ptr<Spelunky> spel, std::shared_ptr<Derandomize
 	DISCOVERY_FUNC(discover_menu_data);
 	DISCOVERY_FUNC(discover_gfx_options);
 	DISCOVERY_FUNC(discover_level_flags);
+	DISCOVERY_FUNC(discover_entity_data);
 }
 
 Address GameHooks::game_state_offs() {
@@ -909,4 +910,47 @@ bool GameHooks::dark_level() {
 	spel->read_mem(game + dark_level_offset(), &val, sizeof(char));
 
 	return !!val;
+}
+
+
+//////////////////
+// ENTITY DATA  //
+//////////////////
+
+//WARN static definitions
+#define ENTITY_OBJ_OFFSET 0x3C
+#define ENTITY_GRID_ROW_SIZE 46
+
+//+3
+static BYTE entity_grid_find[] = {0x83,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x00,0x8D,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x89,0xCC,0xCC,0xCC,0x0F};
+static std::string entity_grid_mask = "x......xx......x...x";
+
+bool GameHooks::discover_entity_data() {
+	ent_grid_offset = spel->get_stored_hook("ent_grid_offset");
+	if(!ent_grid_offset) {
+		Address cont = spel->find_mem(entity_grid_find, entity_grid_mask);
+		if(!cont) {
+			DBG_EXPR(std::cout << "[GameHooks] Failed to find ent_grid_offset" << std::endl);
+			return false;
+		}
+		
+		spel->read_mem(cont+3, &ent_grid_offset, sizeof(signed int));
+		spel->store_hook("ent_grid_offset", ent_grid_offset);
+
+		DBG_EXPR(std::cout << "[GameHooks] ent_grid_offset = " << ent_grid_offset << std::endl);
+	}
+
+	return true;
+}
+
+signed int GameHooks::entity_row_size() {
+	return ENTITY_GRID_ROW_SIZE;
+}
+
+signed int GameHooks::entity_grid_offset() {
+	return ent_grid_offset;
+}
+
+signed char GameHooks::entity_obj_offset() {
+	return ENTITY_OBJ_OFFSET;
 }
