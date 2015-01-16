@@ -221,7 +221,7 @@ namespace KnownEntities {
 		(4, "Ladder")
 		(5, "Ladder Junction")
 		(7, "Dirt Patch")
-		(2, "Blue Solid Background Block")
+		(2, "Locked Tutorial Background")
 		(12, "Background Blue Dirt Wall")
 		(13, "Small Gold Crust Foreground")
 		(14, "Large Gold Crust Foreground")
@@ -230,13 +230,14 @@ namespace KnownEntities {
 		(26, "Bedrock Edge Patch")
 		(30, "Jungle Dirt Patch")
 		(31, "Temple Block Patch")
+		(3004, "Cash Register")
 
 		//level obstacles
 		(1, "Spikes")
 		(197, "Alien Forcefield Ground Laser")
 		(9, "Arrow Trap")
 		(22, "Tiki Trap")
-		(45, "Thwomp Crush Trap")
+		(45, "Crush Trap 'Thwomp'")
 
 		//fluids
 		(27, "Water Fluid")
@@ -253,7 +254,7 @@ namespace KnownEntities {
 		(215, "Vertically-Moving Mothership Platform")
 		(235, "TNT")
 		(15, "Idol Altar Half")
-		(23, "Tree Stem")
+		(23, "Tree Trunk")
 		(25, "Bedrock Block")
 		(32, "Invisible Solid Block")
 		(35, "Sacrifice Altar Half")
@@ -382,7 +383,7 @@ namespace KnownEntities {
 		(3005, "3005")
 		(3002, "3002")
 		(3003, "3003")
-		(3004, "Cash Register")
+		
 		(3001, "3001")
 
 		(9094, "9094")
@@ -590,7 +591,9 @@ namespace KnownEntities {
 		(36, 0xfe4b1a00)
 		(37, 0xA6550D00)
 		(40, 0x99856600)
-		(91, 0x6cab5900);
+		(45, 0x8b898900)
+		(91, 0x6cab5900)
+		(3004, 0x8f3c0000);
 
 	static void ensure_fast() {
 		if(fast_entities.empty()) {

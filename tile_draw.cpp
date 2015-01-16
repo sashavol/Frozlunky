@@ -147,9 +147,9 @@ void draw_entity(int entity, int x, int y, int w, int h) {
 		fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, x, y, w, h, fl_darker(ctile));
 		fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, x, y, w-1, h-1, ctile);
 	}
-
-	fl_draw_box(FL_OVAL_BOX, x, y, w, h, fl_darker(centity));
-	fl_draw_box(FL_OVAL_BOX, x, y, w-1, h-1, centity);
+	
+	fl_draw_box(FL_OFLAT_BOX, x, y, w, h, fl_darker(centity));
+	fl_draw_box(FL_OFLAT_BOX, x, y, w-1, h-1, centity);
 
 	fl_color(0);
 	fl_draw(str, x, y, w, h, FL_ALIGN_INSIDE);
