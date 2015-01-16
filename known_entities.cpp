@@ -218,9 +218,30 @@ namespace KnownEntities {
 		(227, "Mothership Lights")
 		(244, "Haunted Castle Banner")
 		(245, "Mounted Lightable Torch Holder")
+		(4, "Ladder")
+		(5, "Ladder Junction")
+		(7, "Dirt Patch")
+		(2, "Blue Solid Background Block")
+		(12, "Background Blue Dirt Wall")
+		(13, "Small Gold Crust Foreground")
+		(14, "Large Gold Crust Foreground")
+		(24, "Tree Branch")
+		(33, "Small Tree Branch")
+		(26, "Bedrock Edge Patch")
+		(30, "Jungle Dirt Patch")
+		(31, "Temple Block Patch")
 
 		//level obstacles
+		(1, "Spikes")
 		(197, "Alien Forcefield Ground Laser")
+		(9, "Arrow Trap")
+		(22, "Tiki Trap")
+		(45, "Thwomp Crush Trap")
+
+		//fluids
+		(27, "Water Fluid")
+		(36, "Lava Fluid")
+		(91, "Acid Worm Fluid")
 
 		//platform objects
 		(161, "Blue Falling Platform")
@@ -231,6 +252,11 @@ namespace KnownEntities {
 		(183, "Cracking Ice Platform")
 		(215, "Vertically-Moving Mothership Platform")
 		(235, "TNT")
+		(15, "Idol Altar Half")
+		(23, "Tree Stem")
+		(25, "Bedrock Block")
+		(32, "Invisible Solid Block")
+		(35, "Sacrifice Altar Half")
 
 		//sub-entity components
 		(117, "Bullet")
@@ -260,6 +286,7 @@ namespace KnownEntities {
 		(236, "Spinner Spider Thread")
 
 		//animations
+		(37, "Exploding Dirt")
 		(221, "Smoke Poof")
 		(232, "Breaking Animation")
 		(233, "Magma Flame Animation")
@@ -274,8 +301,10 @@ namespace KnownEntities {
 		(170, "5-Second Win Scheduler")
 		(229, "Ankh Respawn Timed Event Trigger")
 		(230, "Ankh Respawn Animation")
+		(10, "Grey Background Trigger")
 
 		//special
+		(3, "Invisible Static Entrance")
 		(220, "Ball & Chain (without Chain)")
 		(211, "Character Coffin")
 		(212, "Character Ghost")
@@ -290,51 +319,10 @@ namespace KnownEntities {
 		(3002, "Green-Glowing Ground Attachment")
 
 		//unknown
-		(1, "1")
-		(2, "2")
-		(3, "3")
-		(4, "4")
-		(5, "5")
-		(6, "6")
-		(7, "7")
-		(8, "8")
-		(9, "9")
-		(10, "10")
-		(11, "11")
-		(12, "12")
-		(13, "13")
-		(14, "14")
-		(15, "15")
-		(16, "16")
-		(17, "17")
-		(18, "18")
-		(19, "19")
-		(20, "20")
-		(21, "21")
-		(22, "22")
-		(23, "23")
-		(24, "24")
-		(25, "25")
-		(26, "26")
-		(27, "27")
-		(28, "28")
-		(29, "29")
-		(30, "30")
-		(31, "31")
-		(32, "32")
-		(33, "33")
-		(34, "34")
-		(35, "35")
-		(36, "36")
-		(37, "37")
-		(38, "38")
-		(39, "39")
-		(40, "40")
 		(41, "41")
 		(42, "42")
 		(43, "43")
 		(44, "44")
-		(45, "45")
 		(46, "46")
 		(47, "47")
 		(48, "48")
@@ -380,7 +368,6 @@ namespace KnownEntities {
 		(88, "88")
 		(89, "89")
 		(90, "90")
-		(91, "91")
 		(92, "92")
 		(93, "93")
 		(94, "94")
@@ -389,9 +376,20 @@ namespace KnownEntities {
 		(97, "97")
 		(98, "98")
 		(99, "99")
+
+		(2001, "2001")
+		(3000, "3000")
+		(3005, "3005")
+		(3002, "3002")
+		(3003, "3003")
+		(3004, "Cash Register")
+		(3001, "3001")
+
+		(9094, "9094")
 		(9095, "9095")
 		(9096, "9096")
-		(9097, "9097");
+		(9097, "9097")
+		(9098, "9098");
 
 	static std::map<int, unsigned> entity_colors = boost::assign::map_list_of
 		//items
@@ -565,7 +563,34 @@ namespace KnownEntities {
 		(182, 0xF8906900)
 		(183, 0xAAF5FF00)
 		(215, 0x65419000) 
-		(235, 0xc20e0500);
+		(235, 0xc20e0500)
+
+		//specialized entities
+		(1, 0xFFFFFF00)
+		(2, 0x728ea600)
+		(4, 0xAF5F3C00)
+		(5, 0x94503300)
+		(7, 0xbc722f00)
+		(9, 0x81746800)
+		(11, 0xFFFFFF00)
+		(12, 0x536e8300)
+		(13, 0xc6983400)
+		(14, 0xd2ab5500)
+		(15, 0xa8988500)
+		(22, 0x9c5a4700)
+		(23, 0xc1792f00)
+		(24, 0xbd762e00)
+		(25, 0x826C5E00)
+		(26, 0xAA897100)
+		(27, 0xAAAAFF00)
+		(30, 0x81950000)
+		(31, 0x96785f00)
+		(33, 0x7b4d1e00)
+		(35, 0xd62e2400)
+		(36, 0xfe4b1a00)
+		(37, 0xA6550D00)
+		(40, 0x99856600)
+		(91, 0x6cab5900);
 
 	static void ensure_fast() {
 		if(fast_entities.empty()) {

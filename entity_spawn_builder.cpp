@@ -50,7 +50,7 @@ static BYTE spawn_opcode[] = {
 
 static BYTE ret_opcode[] = {0x61, 0xC3};
 
-//Special entities (idx < 100 || idx > 9000)
+//Special entities (idx < 100 || idx >= 2000)
 //spawn_opcode push 0 instead of 1, and
 //append the following opcodes after
 // AA (+2) -> entity obj offset
@@ -127,7 +127,7 @@ EntitySpawnBuilder::EntitySpawnBuilder(std::shared_ptr<GameHooks> gh) :
 }
 
 bool is_special_entity(int entity) {
-	return entity < 100 || entity >= 9000;
+	return (entity < 100 || entity >= 2000) && entity != 45;
 }
 
 void EntitySpawnBuilder::update_memory() {
