@@ -50,9 +50,6 @@ namespace TileUtil {
 		}
 	}
 
-
-
-
 	static double score_max_consec(const std::string* s1p, const std::string* s2p) {
 		if(s2p->size() < s1p->size())
 			std::swap(s1p, s2p);
@@ -72,7 +69,7 @@ namespace TileUtil {
 			max_cons = max(max_cons, cons);
 		}
 
-		return max_cons / (double)s1.size();
+		return max_cons / (double)s2.size();
 	}
 	
 	static double score_charcomp(const std::string& s1, const std::string& s2) {
@@ -99,7 +96,7 @@ namespace TileUtil {
 				count++;
 		}
 
-		return (double)count / (double)a.size();
+		return double(count) / double(b.size());
 	}
 
 	static void string_normalize(std::string& str) {
@@ -108,14 +105,17 @@ namespace TileUtil {
 		trim(str);
 		to_upper(str);
 		replace_all(str, " ", "");
+
+		auto paren = str.find_first_of("([");
+		if(paren != std::string::npos) {
+			str = str.substr(0, paren);
+		}
 	}
 
 	std::vector<std::string> Search(const std::vector<std::string>& list, const std::string& query) {
 		if(query.empty())
 			return std::vector<std::string>();
 
-		auto split_pred = boost::is_any_of(" ");
-		
 		std::string comp_query = query;
 		string_normalize(comp_query);
 
