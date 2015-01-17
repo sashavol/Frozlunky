@@ -349,6 +349,10 @@ namespace TileEditing {
 			IO::SetActiveFile("");
 			unsaved_changes = false;
 
+			//disable force level for new file
+			flcb_force->value(0);
+			ForceCurrentLevel(false);
+
 			cycle_mutex.unlock();
 		}
 
@@ -686,6 +690,10 @@ namespace TileEditing {
 				unsaved_changes = false;
 			}
 
+			//disable force level after loading file
+			flcb_force->value(0);
+			ForceCurrentLevel(false);
+			
 			cycle_mutex.unlock();
 		}
 
