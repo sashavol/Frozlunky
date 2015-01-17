@@ -1,8 +1,8 @@
 #include "antispawn.h"
 
 //+0
-static BYTE key_chest_find[] = {0x0F,0x8E,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0xCC,0xCC,0xCC,0xCC,0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x0F};
-static std::string key_chest_mask = "xx....x.....x......x";
+static BYTE key_chest_find[] = {0x0F,0xCC,0xCC,0xCC,0xCC,0xCC,0xE8,0xCC,0xCC,0xCC,0xCC,0x33,0xCC,0xF7,0xCC,0x83,0xCC,0xCC,0x8B};
+static std::string key_chest_mask = "x.....x....x.x.x..x";
 static BYTE key_chest_override[] = {0x90, 0xE9};
 
 //+0
@@ -20,6 +20,11 @@ static BYTE anubis_find[] = {0x0F,0x85,0xCC,0xCC,0xCC,0xCC,0x83,0xCC,0xCC,0xCC,0
 static std::string anubis_mask = "xx....x......x.x...x";
 static BYTE anubis_override[] = {0x90, 0xE9};
 
+//+0
+static BYTE gems_find[] = {0x0F,0x85,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0xCC,0xCC,0x8D,0xCC,0xCC,0x85,0xCC,0x0F,0x8C};
+static std::string gems_mask = "xx....x...x..x.xx";
+static BYTE gems_override[] = {0x90,0xE9};
+
 AntispawnPatch::~AntispawnPatch() {
 	if(orig_anubis)
 		delete[] orig_anubis;
@@ -29,6 +34,8 @@ AntispawnPatch::~AntispawnPatch() {
 		delete[] orig_key_chest;
 	if(orig_tiki)
 		delete[] orig_tiki;
+	if(orig_gems)
+		delete[] orig_gems;
 }
 
 #define DISCOVER(type, offs) { \
@@ -50,12 +57,19 @@ AntispawnPatch::AntispawnPatch(std::shared_ptr<GameHooks> gh) : Patch(gh->spel),
 	orig_damsel(nullptr),
 	orig_key_chest(nullptr),
 	orig_tiki(nullptr),
+	orig_gems(nullptr),
+	anubis(0),
+	damsel(0),
+	tiki(0),
+	key_chest(0),
+	gems(0),
 	is_valid(true)
 {
 	DISCOVER(key_chest, 0);
 	DISCOVER(tiki, 0);
 	DISCOVER(damsel, 0);
 	DISCOVER(anubis, 0);
+	DISCOVER(gems, 0);
 }
 
 bool AntispawnPatch::_perform() {
@@ -63,6 +77,7 @@ bool AntispawnPatch::_perform() {
 	spel->write_mem(tiki, tiki_override, sizeof(tiki_override));
 	spel->write_mem(damsel, damsel_override, sizeof(damsel_override));
 	spel->write_mem(anubis, anubis_override, sizeof(anubis_override));
+	spel->write_mem(gems, gems_override, sizeof(gems_override));
 	return true;
 }
 
@@ -71,6 +86,7 @@ bool AntispawnPatch::_undo() {
 	spel->write_mem(tiki, orig_tiki, sizeof(tiki_override));
 	spel->write_mem(damsel, orig_damsel, sizeof(damsel_override));
 	spel->write_mem(anubis, orig_anubis, sizeof(anubis_override));
+	spel->write_mem(gems, orig_gems, sizeof(gems_override));
 	return true;
 }
 

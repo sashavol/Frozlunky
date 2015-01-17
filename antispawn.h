@@ -19,6 +19,9 @@ private:
 	Address key_chest;
 	BYTE* orig_key_chest;
 
+	Address gems;
+	BYTE* orig_gems;
+
 	bool is_valid;
 
 public:
