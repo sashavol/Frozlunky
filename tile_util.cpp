@@ -69,7 +69,7 @@ namespace TileUtil {
 			max_cons = max(max_cons, cons);
 		}
 
-		return max_cons / (double)s2.size();
+		return max_cons / (double)s1.size();
 	}
 	
 	static double score_charcomp(const std::string& s1, const std::string& s2) {
@@ -96,7 +96,7 @@ namespace TileUtil {
 				count++;
 		}
 
-		return double(count) / double(b.size());
+		return double(count) / double(a.size());
 	}
 
 	static void string_normalize(std::string& str) {
@@ -105,11 +105,6 @@ namespace TileUtil {
 		trim(str);
 		to_upper(str);
 		replace_all(str, " ", "");
-
-		auto paren = str.find_first_of("([");
-		if(paren != std::string::npos) {
-			str = str.substr(0, paren);
-		}
 	}
 
 	std::vector<std::string> Search(const std::vector<std::string>& list, const std::string& query) {
