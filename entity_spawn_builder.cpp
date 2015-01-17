@@ -72,6 +72,14 @@ EntitySpawnBuilder::EntitySpawn::EntitySpawn() :
 	entity(0)
 {}
 
+float EntitySpawnBuilder::EntitySpawn::x_pos() const {
+	return x;
+}
+
+float EntitySpawnBuilder::EntitySpawn::y_pos() const {
+	return y;
+}
+
 EntitySpawnBuilder::~EntitySpawnBuilder() {
 	if(subroutine_alloc) {
 		spel->free(subroutine_alloc);
@@ -91,7 +99,8 @@ EntitySpawnBuilder::EntitySpawnBuilder(std::shared_ptr<GameHooks> gh) :
 	is_valid(true),
 	spawn_entity_fn(0),
 	floats_alloc(0),
-	subroutine_alloc(0)
+	subroutine_alloc(0),
+	unapplied_changes(true)
 {
 	subroutine_alloc = spel->allocate(SUBROUTINE_ALLOC, true);
 	if(!subroutine_alloc) {
@@ -131,6 +140,11 @@ bool is_special_entity(int entity) {
 }
 
 void EntitySpawnBuilder::update_memory() {
+	//if there are no new changes, don't update memory.	
+	if(!unapplied_changes) {
+		return;
+	}
+
 	Address flp = floats_alloc;
 	
 	Address game_ptr = dp->game_ptr();
@@ -179,6 +193,7 @@ void EntitySpawnBuilder::update_memory() {
 	}
 
 	spel->write_mem(sr, ret_opcode, sizeof(ret_opcode));
+	unapplied_changes = false;
 }
 
 bool EntitySpawnBuilder::valid() const {
@@ -208,13 +223,16 @@ void EntitySpawnBuilder::add(float x, float y, int entity) {
 	}
 	
 	entities[std::make_pair(x, y)] = EntitySpawn(x, y, entity);
+	unapplied_changes = true;
 }
 
 EntitySpawnBuilder::const_iterator EntitySpawnBuilder::erase(const_iterator pos) {
 	auto ret = entities.erase(pos);
+	unapplied_changes = true;
 	return ret;
 }
 
 void EntitySpawnBuilder::clear() {
 	entities.clear();
+	unapplied_changes = true;
 }

@@ -37,7 +37,7 @@ private:
 
 		esb->clear();
 		for(const EntitySpawnBuilder::EntitySpawn& e : es) {
-			esb->add(e.x, e.y, e.entity);
+			esb->add(e.x_pos(), e.y_pos(), e.entity);
 		}
 	}
 

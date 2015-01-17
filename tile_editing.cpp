@@ -438,8 +438,8 @@ namespace TileEditing {
 					for(auto&& et : *esb) {
 						pugi::xml_node entity = level.append_child("entity");
 						entity.append_attribute("id").set_value(et.second.entity);
-						entity.append_attribute("x").set_value(et.second.x);
-						entity.append_attribute("y").set_value(et.second.y);
+						entity.append_attribute("x").set_value(et.second.x_pos());
+						entity.append_attribute("y").set_value(et.second.y_pos());
 					}
 				}
 			}

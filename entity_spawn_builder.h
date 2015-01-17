@@ -10,12 +10,20 @@ bool is_special_entity(int entity);
 class EntitySpawnBuilder {
 public:
 	struct EntitySpawn {
+		int entity;
+	
+	private:
 		float x;
 		float y;
-		int entity;
-
+	
+	public:
 		EntitySpawn(float x, float y, int entity);
 		EntitySpawn();
+
+		float x_pos() const;
+		float y_pos() const;
+
+		friend class EntitySpawnBuilder;
 	};
 
 private:
@@ -29,6 +37,7 @@ private:
 	std::shared_ptr<DerandomizePatch> dp; 
 	std::shared_ptr<Spelunky> spel;
 	bool is_valid;
+	bool unapplied_changes;
 
 	holder_type entities;
 
