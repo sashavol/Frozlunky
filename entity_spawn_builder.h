@@ -44,6 +44,8 @@ private:
 	Address spawn_entity_fn;
 	Address subroutine_alloc;
 	Address floats_alloc;
+	
+	signed int arrow_trap_dir_offs;
 
 private:
 	//prevent copy

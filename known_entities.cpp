@@ -229,7 +229,8 @@ namespace KnownEntities {
 		//level obstacles
 		(1, "Spikes")
 		(197, "Alien Forcefield Ground Laser")
-		(9, "Arrow Trap")
+		(9, "Arrow Trap (Right-Facing)")
+		(9 | ARROW_TRAP_LEFT_FACING, "Arrow Trap (Left-Facing)")
 		(22, "Tiki Trap")
 		(45, "Crush Trap 'Thwomp'")
 
@@ -527,6 +528,7 @@ namespace KnownEntities {
 		(5, 0x94503300)
 		(7, 0xbc722f00)
 		(9, 0x81746800)
+		(9 | ARROW_TRAP_LEFT_FACING, 0x81746800)
 		(11, 0xFFFFFF00)
 		(12, 0x536e8300)
 		(13, 0xc6983400)

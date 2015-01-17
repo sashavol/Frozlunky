@@ -5,6 +5,8 @@
 #include <string>
 #include <boost/assign.hpp>
 
+#define ARROW_TRAP_LEFT_FACING (1 << 15)
+
 #define W_TILE_BG_FLAG (1 << 16)
 #define ENTITY_FLAGS (W_TILE_BG_FLAG)
 

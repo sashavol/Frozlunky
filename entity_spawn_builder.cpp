@@ -1,7 +1,12 @@
 #include "entity_spawn_builder.h"
+#include "known_entities.h"
 
 #define SUBROUTINE_ALLOC 131072
 #define FLOATS_ALLOC 16384
+
+//+2
+static BYTE arrow_trap_find[] = {0x80,0xCC,0xCC,0xCC,0xCC,0xCC,0x00,0xD9,0xCC,0xCC,0xCC,0xD9,0xCC,0xCC,0x89,0xCC,0xCC,0x74};
+static std::string arrow_trap_mask = "x.....xx...x..x..x";
 
 //[SpawnEntity(void* current_game, float x, float y, int id, bool autoadd)]
 //+0
@@ -53,11 +58,19 @@ static BYTE ret_opcode[] = {0x61, 0xC3};
 //Special entities (idx < 100 || idx >= 2000)
 //spawn_opcode push 0 instead of 1, and
 //append the following opcodes after
-// AA (+2) -> entity obj offset
-// BB (+5) -> entity grid offset for specific entity
+// AA (+2) -> entity obj offset (1 byte)
+// BB (+5) -> entity grid offset for specific entity (4 bytes)
 static BYTE special_opcode[] = {
 	0x8B,0x51,0xAA,
 	0x89,0x82,0xBB,0xBB,0xBB,0xBB
+};
+
+//Flag append opcode (original use case for directional arrow traps)
+//Normally used by appending after spawn_opcode (before special_opcode)
+// AA (+2) -> entity flag offset (4 bytes)
+// BB (+6) -> entity flag value (1 byte)
+static BYTE flag_opcode[] = {
+	0xC6, 0x80, 0xAA,0xAA,0xAA,0xAA, 0xBB
 };
 
 EntitySpawnBuilder::EntitySpawn::EntitySpawn(float x, float y, int entity) : 
@@ -100,7 +113,8 @@ EntitySpawnBuilder::EntitySpawnBuilder(std::shared_ptr<GameHooks> gh) :
 	spawn_entity_fn(0),
 	floats_alloc(0),
 	subroutine_alloc(0),
-	unapplied_changes(true)
+	unapplied_changes(true),
+	arrow_trap_dir_offs(0)
 {
 	subroutine_alloc = spel->allocate(SUBROUTINE_ALLOC, true);
 	if(!subroutine_alloc) {
@@ -132,11 +146,30 @@ EntitySpawnBuilder::EntitySpawnBuilder(std::shared_ptr<GameHooks> gh) :
 		spel->store_hook("spawn_entity_fn", spawn_entity_fn);
 	}
 
+	//find arrow trap dir offs
+	arrow_trap_dir_offs = spel->get_stored_hook("arrow_trap_dir_offs");
+	if(!arrow_trap_dir_offs) {
+		Address cont = spel->find_mem(arrow_trap_find, arrow_trap_mask);
+		if(!cont) {
+			is_valid = false;
+			DBG_EXPR(std::cout << "[EntitySpawnBuilder] Failed to find arrow_trap_dir_offs" << std::endl);
+			return;
+		}
+
+		spel->read_mem(cont+2, &arrow_trap_dir_offs, sizeof(signed int));
+		DBG_EXPR(std::cout << "[EntitySpawnBuilder] arrow_trap_dir_offs = " << arrow_trap_dir_offs << std::endl);
+		spel->store_hook("arrow_trap_dir_offs", arrow_trap_dir_offs);
+	}
+
 	update_memory();
 }
 
 bool is_special_entity(int entity) {
 	return (entity < 100 || entity >= 2000) && entity != 45;
+}
+
+static int strip_flags(int entity) {
+	return entity & ~(W_TILE_BG_FLAG | ARROW_TRAP_LEFT_FACING);
 }
 
 void EntitySpawnBuilder::update_memory() {
@@ -159,8 +192,10 @@ void EntitySpawnBuilder::update_memory() {
 
 	for(auto&& pair : entities) {
 		auto& es = pair.second;
-		if(es.entity > 0) {
-			bool special = is_special_entity(es.entity);
+
+		int entity = strip_flags(es.entity);
+		if(entity > 0) {
+			bool special = is_special_entity(entity);
 			char standard_val = special ? 0 : 1;
 
 			spel->write_mem(flp, &es.x, sizeof(float));
@@ -170,13 +205,23 @@ void EntitySpawnBuilder::update_memory() {
 			Address xfl = flp, yfl = flp+4;
 			spel->write_mem(sr, spawn_opcode, sizeof(spawn_opcode));
 			spel->write_mem(sr+1, &standard_val, sizeof(char));
-			spel->write_mem(sr+3, &es.entity, sizeof(int));
+			spel->write_mem(sr+3, &entity, sizeof(int));
 			spel->write_mem(sr+9, &yfl, sizeof(Address));
 			spel->write_mem(sr+15, &xfl, sizeof(Address));
 			spel->write_mem(sr+30, &calldiff, sizeof(signed int));
 			spel->write_mem(sr+36, &game_ptr, sizeof(Address));
 
 			sr += sizeof(spawn_opcode);
+
+			if(es.entity & ARROW_TRAP_LEFT_FACING) {
+				uint8_t one = 1;
+
+				spel->write_mem(sr, flag_opcode, sizeof(flag_opcode));
+				spel->write_mem(sr+2, &arrow_trap_dir_offs, sizeof(signed int));
+				spel->write_mem(sr+6, &one, sizeof(uint8_t));
+
+				sr += sizeof(flag_opcode);
+			}
 
 			if(special) {
 				spel->write_mem(sr, special_opcode, sizeof(special_opcode));

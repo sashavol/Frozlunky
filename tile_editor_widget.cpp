@@ -1,15 +1,10 @@
 #include "tile_editor_widget.h"
 #include "tile_description.h"
 
-//!TODO improve editing performance by only applying chunks after no updates have occurred for N time
 //TODO add recovery option
 //TODO monitor file for changes
 //TODO fractional bullet types
 //TODO more entity tile picker space
-//TODO remove anubis / damsels / key+chest
-//TODO thwomps/tikis
-//TODO disable damsel spawn
-//TODO disable force level upon load
 
 //.TODO message boxes
 
