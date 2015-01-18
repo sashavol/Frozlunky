@@ -165,7 +165,7 @@ EntitySpawnBuilder::EntitySpawnBuilder(std::shared_ptr<GameHooks> gh) :
 }
 
 bool is_special_entity(int entity) {
-	return (entity < 100 || entity >= 2000) && entity != 45;
+	return (entity < 100 || entity >= 2000) && entity != 45 && entity != 3002;
 }
 
 static int strip_flags(int entity) {
