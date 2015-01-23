@@ -5,11 +5,7 @@
 //TODO monitor file for changes
 //TODO fractional bullet types
 //TODO more entity tile picker space
-//TODO rename some terminology differences: 
-	// Worm Uvula -> Worm Tongue
-	// Queen Bee Honey -> Queen Bee Royal Jelly
 //TODO remove worm uvula
-//TODO change level forcer to use areas rather than level #'s
 
 //.TODO message boxes
 

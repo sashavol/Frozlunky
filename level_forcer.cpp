@@ -84,14 +84,61 @@ LevelRedirect::LevelRedirect(std::shared_ptr<GameHooks> gh) :
 {}
 
 void LevelRedirect::write_level(int target) {
+	int lvl_id = target & ~(LR_BLACK_MARKET | LR_WORM | LR_HAUNTED_MANSION | LR_MOTHERSHIP);
+	
 	Address game;
 	spel->read_mem(gh->dp->game_ptr(), &game, sizeof(Address));
-	spel->write_mem(game + gh->dp->current_level_offset(), &target, sizeof(int));
+	spel->write_mem(game + gh->dp->current_level_offset(), &lvl_id, sizeof(int));
+
+	BYTE truval = 1;
+	
+	if(target & LR_BLACK_MARKET) {
+		spel->write_mem(game + gh->blackmkt_offset(), &truval, 1);
+	}
+	else if(target & LR_WORM) {
+		spel->write_mem(game + gh->worm_offset(), &truval, 1);
+	}
+	else if(target & LR_HAUNTED_MANSION) { 
+		spel->write_mem(game + gh->haunted_mansion_offset(), &truval, 1);
+	}
+	else if(target & LR_MOTHERSHIP) {
+		spel->write_mem(game + gh->mothership_offset(), &truval, 1);
+	}
+}
+
+int LevelRedirect::current_level() {
+	Address game;
+	spel->read_mem(gh->dp->game_ptr(), &game, sizeof(Address));
+
+	int lvl = gh->current_level();
+	
+	bool black_market = false;
+	spel->read_mem(game + gh->blackmkt_offset(), &black_market, 1);
+	
+	bool worm = false;
+	spel->read_mem(game + gh->worm_offset(), &worm, 1);
+	
+	bool haunted_mansion = false;
+	spel->read_mem(game + gh->haunted_mansion_offset(), &haunted_mansion, 1);
+	
+	bool mothership = false;
+	spel->read_mem(game + gh->mothership_offset(), &mothership, 1);
+
+	if(black_market)
+		lvl |= LR_BLACK_MARKET;
+	else if(worm)
+		lvl |= LR_WORM;
+	else if(haunted_mansion)
+		lvl |= LR_HAUNTED_MANSION;
+	else if(mothership)
+		lvl |= LR_MOTHERSHIP;
+
+	return lvl;
 }
 
 void LevelRedirect::cycle() {
 	int state = gh->game_state();
-	int lvl = gh->current_level();
+	int lvl = current_level();
 
 	if(game_started && (state == STATE_LOBBY || state == STATE_GAMEOVER_HUD || state == STATE_MAINMENU)) {
 		game_started = false;

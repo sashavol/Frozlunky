@@ -14,6 +14,13 @@
 #define LF_YETI			(1 << 4)
 #define LF_HAUNTED_MANSION (1 << 5)
 
+#define LR_BLACK_MARKET (LF_BLACK_MARKET << 5)
+#define LR_CITY_OF_GOLD (LF_CITY_OF_GOLD << 5)
+#define LR_MOTHERSHIP (LF_MOTHERSHIP << 5)
+#define LR_WORM (LF_WORM << 5)
+#define LR_YETI (LF_YETI << 5)
+#define LR_HAUNTED_MANSION (LF_HAUNTED_MANSION << 5)
+
 #define LB_DEFAULT_START 1
 #define LB_DEFAULT_OLMEC 16
 #define LB_DEFAULT_YAMA 20
@@ -44,7 +51,7 @@ public:
 	void set_enabled(bool enabled);
 };
 
-//TODO
+
 class LevelRedirect {
 private:
 	bool reset_checkpoint;
@@ -69,6 +76,7 @@ private:
 	std::shared_ptr<GameHooks> gh;
 
 	void write_level(int lvl);
+	int current_level();
 
 public:
 	LevelRedirect(std::shared_ptr<GameHooks> gh);

@@ -194,22 +194,22 @@ static std::string current_game_level() {
 	Address game;
 	dp->spel->read_mem(dp->game_ptr(), &game, sizeof(Address));
 
-	bool black_market;
+	bool black_market = false;
 	dp->spel->read_mem(game + gh->blackmkt_offset(), &black_market, 1);
 	if(black_market)
 		return "Black Market";
 
-	bool worm;
+	bool worm = false;
 	dp->spel->read_mem(game + gh->worm_offset(), &worm, 1);
 	if(worm)
 		return "Worm";
 	
-	bool haunted_mansion;
+	bool haunted_mansion = false;
 	dp->spel->read_mem(game + gh->haunted_mansion_offset(), &haunted_mansion, 1);
 	if(haunted_mansion)
 		return "Haunted Castle";
 
-	bool mothership;
+	bool mothership = false;
 	dp->spel->read_mem(game + gh->mothership_offset(), &mothership, 1);
 	if(mothership)
 		return "The Mothership";
