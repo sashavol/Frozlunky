@@ -91,19 +91,12 @@ void LevelRedirect::write_level(int target) {
 	spel->write_mem(game + gh->dp->current_level_offset(), &lvl_id, sizeof(int));
 
 	BYTE truval = 1;
+	BYTE falseval = 0;
 	
-	if(target & LR_BLACK_MARKET) {
-		spel->write_mem(game + gh->blackmkt_offset(), &truval, 1);
-	}
-	else if(target & LR_WORM) {
-		spel->write_mem(game + gh->worm_offset(), &truval, 1);
-	}
-	else if(target & LR_HAUNTED_MANSION) { 
-		spel->write_mem(game + gh->haunted_mansion_offset(), &truval, 1);
-	}
-	else if(target & LR_MOTHERSHIP) {
-		spel->write_mem(game + gh->mothership_offset(), &truval, 1);
-	}
+	spel->write_mem(game + gh->blackmkt_offset(), ((target & LR_BLACK_MARKET) ? &truval : &falseval), 1);
+	spel->write_mem(game + gh->worm_offset(), ((target & LR_WORM) ? &truval : &falseval), 1);
+	spel->write_mem(game + gh->haunted_mansion_offset(), ((target & LR_HAUNTED_MANSION) ? &truval : &falseval), 1);
+	spel->write_mem(game + gh->mothership_offset(), ((target & LR_MOTHERSHIP) ? &truval : &falseval), 1);
 }
 
 int LevelRedirect::current_level() {
