@@ -25,6 +25,11 @@ static BYTE gems_find[] = {0x0F,0x85,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0xCC,0xCC,0x8
 static std::string gems_mask = "xx....x...x..x.xx";
 static BYTE gems_override[] = {0x90,0xE9};
 
+//+0
+static BYTE worm_tongue_find[] = {0x0F,0x85,0xCC,0xCC,0xCC,0xCC,0x8B,0xCC,0xCC,0xCC,0xCC,0xCC,0x83,0xCC,0xCC,0x74,0xCC,0x83,0xCC,0xCC,0x0F,0x85};
+static std::string worm_tongue_mask = "xx....x.....x..x.x..xx";
+static BYTE worm_tongue_override[] = {0x90, 0xE9};
+
 AntispawnPatch::~AntispawnPatch() {
 	if(orig_anubis)
 		delete[] orig_anubis;
@@ -36,6 +41,8 @@ AntispawnPatch::~AntispawnPatch() {
 		delete[] orig_tiki;
 	if(orig_gems)
 		delete[] orig_gems;
+	if(orig_worm_tongue)
+		delete[] orig_worm_tongue;
 }
 
 #define DISCOVER(type, offs) { \
@@ -58,6 +65,7 @@ AntispawnPatch::AntispawnPatch(std::shared_ptr<GameHooks> gh) : Patch(gh->spel),
 	orig_key_chest(nullptr),
 	orig_tiki(nullptr),
 	orig_gems(nullptr),
+	orig_worm_tongue(nullptr),
 	anubis(0),
 	damsel(0),
 	tiki(0),
@@ -70,6 +78,7 @@ AntispawnPatch::AntispawnPatch(std::shared_ptr<GameHooks> gh) : Patch(gh->spel),
 	DISCOVER(damsel, 0);
 	DISCOVER(anubis, 0);
 	DISCOVER(gems, 0);
+	DISCOVER(worm_tongue, 0);
 }
 
 bool AntispawnPatch::_perform() {
@@ -78,6 +87,7 @@ bool AntispawnPatch::_perform() {
 	spel->write_mem(damsel, damsel_override, sizeof(damsel_override));
 	spel->write_mem(anubis, anubis_override, sizeof(anubis_override));
 	spel->write_mem(gems, gems_override, sizeof(gems_override));
+	spel->write_mem(worm_tongue, worm_tongue_override, sizeof(worm_tongue_override));
 	return true;
 }
 
@@ -87,6 +97,7 @@ bool AntispawnPatch::_undo() {
 	spel->write_mem(damsel, orig_damsel, sizeof(damsel_override));
 	spel->write_mem(anubis, orig_anubis, sizeof(anubis_override));
 	spel->write_mem(gems, orig_gems, sizeof(gems_override));
+	spel->write_mem(worm_tongue, orig_worm_tongue, sizeof(worm_tongue_override));
 	return true;
 }
 

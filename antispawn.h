@@ -22,6 +22,9 @@ private:
 	Address gems;
 	BYTE* orig_gems;
 
+	Address worm_tongue;
+	BYTE* orig_worm_tongue;
+
 	bool is_valid;
 
 public:
