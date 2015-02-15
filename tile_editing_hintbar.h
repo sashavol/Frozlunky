@@ -10,6 +10,7 @@ class TileEditingHintbar : public Fl_Widget {
 private:
 	std::string text;
 
+	std::string message;
 	int entity;
 
 	char tile;
@@ -23,7 +24,7 @@ public:
 	TileEditingHintbar(int x, int y, int w, int h);
 
 	void set_tile(char tile, AreaRenderMode area, Chunk* parent);
-	void set_entity(int entity, Chunk* parent);
+	void set_entity(int entity, Chunk* parent, std::string message = "");
 	
 	virtual void draw() override;
 	virtual int handle(int evt) override;

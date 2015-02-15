@@ -767,7 +767,7 @@ void EditorWidget::update_hint_bar() {
 	int entity = cursor.entity_get();
 	
 	if(entity)
-		hint_bar->set_entity(entity, find_chunk(pair.first, pair.second));
+		hint_bar->set_entity(entity, find_chunk(pair.first, pair.second), cursor.get_message());
 	else
 		hint_bar->set_tile(tile, arm, find_chunk(pair.first, pair.second));
 	

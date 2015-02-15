@@ -83,6 +83,7 @@ static std::map<std::string, std::map<std::string, TileEditingMenuBar::KeyTrigge
 		("fClear Tile + Left", tg_(65288, false, false, false, "Backspace"))
 		("gPlace Picked Tile or Entity", tg_('`', false, false, false, "Tilde Key"))
 		("hUse Selected Tile in Picker", tg_(32, true, false, false, "Ctrl+Space"))
+		("iInsert Message", tg_(65379, false, false, false, "Insert"))
 	);
 
 TileEditingMenuBar::KeyTrigger::KeyTrigger(int key, bool ctrl, bool shift, bool alt, const std::string& hotkey_text) :

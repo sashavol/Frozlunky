@@ -54,6 +54,10 @@ void TileEditingHintbar::update_label() {
 		oss << "Picked Tile: " << Description::TileDescription(tile, area);
 	}
 
+	if(!message.empty()) {
+		oss << "  Message: " << message;
+	}
+
 	text = oss.str();
 }
 
@@ -62,6 +66,7 @@ void TileEditingHintbar::set_tile(char tile, AreaRenderMode area, Chunk* parent)
 	this->area = area;
 	this->chunk = parent;
 	this->entity = 0;
+	this->message = "";
 
 	update_label();
 }
@@ -70,10 +75,11 @@ int TileEditingHintbar::handle(int evt) {
 	return 0;
 }
 
-void TileEditingHintbar::set_entity(int entity, Chunk* parent) {
+void TileEditingHintbar::set_entity(int entity, Chunk* parent, std::string message) {
 	this->tile = 0;
 	this->entity = entity;
 	this->chunk = parent;
+	this->message = message;
 
 	update_label();
 }
