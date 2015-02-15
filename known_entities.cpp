@@ -31,7 +31,7 @@ namespace KnownEntities {
 	/*
 		(109, "109 [Unknown]")
 		(110, "110 [Unknown]")
-		(111, "111 [Unknown]")
+		(111, "111 [Unknown]") //May be pot shatter entity
 		(123, "123")
 		(157, "157 [Unknown]")
 		(198, "198 [Unknown]")

@@ -14,6 +14,8 @@
 #include "syllabic.h"
 #include "remove_ghost_patch.h"
 #include "antispawn.h"
+#include "message_displayer.h"
+#include "message_grid.h"
 
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
@@ -61,6 +63,7 @@ static std::shared_ptr<GameHooks> gh;
 static std::shared_ptr<ResourceEditor> resource_editor;
 static std::shared_ptr<RemoveGhostPatch> remove_ghost;
 static std::shared_ptr<AntispawnPatch> antispawn;
+static std::shared_ptr<MessageDisplayer> msg_displayer;
 static ResourceEditorWindow* resource_editor_window;
 static LevelSettingsWindow* level_settings_window;
 static HANDLE worker_thread = 0;
@@ -312,6 +315,8 @@ namespace TileEditing {
 					e.second->get_picker().get_recent_entities().clear();
 					esb->clear();
 				}
+
+				e.second->get_cursor().clear_messages();
 			}
 		}
 
@@ -445,6 +450,26 @@ namespace TileEditing {
 						entity.append_attribute("x").set_value(et.second.x_pos());
 						entity.append_attribute("y").set_value(et.second.y_pos());
 					}
+				}
+			}
+
+			pugi::xml_node messages = xmld.append_child("messages");
+			for(auto&& e : editors) {
+				if(mget(area_lookup, e.first).second == "%")
+					continue;
+				
+				MessageGrid& mg = e.second->get_cursor().message_grid;
+
+				if(mg.cc_grid.empty())
+					continue;
+
+				pugi::xml_node level = messages.append_child(SafeXMLName(e.first).c_str());
+
+				for(const std::pair<MessageGrid::cc_pos, std::string>& p : mg.cc_grid) {
+					pugi::xml_node message = level.append_child("msg");
+					message.append_attribute("cx").set_value(p.first.first);
+					message.append_attribute("cy").set_value(p.first.second);
+					message.append_attribute("str").set_value(p.second.c_str());
 				}
 			}
 
@@ -642,6 +667,30 @@ namespace TileEditing {
 
 									esb->add(xa.as_float(), ya.as_float(), ida.as_int());
 								}
+							}
+						}
+					}
+				}
+
+				pugi::xml_node messages = xmld.child("messages");
+				if(!messages.empty()) {
+					for(pugi::xml_node level : messages.children()) {
+						std::string area = AreaName(level.name());
+
+						if(area != "") {
+							MessageGrid& grid = editors[area]->get_cursor().message_grid;
+							
+							for(pugi::xml_node message : level.children()) {
+								pugi::xml_attribute xa = message.attribute("cx"),
+													ya = message.attribute("cy"),
+													str = message.attribute("str");
+
+								if(xa.empty() || ya.empty() || str.empty()) {
+									cycle_mutex.unlock();
+									throw std::runtime_error("Encountered invalid message.");
+								}
+
+								grid.insert(std::make_pair(xa.as_int(), ya.as_int()), str.value());
 							}
 						}
 					}
@@ -1042,6 +1091,8 @@ namespace TileEditing {
 	}
 
 	static DWORD __stdcall worker_thread_(void*) {
+		MessageGrid::grid::iterator last_message;
+
 		while(true) {
 			cycle_mutex.lock();
 			if(tp->is_active()) {
@@ -1070,6 +1121,16 @@ namespace TileEditing {
 							remove_ghost->undo();
 						}
 					}
+
+					//messages
+					if(msg_displayer->valid() && gh->game_state() == STATE_PLAYING) {
+						MessageGrid& msg_grid = ew->get_cursor().message_grid;
+						auto it = msg_grid.player_message();
+						if(it != msg_grid.end() && it != last_message) {
+							msg_displayer->display(it->second);
+						}
+						last_message = it;
+					}
 				}
 
 				if(!antispawn->is_active()) {
@@ -1097,7 +1158,6 @@ namespace TileEditing {
 			}
 
 			cycle_mutex.unlock();
-
 			Sleep(2);
 		}
 	}
@@ -1291,6 +1351,7 @@ namespace TileEditing {
 
 		remove_ghost = std::make_shared<RemoveGhostPatch>(gh);
 		antispawn = std::make_shared<AntispawnPatch>(gh);
+		msg_displayer = std::make_shared<MessageDisplayer>(gh);
 
 		level_forcer = std::make_shared<LevelForcer>(dp, gh);
 		level_redirect = std::make_shared<LevelRedirect>(gh);

@@ -23,4 +23,4 @@ Fl_Color tile_color(char tile);
 void draw_tile(char tile, int x, int y, int w, int h, AreaRenderMode arm=MINES);
 
 inline Fl_Color entity_color(int entity);
-void draw_entity(int entity, int x, int y, int w, int h);
+void draw_entity(int entity, int x, int y, int w, int h, bool message_entity = false);

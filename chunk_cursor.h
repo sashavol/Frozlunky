@@ -6,17 +6,26 @@
 #include <map>
 #include "tile_chunk.h"
 #include "entity_spawn_layer.h"
+#include "message_grid.h"
 
-typedef std::map<std::pair<int, int>, std::pair<char, int>> cursor_store;
+#define MESSAGE_ENTITY 53
+
+struct cursor_store {
+	std::map<std::pair<int, int>, std::pair<char, int>> tiles;
+	std::map<MessageGrid::cc_pos, std::string> messages;
+};
 
 //works with constant-size chunks as a cursor
 struct ChunkCursor {
 private:
 	typedef std::function<void(int dsx, int dsy, int dex, int dey)> pos_fn;
 
+public:
+	MessageGrid message_grid;
+
 private:
 	bool read_only;
-
+	
 	std::shared_ptr<EntitySpawnLayer> entity_layer;
 	std::vector<pos_fn> pos_change_cb;
 
@@ -33,7 +42,7 @@ private:
 public:
 	char tile;
 	
-	ChunkCursor(const std::vector<Chunk*>& chunks, std::shared_ptr<EntitySpawnBuilder> esb, int tw, bool read_only=false);
+	ChunkCursor(std::shared_ptr<GameHooks> gh, const std::vector<Chunk*>& chunks, std::shared_ptr<EntitySpawnBuilder> esb, int tw, bool read_only=false);
 	void pos_callback(pos_fn fn);
 	
 private:
@@ -45,12 +54,19 @@ private:
 	void write(char tile, int x, int y, bool zero_et_=true);
 	char get(int x, int y) const;
 
+	void write_message(int x, int y, const std::string& msg);
+	void erase_message(int x, int y);
+
 public:
 	int entity_get() const;
 	void entity_put(int entity);
 
 	char get() const;
 	void put(char tile);
+
+	std::string get_message();
+	void put_message(const std::string& msg);
+	void clear_messages();
 	
 	bool in_bounds() const;
 

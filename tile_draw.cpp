@@ -136,7 +136,9 @@ Fl_Color entity_color(int entity) {
 	return KnownEntities::GetColor(entity);
 }
 
-void draw_entity(int entity, int x, int y, int w, int h) {
+#define MESSAGE_BG_COLOR 0x00FF0000
+
+void draw_entity(int entity, int x, int y, int w, int h, bool message_entity) {
 	Fl_Color centity = entity_color(raw_entity(entity));
 	const std::string& known = KnownEntities::GetName(entity);
 	char str[] = {known[0], 0};
@@ -148,8 +150,13 @@ void draw_entity(int entity, int x, int y, int w, int h) {
 		fl_draw_box(Fl_Boxtype::FL_FLAT_BOX, x, y, w-1, h-1, ctile);
 	}
 	
+	
 	fl_draw_box(FL_OFLAT_BOX, x, y, w, h, fl_darker(centity));
 	fl_draw_box(FL_OFLAT_BOX, x, y, w-1, h-1, centity);
+
+	if(message_entity) {
+		fl_rect(x, y, w, h, MESSAGE_BG_COLOR);
+	}
 
 	fl_color(0);
 	fl_draw(str, x, y, w, h, FL_ALIGN_INSIDE);

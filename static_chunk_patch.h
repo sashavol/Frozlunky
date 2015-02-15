@@ -9,9 +9,11 @@
 #include "yeti_remove_patch.h"
 
 class StaticChunkPatch : public Patch {
-private:
+public:
 	std::shared_ptr<GameHooks> gh;
 	std::shared_ptr<DerandomizePatch> dp;
+
+private:
 	std::shared_ptr<Seeder> seeder;
 	std::shared_ptr<TilePatch> tp;
 	std::shared_ptr<YetiRemovePatch> yrp;

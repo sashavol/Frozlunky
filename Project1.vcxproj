@@ -112,6 +112,8 @@
     <ClCompile Include="level_forcer.cpp" />
     <ClCompile Include="level_settings_gui.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="message_displayer.cpp" />
+    <ClCompile Include="message_grid.cpp" />
     <ClCompile Include="mods.cpp" />
     <ClCompile Include="netplay_connection.cpp" />
     <ClCompile Include="netplay_session.cpp" />
@@ -171,6 +173,8 @@
     <ClInclude Include="known_entities.h" />
     <ClInclude Include="level_forcer.h" />
     <ClInclude Include="level_settings_gui.h" />
+    <ClInclude Include="message_displayer.h" />
+    <ClInclude Include="message_grid.h" />
     <ClInclude Include="protect_achiev.h" />
     <ClInclude Include="remove_ghost_patch.h" />
     <ClInclude Include="resource_editor.h" />

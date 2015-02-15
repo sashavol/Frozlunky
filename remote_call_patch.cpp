@@ -31,8 +31,6 @@ void RemoteCallPatch::init_worker() {
 					queue.erase(queue.begin());
 					queue_mutex.unlock();
 
-					DBG_EXPR(std::cout << "[RemoteCallPatch] Writing function call to remote." << std::endl);
-
 					//write function and store callback to be called when function executed
 					last_cb = entry.second;
 					spel->write_mem(routine_mem, entry.first.data, RCP_USER_SIZE);

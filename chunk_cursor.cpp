@@ -4,7 +4,7 @@
 #include <iostream>
 #include <algorithm>
 
-ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, std::shared_ptr<EntitySpawnBuilder> esb, int tw, bool read_only) :
+ChunkCursor::ChunkCursor(std::shared_ptr<GameHooks> gh, const std::vector<Chunk*>& chunks, std::shared_ptr<EntitySpawnBuilder> esb, int tw, bool read_only) :
 	read_only(read_only),
 	tile('1'), 
 	sx(-1), 
@@ -12,7 +12,8 @@ ChunkCursor::ChunkCursor(const std::vector<Chunk*>& chunks, std::shared_ptr<Enti
 	ex(-1), 
 	ey(-1),
 	chunks(chunks),
-	tw(tw)
+	tw(tw),
+	message_grid(gh)
 {
 	if(chunks.empty()) {
 		width = 0;
@@ -66,8 +67,10 @@ void ChunkCursor::tileref(int x, int y, std::function<void(Chunk* c, int cx, int
 }
 
 void ChunkCursor::write(char tile, int x, int y, bool zero_et_) {
-	if(zero_et_)
+	if(zero_et_) {
+		erase_message(x, y);
 		entity_write(0, x, y);
+	}
 
 	tileref(x, y, [=](Chunk* c, int cx, int cy) {
 		c->tile(cx, cy, tile);
@@ -80,6 +83,8 @@ void ChunkCursor::entity_write(int entity, int x, int y, bool zero_ti_) {
 	}
 
 	if(zero_ti_) {
+		erase_message(x, y);
+
 		if(entity & W_TILE_BG_FLAG)
 			write('w', x, y, false);
 		else
@@ -116,10 +121,6 @@ int ChunkCursor::entity_get() const {
 	return entity_get(rsx(), rsy());
 }
 
-char ChunkCursor::get() const {
-	return get(rsx(), rsy());
-}
-
 void ChunkCursor::entity_put(int entity) {
 	if(!in_bounds() || read_only) {
 		return;
@@ -139,6 +140,10 @@ void ChunkCursor::entity_put(int entity) {
 	}
 }
 
+char ChunkCursor::get() const {
+	return get(rsx(), rsy());
+}
+
 void ChunkCursor::put(char tile) {
 	if(!in_bounds() || read_only) {
 		return;
@@ -156,6 +161,44 @@ void ChunkCursor::put(char tile) {
 	catch(std::exception&) {
 		DBG_EXPR(std::cout << "[TileEditorWidget] Warning: put('" << tile << "') out of bounds." << std::endl);
 	}
+}
+
+std::string ChunkCursor::get_message() {
+	auto it = message_grid.find(std::make_pair(rsx(), rsy()));
+	if(it != message_grid.end())
+		return it->second;
+	else
+		return "";
+}
+
+void ChunkCursor::put_message(const std::string& msg) {
+	if(!in_bounds() || read_only) {
+		return;
+	}
+
+	write_message(rsx(), rsy(), msg);
+}
+
+void ChunkCursor::write_message(int x, int y, const std::string& msg) {
+	if(!entity_layer) {
+		return;
+	}
+	
+	entity_write(MESSAGE_ENTITY, x, y);
+	message_grid.insert(std::make_pair(x, y), msg);
+}
+
+void ChunkCursor::erase_message(int x, int y) {
+	entity_write(0, x, y, false);
+
+	auto it = message_grid.find(std::make_pair(x, y));
+	if(it != message_grid.end()) {
+		message_grid.erase(it);
+	}
+}
+
+void ChunkCursor::clear_messages() {
+	message_grid.clear();
 }
 
 bool ChunkCursor::in_bounds() const {
@@ -306,9 +349,16 @@ cursor_store ChunkCursor::encode() {
 	cursor_store out;
 	for(int x = sx; x <= ex; x++) {
 		for(int y = sy; y <= ey; y++) {
+			std::pair<int, int> pos = std::make_pair(x, y);
+
 			char tile = get(x, y);
 			if(tile != 0) {
-				out[std::make_pair(x, y)] = std::make_pair(tile, entity_get(x, y));
+				out.tiles[pos] = std::make_pair(tile, entity_get(x, y));
+			}
+		
+			auto msg_it = message_grid.find(pos);
+			if(msg_it != message_grid.end()) {
+				out.messages[pos] = msg_it->second;
 			}
 		}
 	}
@@ -325,7 +375,7 @@ void ChunkCursor::decode(const cursor_store& store, bool horiz_mirror) {
 
 	std::pair<int, int> edge(INT_MAX, INT_MAX);
 	std::pair<int, int> end_edge(INT_MIN, INT_MIN);
-	for(auto&& p : store) {
+	for(auto&& p : store.tiles) {
 		auto& at = p.first;
 		edge.first = min(at.first, edge.first);
 		edge.second = min(at.second, edge.second);
@@ -334,15 +384,25 @@ void ChunkCursor::decode(const cursor_store& store, bool horiz_mirror) {
 		end_edge.second = max(at.second, end_edge.second);
 	}
 
-	int width = end_edge.first - edge.first + 1;
-	for(auto&& p : store) {
-		std::pair<int, int> at = p.first;
-		int x = (horiz_mirror ? width - (at.first - edge.first) - 1 : at.first - edge.first) + sx;
-		int y = at.second - edge.second + sy;
+	if(entity_layer) {
+		int width = end_edge.first - edge.first + 1;
+		for(auto&& p : store.tiles) {
+			std::pair<int, int> at = p.first;
+			int x = (horiz_mirror ? width - (at.first - edge.first) - 1 : at.first - edge.first) + sx;
+			int y = at.second - edge.second + sy;
 
-		write(p.second.first, x, y);
-		if(p.second.second != 0) {
-			entity_write(p.second.second, x, y, false);
+			write(p.second.first, x, y);
+			if(p.second.second != 0) {
+				entity_write(p.second.second, x, y, false);
+			}
+		}
+
+		for(auto&& m : store.messages) {
+			MessageGrid::cc_pos at = m.first;
+			int x = (horiz_mirror ? width - (at.first - edge.first) - 1 : at.first - edge.first) + sx;
+			int y = at.second - edge.second + sy;
+
+			message_grid.insert(std::make_pair(x, y), m.second);
 		}
 	}
 }

@@ -32,10 +32,12 @@ private:
 public:
 	typedef holder_type::const_iterator const_iterator;
 
-private:
+public:
 	std::shared_ptr<GameHooks> gh;
 	std::shared_ptr<DerandomizePatch> dp; 
 	std::shared_ptr<Spelunky> spel;
+
+private:
 	bool is_valid;
 	bool unapplied_changes;
 

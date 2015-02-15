@@ -9,6 +9,7 @@ class ChunkTimeline {
 private:
 	typedef std::map<std::string, std::string> state;
 	typedef std::vector<EntitySpawnBuilder::EntitySpawn> entity_state;
+	typedef MessageGrid msg_state;
 
 private:
 	int p;
@@ -16,7 +17,9 @@ private:
 	std::shared_ptr<EntitySpawnBuilder> esb;
 	std::vector<state> states;
 	std::vector<entity_state> entity_states;
+	std::vector<msg_state> message_states;
 	std::map<std::string, SingleChunk*> chunks;
+	MessageGrid* msg_grid;
 
 private:
 	void load_chunk(Chunk* c) {
@@ -30,19 +33,31 @@ private:
 	}
 
 private:
-	void apply_state(state& state, entity_state& es) {
+	void apply_state(state& state) {
 		for(auto&& u : state) {
 			chunks[u.first]->set_data(u.second);
 		}
+	}
 
-		esb->clear();
-		for(const EntitySpawnBuilder::EntitySpawn& e : es) {
-			esb->add(e.x_pos(), e.y_pos(), e.entity);
+	void apply_state(state& state, entity_state& es, MessageGrid& grid) {
+		apply_state(state);
+
+		if(esb) {
+			esb->clear();
+			for(const EntitySpawnBuilder::EntitySpawn& e : es) {
+				esb->add(e.x_pos(), e.y_pos(), e.entity);
+			}
+
+			*msg_grid = grid;
 		}
 	}
 
 public:
-	ChunkTimeline(std::vector<Chunk*> chunks, std::shared_ptr<EntitySpawnBuilder> esb) : esb(esb), p(0) {
+	ChunkTimeline(std::vector<Chunk*> chunks, std::shared_ptr<EntitySpawnBuilder> esb, MessageGrid& msg_grid) : 
+		esb(esb), 
+		p(0),
+		msg_grid(&msg_grid)
+	{
 		for(Chunk* c : chunks) {
 			load_chunk(c);
 		}
@@ -61,6 +76,7 @@ public:
 				est.push_back(es.second);
 			}
 			entity_states.push_back(est);
+			message_states.push_back(*msg_grid);
 		}
 		
 		p++;
@@ -68,6 +84,7 @@ public:
 		
 		if(esb) {
 			entity_states.erase(entity_states.begin()+p, entity_states.end());
+			message_states.erase(message_states.begin()+p, message_states.end());
 		}
 	}
 
@@ -79,14 +96,22 @@ public:
 			}
 
 			p--;
-			apply_state(states[p], entity_states[p]);
+
+			if(esb)
+				apply_state(states[p], entity_states[p], message_states[p]);
+			else
+				apply_state(states[p]);
 		}
 	}
 
 	void forward() {
 		if(p < (int)states.size() - 1) {
 			p++;
-			apply_state(states[p], entity_states[p]);
+
+			if(esb)
+				apply_state(states[p], entity_states[p], message_states[p]);
+			else
+				apply_state(states[p]);
 		}
 	}
 };

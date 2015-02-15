@@ -1,16 +1,14 @@
 #include "tile_editor_widget.h"
 #include "tile_description.h"
 
+#include <FL/fl_ask.H>
+
 //TODO add recovery option
 //TODO monitor file for changes
 //TODO fractional bullet types
 //TODO more entity tile picker space
-//TODO remove worm uvula
-
-//.TODO message boxes
 
 #define TILE_FONT_SIZE 11
-
 
 bool EditorWidget::allow_input() {
 	if(!key_press)
@@ -45,7 +43,7 @@ void EditorWidget::status_callback(std::function<void(unsigned)> cb) {
 }
 
 void EditorWidget::clear_state() {
-	timeline = ChunkTimeline(chunks, esb);
+	timeline = ChunkTimeline(chunks, esb, cursor.message_grid);
 }
 
 void EditorWidget::clear_chunk(Chunk* cnk) {
@@ -331,6 +329,24 @@ int EditorWidget::handle_key(int key) {
 		}
 		return 1;
 
+	case 65379: //insert
+		if(cursor.in_bounds()) {
+			const char* def = nullptr;
+			std::string existing = cursor.get_message();
+			def = existing.c_str();
+
+			const char* input = fl_input("Message text: ", def);
+			if(input) {
+				timeline.push_state();
+				std::string msg(input);
+				cursor.put_message(msg);
+				parent()->redraw();
+				update_hint_bar();
+				status(STATE_CHUNK_WRITE);
+			}
+		}
+		return 1;
+
 	case 65535: //delete
 		if(cursor.in_bounds()) {
 			timeline.push_state();
@@ -480,7 +496,7 @@ int EditorWidget::handle_key(int key) {
 
 	case 118: //ctrl+v: paste
 		if(ctrl_down) {
-			if(cursor.in_bounds() && !clipboard.empty()) {
+			if(cursor.in_bounds() && !clipboard.tiles.empty()) {
 				timeline.push_state();
 				cursor.decode(clipboard, shift_down);
 				status(STATE_CHUNK_PASTE);
@@ -791,12 +807,12 @@ EditorWidget::EditorWidget(AreaRenderMode arm,
 	tp(tp),
 	extended_mode(extended_mode),
 	last_dir(Direction::UP),
-	timeline(chunks, esb),
+	cursor(tp->gh, chunks, esb, extended_mode ? 2 : 4, read_only),
+	timeline(chunks, esb, cursor.message_grid),
 	move_drag_start(-1, -1),
 	build_dim(-1, -1),
 	arm(arm),
 	picker(this, arm, tp->valid_tiles(), scrollbar->x() + PICKER_X_ES_OFFS, y, PICKER_WIDTH, h, PICKER_XU, PICKER_YU),
-	cursor(chunks, esb, extended_mode ? 2 : 4, read_only),
 	disable_ghost(false)
 {
 	std::fill(mouse_down, mouse_down+sizeof(mouse_down), false);
@@ -1086,7 +1102,7 @@ void EditorWidget::draw() {
 			std::pair<int, int> unmapped = EntitySpawnLayer::unmap(eto.x_pos(), eto.y_pos());
 			auto rpos = render_pos(unmapped.first, unmapped.second);
 			if(rpos.second >= ymin && rpos.second < ymax) {
-				draw_entity(eto.entity, rpos.first, rpos.second, xu, yu);
+				draw_entity(eto.entity, rpos.first, rpos.second, xu, yu, cursor.message_grid.find(unmapped) != cursor.message_grid.end());
 			}
 		}
 	}

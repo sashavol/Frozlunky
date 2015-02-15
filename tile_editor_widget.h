@@ -84,11 +84,12 @@ private:
 	std::shared_ptr<StaticChunkPatch> tp;
 	std::function<void(unsigned)> status_cb;
 
-	ChunkTimeline timeline;
 	TilePicker picker;
 
 	std::vector<Chunk*> chunks;
 	ChunkCursor cursor;
+
+	ChunkTimeline timeline;
 
 	bool extended_mode; //extended mode (applicable to Worm, derived from chunks size)
 	std::shared_ptr<clock::time_point> key_press;
