@@ -96,7 +96,7 @@ namespace KnownEntities {
 		(533, "Vlad's Amulet")
 
 		//enemies
-		(223, "Olmec")
+		(223, "Olmec Shell")
 		(234, "Anubis II Spawner")
 		(1001, "Snake")
 		(1002, "Spider")
@@ -154,7 +154,7 @@ namespace KnownEntities {
 		(1051, "Succubus")
 		(1052, "Horse Head")
 		(1053, "Ox Face")
-		(1055, "King Yama Body")
+		(1055, "Olmec")
 		(1056, "King Yama Head")
 		(1057, "King Yama Fist")
 		(1063, "Rat Critter")
