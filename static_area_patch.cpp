@@ -146,6 +146,8 @@ bool StaticAreaPatch::find_jmp() {
 		[=](const std::pair<Address, size_t>& a, const std::pair<Address, size_t>& b) {
 			if(a.second < 5 && b.second >= 5)
 				return true;
+			else if(b.second < 5 && a.second >= 5)
+				return false;
 			else
 				return a.first > b.first;
 		}

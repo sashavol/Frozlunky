@@ -1,4 +1,5 @@
 #include "../debug.h"
+#include "../winheaders.h"
 #include "request.h"
 
 #include <curl/curl.h>

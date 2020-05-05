@@ -212,7 +212,7 @@ void undo_patches() {
 }
 
 bool active_daily() {
-	return daily;
+	return daily != nullptr;
 }
 
 void hide_gui(Fl_Widget* ignored = nullptr) {

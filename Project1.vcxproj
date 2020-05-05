@@ -14,18 +14,19 @@
     <ProjectGuid>{3D307284-00E4-4499-9B16-206D5891AAA6}</ProjectGuid>
     <RootNamespace>Project1</RootNamespace>
     <ProjectName>Frozlunky</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -45,10 +46,11 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_WINSOCKAPI_=;WIN32;_CRT_SECURE_NO_WARNINGS;DEBUG_MODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>pugixml.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;Wldap32.lib;fltkd.lib;psapi.lib;muparser.lib;Winmm.lib;enet.lib;pugixml_d.lib;libcurl-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -66,13 +68,14 @@
       <AdditionalOptions>-DPSAPI_VERSION=1 -DCURL_STATICLIB=1 -DWIN32=1 -D_CRT_SECURE_NO_WARNINGS=1 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <PreprocessorDefinitions>_WINSOCKAPI_=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ws2_32.lib;Wldap32.lib;fltk.lib;psapi.lib;muparser32.lib;libeay32MD.lib;Winmm.lib;enet.lib;pugixml.lib;libcurl_a.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>ws2_32.lib;Wldap32.lib;fltk.lib;psapi.lib;muparser.lib;Winmm.lib;enet.lib;pugixml.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
       <AssemblyDebug>false</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
@@ -252,12 +255,6 @@
     <ClInclude Include="watermark.h" />
     <ClInclude Include="winheaders.h" />
     <ClInclude Include="yeti_remove_patch.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\fr.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\resources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

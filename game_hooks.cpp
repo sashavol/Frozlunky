@@ -211,7 +211,7 @@ bool valid_steamid(char id[STEAMID_MEM_LENGTH]) {
 		}
 	}
 
-	id[STEAMID_MEM_LENGTH] = 0x0;
+	id[STEAMID_MEM_LENGTH - 1] = 0x0;
 	return true;
 }
 
