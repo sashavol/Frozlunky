@@ -38,12 +38,10 @@ NetplayPacket::NetplayPacket(void* data, size_t len) : data(data), len(len) {
 NetplayPacket::~NetplayPacket() {
 	if(_packet) {
 		enet_packet_destroy(_packet);
-	}
-
-	if(data) {
-		delete[] data;
-		data = nullptr;
-	}
+    } else if (data) {
+        delete[] data;
+        data = nullptr;
+    }
 }
 
 ///////////////////////////

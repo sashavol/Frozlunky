@@ -13,6 +13,7 @@
 #include "input_recv_patch.h"
 #include "antipause_patch.h"
 #include "save_manager.h"
+#include "own_camera_patch.h"
 
 #define INPUT_BUFFER_MAX_DEFAULT 8
 
@@ -51,6 +52,7 @@ private:
 	std::shared_ptr<GameHooks> gh;
 	std::shared_ptr<AntipausePatch> antipause;
 	std::shared_ptr<DerandomizePatch> dp;
+	std::shared_ptr<OwnCameraPatch> own_camera;
 
 	std::shared_ptr<NetplaySession_Controller> controller;
 	std::function<void(int)> ping_info_cb;

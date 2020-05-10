@@ -299,6 +299,9 @@
     <ClCompile Include="message_grid.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="own_camera_patch.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -582,6 +585,9 @@
     </ClInclude>
     <ClInclude Include="message_grid.h">
       <Filter>Header Files\special\tile_editing</Filter>
+    </ClInclude>
+    <ClInclude Include="own_camera_patch.h">
+      <Filter>Header Files\netplay</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

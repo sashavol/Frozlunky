@@ -123,6 +123,7 @@
     <ClCompile Include="new_game_detector.cpp" />
     <ClCompile Include="offline.cpp" />
     <ClCompile Include="oneplayer_only.cpp" />
+    <ClCompile Include="own_camera_patch.cpp" />
     <ClCompile Include="patch_group.cpp" />
     <ClCompile Include="precise_patch.cpp" />
     <ClCompile Include="preconditions.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="level_settings_gui.h" />
     <ClInclude Include="message_displayer.h" />
     <ClInclude Include="message_grid.h" />
+    <ClInclude Include="own_camera_patch.h" />
     <ClInclude Include="protect_achiev.h" />
     <ClInclude Include="remove_ghost_patch.h" />
     <ClInclude Include="resource_editor.h" />
