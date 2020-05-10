@@ -88,7 +88,8 @@ public:
 		std::shared_ptr<InputReceivePatch> irp, 
 		std::shared_ptr<Seeder> seeder,
 		std::shared_ptr<GameHooks> hooks,
-		std::shared_ptr<DerandomizePatch> dp);
+        std::shared_ptr<DerandomizePatch> dp,
+        std::shared_ptr<OwnCameraPatch> op);
 
 	void ping_info(std::function<void(int)> cb);
 	bool is_closed();

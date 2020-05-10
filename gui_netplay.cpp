@@ -18,6 +18,7 @@
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Text_Display.H>
+#include <FL/Fl_Check_Button.H>
 
 
 namespace NetplayGUI 
@@ -63,11 +64,13 @@ namespace NetplayGUI
 	Fl_Input* host_port = nullptr;
 	ActionButton* host_btn = nullptr;
 	bool host_cancelled = false;
+    Fl_Check_Button* host_own_camera = nullptr;
 	//==========
 
 	//++++++++++ connecting
 	Fl_Input* client_host = nullptr;
 	Fl_Input* client_port = nullptr;
+	Fl_Check_Button* client_own_camera = nullptr;
 	ActionButton* connect_btn = nullptr;
 	//==========
 
@@ -87,7 +90,7 @@ namespace NetplayGUI
 
 	void init_window() 
 	{	
-		Fl_Window* o = new Fl_Window(256, 146+35, "Netplay");
+		Fl_Window* o = new Fl_Window(256, 146+77, "Netplay");
 		netplay_window = o;
 		
 		/*
@@ -123,12 +126,12 @@ namespace NetplayGUI
 		});
 
 		{ 
-			Fl_Group* o = new Fl_Group(5, 8, 245, 80);
+			Fl_Group* o = new Fl_Group(5, 8, 245, 101);
 			o->box(FL_UP_FRAME);
 			o->end();
 		}
 
-		{ Fl_Group* o = new Fl_Group(5, 60+35, 245, 80);
+		{ Fl_Group* o = new Fl_Group(5, 60+56, 245, 101);
 			o->box(FL_UP_BOX);
 			o->end();
 		}
@@ -225,7 +228,13 @@ namespace NetplayGUI
 									MessageBox(NULL, (std::string("Connection closed: ") + NDFriendlyString(evt)).c_str(), "Connection closed", MB_OK);
 								});
 
-								session = std::shared_ptr<NetplaySession>(new NetplaySession(0, net_ipb, local_ipb, conn, irp, seeder, hooks, dp));
+								std::shared_ptr<OwnCameraPatch> own_camera;
+								if (host_own_camera->value()) {
+									own_camera = std::make_shared<OwnCameraPatch>(0, spel);
+                                    own_camera->perform();
+								}
+
+								session = std::shared_ptr<NetplaySession>(new NetplaySession(0, net_ipb, local_ipb, conn, irp, seeder, hooks, dp, own_camera));
 
 								try {
 									session->set_input_buffer_max(std::stoi(buffer_max->value()));
@@ -284,16 +293,17 @@ namespace NetplayGUI
 			}
 		});
 		
-
+		host_own_camera = new Fl_Check_Button(46, 80, 155, 25, "Enable own camera");
+		
 		////////////////////
 		// Client Connect //
 		////////////////////
 		
-		client_host = new Fl_Input(47, 69+35, 195, 26, "Host:");
-		client_port = new Fl_Input(46, 103+35, 105, 25, "Port:");
+		client_host = new Fl_Input(47, 69+56, 195, 26, "Host:");
+		client_port = new Fl_Input(46, 103+56, 105, 25, "Port:");
 		client_port->value("5394");
 
-		connect_btn = new ActionButton(160, 104+35, 80, 25, "Connect", [=](int evt) 
+		connect_btn = new ActionButton(160, 104+56, 80, 25, "Connect", [=](int evt) 
 		{
 			if(evt == 2) 
 			{
@@ -373,9 +383,15 @@ namespace NetplayGUI
 								session = nullptr;
 								revert();
 								MessageBox(NULL, (std::string("Connection closed: ") + NDFriendlyString(evt)).c_str(), "Connection closed", MB_OK);
-							});
+                            });
+
+                            std::shared_ptr<OwnCameraPatch> own_camera;
+                            if (client_own_camera->value()) {
+                                own_camera = std::make_shared<OwnCameraPatch>(1, spel);
+                                own_camera->perform();
+                            }
 				
-							session = std::shared_ptr<NetplaySession>(new NetplaySession(1, net_ipb, local_ipb, conn, irp, seeder, hooks, dp));
+							session = std::shared_ptr<NetplaySession>(new NetplaySession(1, net_ipb, local_ipb, conn, irp, seeder, hooks, dp, own_camera));
 							
 							session->ping_info([=](int ms) {
 								netplay_status("Ping: " + std::to_string(ms) + "ms");
@@ -401,6 +417,8 @@ namespace NetplayGUI
 				}
 			}
 		});
+
+        client_own_camera = new Fl_Check_Button(46, 133 + 56, 155, 25, "Enable own camera");
 
 		o->end();
 	}
