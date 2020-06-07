@@ -95,7 +95,8 @@ NetplaySession::NetplaySession(int pid, std::shared_ptr<InputPushBuilder> pb_net
 										std::shared_ptr<InputReceivePatch> i,
 										std::shared_ptr<Seeder> s, 
 										std::shared_ptr<GameHooks> g,
-										std::shared_ptr<DerandomizePatch> d)
+										std::shared_ptr<DerandomizePatch> d,
+										std::shared_ptr<OwnCameraPatch> op)
   : conn(c),
 	irp(i),
 	seeder(s),
@@ -110,7 +111,8 @@ NetplaySession::NetplaySession(int pid, std::shared_ptr<InputPushBuilder> pb_net
 	dp(d),
 	character_synced(false),
 	pid(pid),
-	no_push_counter(0)
+	no_push_counter(0),
+	own_camera(op)
 {
 	{
 		InputFrame empty = {};
@@ -132,7 +134,7 @@ NetplaySession::NetplaySession(int pid, std::shared_ptr<InputPushBuilder> pb_net
 	create_worker_thread();
 
 	controller = std::make_shared<NetplaySession_Controller>();
-	antipause = std::make_shared<AntipausePatch>(gh->spel);
+    antipause = std::make_shared<AntipausePatch>(gh->spel);
 
 	antipause->perform();
 
@@ -368,6 +370,10 @@ void NetplaySession::close(NetplaySessionCloseEvent evt)
 		ipb_net->undo();
 		ipb_local->undo();
 		antipause->undo();
+
+		if (own_camera)
+			own_camera->undo();
+
 		controller->shutdown = true;
 		aig.reset();
 		irp->undo();

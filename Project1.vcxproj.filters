@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Header Files\special">
       <UniqueIdentifier>{fec5f823-818f-4b1a-b25b-8ffd70bb5cd2}</UniqueIdentifier>
     </Filter>
@@ -303,6 +299,9 @@
     <ClCompile Include="message_grid.cpp">
       <Filter>Source Files\special\tile_editing</Filter>
     </ClCompile>
+    <ClCompile Include="own_camera_patch.cpp">
+      <Filter>Source Files\netplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="append_ai.h">
@@ -587,15 +586,8 @@
     <ClInclude Include="message_grid.h">
       <Filter>Header Files\special\tile_editing</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\fr.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\resources.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
+    <ClInclude Include="own_camera_patch.h">
+      <Filter>Header Files\netplay</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

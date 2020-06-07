@@ -9,7 +9,7 @@
 
 #include <mutex>
 #include <curl/curl.h>
-#include <muparser/muParser.h>
+#include <muParser.h>
 #include <boost/assign.hpp>
 
 #define FROZ_AUTH_UI_URL "http://frozboards.sashavol.com/verify.htm?a="
