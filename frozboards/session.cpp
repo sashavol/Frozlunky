@@ -1,3 +1,5 @@
+#define MUPARSER_STATIC
+
 #include "../debug.h"
 #include "../winheaders.h"
 
