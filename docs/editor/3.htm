@@ -1,0 +1,115 @@
+
+<!doctype HTML>
+<html>
+	
+<title>Editor Documentation - Your First Level Pt. II</title>
+	<link rel="stylesheet" href="../markdown.css"/>
+	<head>
+		<style type="text/css">
+			body {
+				position: relative;
+				background-image: url(../bg.png);
+			}
+			
+			ul, li {
+				line-height: 1.5em;
+			}
+			
+			#details, #header {
+				position: relative;
+			
+				background-color: white;
+				-webkit-border-radius: 12px;
+				-moz-border-radius: 12px;
+				border-radius: 12px;
+				padding-left: 30px;
+				padding-right: 30px;
+				border-style: solid;
+				border-color: #000000;
+				padding-top: 1px;
+				-webkit-box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				-moz-box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				
+				width: 670px;
+				left: -73px;
+			}
+			
+			img[src="example.png"] {
+				position: relative;
+				left: -16px;
+			}
+			
+			.expanded {
+				position: relative;
+				height: 0px;
+				display: none;
+			}
+			
+			.expand-button {
+				display: inline-block;
+				width: 600px;
+				height: 23px;
+				padding-left: 5px;
+				border-radius: 5px;
+				margin-bottom: 4px;
+				font-size: 16px;
+			}
+		</style>
+		
+		<link rel="stylesheet" href="../bootstrap.min.css"/>
+		<link rel="stylesheet" href="../bootstrap-theme.min.css"/>
+	
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	</head>
+	
+	<body style="margin-left:auto;margin-right:auto;">
+		<div id="header">
+			<h1>
+				<a href="../"><img src="../froz.png"/></a>&nbsp;&nbsp;
+				<a href="./">Frozlunky Level Editor</a>
+			</h1>
+		</div>
+		
+		<div id="details">
+		<h1>Your First Level Pt. II: Entities and More</h1>
+<h2>Where We Are</h2>
+<p><img style="display: block; width: 85%; margin: 0 auto;" src="assets/where-we-are.png"/><br/><br/></p>
+<p>Welcome back to our first level. So far, we've got terrain, spikes, an entrance, and an exit. Also, you'll notice the title bar doesn't say "(Unsaved Changes)" anymore, because I saved my progress in the editor. You should save too.<br/><br/></p>
+<h2>Adding Enemies</h2>
+<p>Our level definitely needs some enemies. To add entities, we can either resort to looking for tiles that spawn enemies (such as ':'), or we can add an <strong>entity</strong><br/><br/></p>
+<p>Generally you want to use entities over tiles for enemies, because you get <strong>complete control</strong> over the enemy that is spawned.<br/><br/></p>
+<p>To add an entity to our level, first we have to add it to our picker. Go to Level-&gt;Entity Picker (Ctrl+P).<br/></p>
+<p><img style="display: block;  margin: 0 auto;" src="assets/search-window.png"/><br/><br/></p>
+<p>Let's say you want to add a <strong>Snake</strong> to the level. You would type "Sna" and the search engine will immediately recognize what you want.</p>
+<p><img style="display: block;  margin: 0 auto;" src="assets/search-example.png"/><br/><br/></p>
+<p>The blue highlighted element is the selected entity, and below you can see other suggestions by the search engine. Press <strong>Pick Entity</strong> or the Enter key to add the entity to your picker.<br/><br/></p>
+<p><img style="display: block; width: 85%; margin: 0 auto;" src="assets/snake-selected.png"/><br/><br/></p>
+<p>Our picker now has a green circle with an "S" in it, surrounded by a red rectangle. This means the entity was added and picked, so we can proceed to putting it into the level as we would with a tile. <i>(Mouse users right click to put down the tile, keyboard users press the Tilde key (`) to place the currently picked tile at the cursor position.)</i><br/><br/></p>
+<p><img style="display: block; width: 85%; margin: 0 auto;" src="assets/snakes-placed.png"/><br/><br/></p>
+<p>The process for entity placement is approximately the same for all other entities. Among the possible entities are enemies, items, crates, pots, bosses, special blocks, special event triggers, physics blocks, and more. Some enemies (like Alien Queen), may be larger than one tile, so you would have to place them in mid-air in the editor. I'm going to proceed to add a couple more entities to our level.</p>
+<p><img style="display: block; width: 85%; margin: 0 auto;" src="assets/some-more.png"/><br/><br/></p>
+<p>I added three bats at the top (with some blocks for them to hang onto), and a Cobra at the end of our level. <br/><br/></p>
+<p>Now, our level would be too easy if we gave the player access to the four bombs he normally starts with. The <strong>Resource Editor</strong> allows us to customize resources per level. Go to<br/> <strong>Level-&gt;Resource Editor</strong> (Ctrl+Shift+R).<br/><br/></p>
+<p><img style="display: block; margin: 0 auto;" src="assets/resource-editor.png"/><br/><br/></p>
+<p>We want to edit Level 1-1 resources, and make it so the player starts with no bombs or ropes. So, select the level, set Bombs to 0, and Ropes to 0, then press "Done".<br/><br/></p>
+<p><img style="display: block; margin: 0 auto;" src="assets/resource-done.png"/><br/><br/></p>
+<p>Our final level (in Spelunky):</p>
+<p><img style="display: block; width: 85%; margin: 0 auto;" src="assets/final-test.png"/><br/><br/></p>
+<p>If you want your levels to start <strong>past 1-1</strong>, go to Level-&gt;Project Settings and set the desired starting level. <strong>Do not require players to use Force Level.</strong> You can also enable <strong>checkpoints</strong> in the Project Settings window.<br/><br/></p>
+<p>When testing levels past 1-1, use the <strong>Force level to game</strong> (Ctrl+E) option to have the level be forced upon entry, so you can test the level immediately.<br/><br/></p>
+<p>With that, we're done with our first level! From this brief introduction to level creation you should understand how to:</p>
+<ul>
+<li>Place down tiles</li>
+<li>Make an entrance/exit</li>
+<li>Work with the cursor to your advantage (flood fill, resize, etc.)</li>
+<li>Find the entity you want and add it to the picker</li>
+<li>Place down entities</li>
+<li>Work with the resource editor</li>
+<li>Use Force Level to game to test levels past 1-1</li>
+<li>Use the Project Settings window to enable checkpoints and set the desired level configuration.</li>
+</ul>
+<p>The next section will go in depth on <strong>configuring your Level Packs</strong>.</p>
+<h3>Next Section: <a href="4.htm">Project Configuration</a> </h3>		</div>
+	</body>
+</html>

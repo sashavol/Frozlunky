@@ -1,0 +1,97 @@
+
+<!doctype HTML>
+<html>
+
+<title>Editor Documentation - Project Configuration</title>
+	<link rel="stylesheet" href="../markdown.css"/>
+	<head>
+		<style type="text/css">
+			body {
+				position: relative;
+				background-image: url(../bg.png);
+			}
+			
+			ul, li {
+				line-height: 1.5em;
+			}
+			
+			#details, #header {
+				position: relative;
+			
+				background-color: white;
+				-webkit-border-radius: 12px;
+				-moz-border-radius: 12px;
+				border-radius: 12px;
+				padding-left: 30px;
+				padding-right: 30px;
+				border-style: solid;
+				border-color: #000000;
+				padding-top: 1px;
+				-webkit-box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				-moz-box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				
+				width: 670px;
+				left: -73px;
+			}
+			
+			img[src="example.png"] {
+				position: relative;
+				left: -16px;
+			}
+			
+			.expanded {
+				position: relative;
+				height: 0px;
+				display: none;
+			}
+			
+			.expand-button {
+				display: inline-block;
+				width: 600px;
+				height: 23px;
+				padding-left: 5px;
+				border-radius: 5px;
+				margin-bottom: 4px;
+				font-size: 16px;
+			}
+		</style>
+		
+		<link rel="stylesheet" href="../bootstrap.min.css"/>
+		<link rel="stylesheet" href="../bootstrap-theme.min.css"/>
+	
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	</head>
+	
+	<body style="margin-left:auto;margin-right:auto;">
+		<div id="header">
+			<h1>
+				<a href="../"><img src="../froz.png"/></a>&nbsp;&nbsp;
+				<a href=".">Frozlunky Level Editor</a>
+			</h1>
+		</div>
+		
+		<div id="details">
+		<h1>Project Configuration</h1>
+<h2>Configuring Level Properties</h2>
+<p><img style="display: block; margin: 0 auto;" src="assets/project-settings.png"/><br/><br/>
+Through the Project Settings window, under Level-&gt;Project Settings (Ctrl+Shift+P), you can configure:</p>
+<ul>
+<li>Where your level pack starts</li>
+<li>The level Olmec appears on your pack</li>
+<li>The level Yama appears on your pack</li>
+</ul>
+<p><strong>Starting Level</strong> configures the level your level pack starts on. So, if you wanted your pack to start in the Jungle, you would set this to <strong>2-1</strong>. <strong>Do not require players to Force Level, use the Starting Level feature instead.</strong><br/><br/></p>
+<p><strong>Olmec Level</strong> configures the level the Olmec fight appears on in your level pack. Normally you want to put this level <strong>after the last level in your pack</strong>, so the boss fight occurs at the end.<br/><br/></p>
+<p><strong>Yama Level</strong> configures the level the Yama fight appears on in your level pack. You can use this instead of the Olmec Level to end the pack on Yama.<br/><br/></p>
+<p><strong>Quick restart to current level</strong> enables per-level checkpoints for your level pack. Use this for challenging packs.</p>
+<h2>Configuring Resources</h2>
+<p>Frozlunky allows you to configure the resources the player gets at the start of each level.<br/><br/></p>
+<p>To enter the resource editor, go to <strong>Level-&gt;Resource Editor</strong> (Ctrl+Shift+R).<br/><br/></p>
+<p><img style="display: block; margin: 0 auto;" src="assets/resource-editor2.png"/></p>
+<p>It is important to note that resource configuration is done <strong>per level</strong>. To set empty resources on 2-1, you select <strong>2-1</strong> from the Level list, then enter 0 for bombs and ropes.<br/><br/></p>
+<p>If -1 is used as the resource value, Frozlunky will not change the starting resources. This means that if you have checkpoints enabled and the player resets on that level, he will get all his resources, so account for this when configuring resources. (For example, you can guarantee empty resources on all levels by setting resources to 0 on all your game levels.) <br/><br/></p>
+<h3>Next Section: <a href="5.htm">Useful Information</a></h3>
+<h3><a href=".">Back to Index</a></h3>		</div>
+	</body>
+</html>
