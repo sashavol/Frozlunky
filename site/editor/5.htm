@@ -1,0 +1,191 @@
+
+<!doctype HTML>
+<html>
+<title>Editor Documentation - Useful Information</title>
+	<link rel="stylesheet" href="../markdown.css"/>
+	<head>
+		<style type="text/css">
+			body {
+				position: relative;
+				background-image: url(../bg.png);
+			}
+			
+			ul, li {
+				line-height: 1.5em;
+			}
+			
+			#details, #header {
+				position: relative;
+			
+				background-color: white;
+				-webkit-border-radius: 12px;
+				-moz-border-radius: 12px;
+				border-radius: 12px;
+				padding-left: 30px;
+				padding-right: 30px;
+				border-style: solid;
+				border-color: #000000;
+				padding-top: 1px;
+				-webkit-box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				-moz-box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				box-shadow: 0px 0px 9px 0px rgba(50, 50, 50, 0.75);
+				
+				width: 670px;
+				left: -73px;
+			}
+			
+			img[src="example.png"] {
+				position: relative;
+				left: -16px;
+			}
+			
+			.expanded {
+				position: relative;
+				height: 0px;
+				display: none;
+			}
+			
+			.expand-button {
+				display: inline-block;
+				width: 600px;
+				height: 23px;
+				padding-left: 5px;
+				border-radius: 5px;
+				margin-bottom: 4px;
+				font-size: 16px;
+			}
+		</style>
+		
+		<link rel="stylesheet" href="../bootstrap.min.css"/>
+		<link rel="stylesheet" href="../bootstrap-theme.min.css"/>
+	
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	</head>
+	
+	<body style="margin-left:auto;margin-right:auto;">
+		<div id="header">
+			<h1>
+				<a href="../"><img src="../froz.png"/></a>&nbsp;&nbsp;
+				<a href=".">Frozlunky Level Editor</a>
+			</h1>
+		</div>
+		
+		<div id="details">
+		<h1>Useful Information</h1>
+<h2>Level Design Guidelines</h2>
+<ul>
+<li><strong>All Jungle Levels should have enough '1' tiles for a Black Market to spawn.</strong> If the game cannot spawn a Black Market on the chosen level, it will crash.</li>
+<li><strong>If your Ice Caves levels are crashing the game</strong>, move the exit to another chunk.</li>
+<li>Do not require players to use Force Level, instead, go under Level-&gt;Project Settings and <strong>set the starting level to the target level</strong>.</li>
+<li>Enable "Quick Restart resets to current level" under Level-&gt;Project Settings if your levels are particularly difficult to allow the player to <strong>reset to the level they died on</strong>.</li>
+<li>Under Level-&gt;Project Settings set the Olmec/Yama fight level to be after your last level in the pack.</li>
+<li>Do not use '=' tiles in the Ice Caves, use '+' instead.</li>
+<li>Use 'm' (unbreakable) terrain tiles where you do not want the player to break through.</li>
+<li>Use 'q' (anti-obstacle) terrain tiles where you do not want the game to spawn tikis / area-specific obstacles.</li>
+<li>Use '.' (unmodified) terrain tiles where you do not want your terrain to be changed by the generator.</li>
+<li>Use water tiles ('w') and Destroyed Cobweb entities to remove unwanted tiles/entities placed by the game.</li>
+</ul>
+<h2>Hell Routing</h2>
+<ul>
+<li>To allow the player to reach Hell place down a Hell Bible somewhere within reach.
+<ul>
+<li>The Hell Bible can be found either in the Entity Picker or as the '#' tile in all areas past the Mines.</li>
+</ul></li>
+</ul>
+<h2>Useful Tips</h2>
+<ul>
+<li>You can use Bullet entities to have high-damage entities that float in mid-air.</li>
+<li>Any height water negates all fall damage (useful for falling starts).</li>
+<li>Giant Spider Cobweb Projectile entity negates fall damage if the player falls through it.</li>
+<li>When modifying Olmec, you can only modify the first two and last row of chunks, however you can place entities anywhere.</li>
+<li>When doing Force Level on Olmec/Yama, you must enter through Quick Restart, not the lobby. Otherwise the game will put you in the end cutscene.</li>
+</ul>
+<h2>Working with Mouse</h2>
+<p><strong>In Picker</strong></p>
+<ul>
+<li>Left Click:
+<ul>
+<li>Click Once: Pick Tile/Entity</li>
+</ul></li>
+</ul>
+<p><strong>In Tile Editor:</strong></p>
+<ul>
+<li>Left Click: 
+<ul>
+<li>Click Once: Position cursor with one-tile size</li>
+<li>Click and Drag: Position cursor and size it</li>
+</ul></li>
+<li>Right Click:
+<ul>
+<li>Click Once: Position cursor and place down currently picked tile</li>
+<li>Click and Drag: Draw with currently picked tile</li>
+</ul></li>
+<li>Middle Click:
+<ul>
+<li>Click Once: Position cursor and erase tiles at position</li>
+<li>Click and Drag: Draw with eraser</li>
+</ul></li>
+</ul>
+<h2>Working with Keyboard</h2>
+<p><strong>Global</strong></p>
+<ul>
+<li>Arrow Keys
+<ul>
+<li>Move cursor in specified direction</li>
+</ul></li>
+<li>Ctrl+Arrow Keys
+<ul>
+<li>Move cursor in specified direction (skipping 1 tile)</li>
+</ul></li>
+<li>Shift+Arrow Keys
+<ul>
+<li>Size cursor in specified direction</li>
+</ul></li>
+<li>Esc
+<ul>
+<li>Reset Cursor Size to top left</li>
+</ul></li>
+<li>Shift+Esc
+<ul>
+<li>Reset Cursor Size to bottom right</li>
+</ul></li>
+<li>Alt+Arrow Keys
+<ul>
+<li>Navigate currently picked tile/entity in tile picker</li>
+</ul></li>
+<li>Ctrl+Space
+<ul>
+<li>In tile picker pick tile under cursor</li>
+</ul></li>
+<li>Ctrl+P
+<ul>
+<li>Open Entity Picker (then type desired entity and press Enter)</li>
+</ul></li>
+<li>Ctrl+T
+<ul>
+<li>Open Tile Picker Search (then type desired tile and press Enter)</li>
+</ul></li>
+<li>Any Text Character Key <code>A-Z a-z 0-9 !#$%&amp;*+,-.|~</code>
+<ul>
+<li>Place down tile by key text</li>
+</ul></li>
+<li>Space
+<ul>
+<li>Erase tile and move cursor forward</li>
+</ul></li>
+<li>Backspace
+<ul>
+<li>Erase tile and move cursor backward</li>
+</ul></li>
+<li>Backtick (`)
+<ul>
+<li>Place down currently picked tile in tile picker</li>
+</ul></li>
+<li>Ctrl+F
+<ul>
+<li>Flood fill</li>
+</ul></li>
+</ul>
+<h3><a href=".">Back to Index</a></h3>		</div>
+	</body>
+</html>
