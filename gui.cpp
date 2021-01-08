@@ -57,6 +57,7 @@ Fl_Check_Button* change_every_level = nullptr;
 Fl_Input* input_seed = nullptr;
 SeedChangeButton* seed_button = nullptr;
 InfoButton* info_button = nullptr;
+FrozboardsButton* lbs_button = nullptr;
 DailyButton* daily_button = nullptr;
 
 std::shared_ptr<Spelunky> spelunky;
@@ -670,19 +671,25 @@ Fl_Window* make_window()
 		change_every_level->deactivate();
 	} // Fl_Check_Button* o
 
-	{ (new FrozboardsButton(5, 90, 35, 25, "LBs"))->deactivate();
+	{ (lbs_button = new FrozboardsButton(5, 90, 35, 25, "LBs"))->deactivate();
 	} //Fl_Button* o
-	{ (mods_button = new DisplayModsButton(45, 90, 70, 25, "Mods"))->deactivate();
+	{ (mods_button = new DisplayModsButton(5, 90, 120, 25, "Mods"))->deactivate();
 	}
-	{ (seed_button = new SeedChangeButton(120, 90, 130, 25, "Seed it!"))->deactivate();
+	{ (seed_button = new SeedChangeButton(130, 90, 120, 25, "Seed it!"))->deactivate();
     } // Fl_Button* o
 	{ (info_button = new InfoButton(5, 60, 35, 25, "?"))->deactivate();
 	} // Fl_Button* o
-	{ (daily_button = new DailyButton(45, 60, 70, 25, "Loading.."))->deactivate();
+	{ (daily_button = new DailyButton(45, 60, 70, 25, "Loading.."));
 	} //Fl_Button* o
-	{ (new ToggleButton(185, 60, 65, 25, "Disable"))->deactivate();
+	lbs_button->deactivate();
+	lbs_button->hide();
+	daily_button->deactivate();
+	daily_button->hide();
+	info_button->deactivate();
+	info_button->hide();
+	{ (new ToggleButton(130, 60, 120, 25, "Disable"))->deactivate();
 	} // Fl_Button* o
-	{ (netplay_button = new NetplayButton(120, 60, 60, 25, "Netplay"))->deactivate();
+	{ (netplay_button = new NetplayButton(5, 60, 120, 25, "Netplay"))->deactivate();
 	} // Fl_Button* o
 	{ editor_button = new ChunkEditorButton(5, 120, 246, 25, "Switch to Level Editor");
 	}
