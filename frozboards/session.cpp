@@ -14,8 +14,8 @@
 #include <muParser.h>
 #include <boost/assign.hpp>
 
-#define FROZ_AUTH_UI_URL "http://frozboards.sashavol.com/verify.htm?a="
-#define FROZ_EQUATION_URL "http://frozboards.sashavol.com/__sys/calc.dat"
+#define FROZ_AUTH_UI_URL ""
+#define FROZ_EQUATION_URL ""
 
 namespace Frozboards {
 	BYTE req_sess_scramb[] = {150,137,136,139,192,214,215,145,132,154,142,145,157,144,130,

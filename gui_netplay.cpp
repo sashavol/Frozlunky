@@ -92,20 +92,7 @@ namespace NetplayGUI
 	{	
 		Fl_Window* o = new Fl_Window(256, 146+77, "Netplay");
 		netplay_window = o;
-		
-		/*
-		{
-			std::string text = "Before use read 'Netplay' on\nhttp://sashavol.com/frozlunky\nUse recommended savefile.";
-			auto ftb =  new Fl_Text_Buffer(text.size()+1);
-			ftb->text(text.c_str());
-
-			auto ftd = new Fl_Text_Display(5, 146+35+3, 245, 65);
-			ftd->buffer(ftb);
-			ftd->box(FL_GTK_UP_BOX);
-			ftd->deactivate();
-			ftd->buffer(ftb);
-		}
-		*/
+	
 
 		netplay_window->callback([](Fl_Widget* widget) {
 			if(host_handle || connect_handle || session) {

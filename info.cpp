@@ -29,8 +29,6 @@ std::string info_message =
 	"\tTo remove all enemies from the list, select \"Enemy AI\" in\n\t the list and press \"Remove\"\n"
 	"\n"
 	"\n"
-	"The Frozlunky \"Speedrun Daily\" feature's information can be found at http://frozboards.sashavol.com/info.htm"
-	"\n"
 	"WARNING: Frozlunky disables online interaction\n in Spelunky while\n it is active, you must reset Spelunky to revert this.\n"
 	"Developed by Sashavol";
 

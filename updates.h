@@ -3,8 +3,8 @@
 #include <string>
 #include <functional>
 
-#define VERSION_CHECK_URL "http://sashavol.com/frozlunky/version.dat"
-#define UPDATE_DOWNLOAD_URL "http://sashavol.com/frozlunky"
+#define VERSION_CHECK_URL "https://sashavol.github.io/Frozlunky/version.dat"
+#define UPDATE_DOWNLOAD_URL "https://sashavol.github.io/Frozlunky/"
 
 namespace Updates {
 	typedef std::function<void(bool, const std::string&)> result_callback_type;
