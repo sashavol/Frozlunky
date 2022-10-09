@@ -1,0 +1,20 @@
+{
+    "name": "frozlunky",
+    "version-string": "2.6",
+    "dependencies": [
+        "curl",
+        "fltk",
+        "muparser",
+        "openssl",
+        "pugixml",
+        "enet",
+        "boost"
+    ],
+    "builtin-baseline": "1704a11b5e0bc072d1fcf35ff440149c6c76a080",
+    "overrides": [
+        {
+            "name": "openssl",
+            "version-string": "1.1.1n"
+        }
+    ]
+}
