@@ -43,10 +43,24 @@ BYTE seed_gen_search[] = {0xCC,0xCC,0xCC,0xCC,0xCC,0xCC,0x01,0x00,0x00,0x00,0xCC
 
 
 std::string g_LevelOffsetContainer_mask = ".xxxxx.....x.....x.x";
-BYTE g_LevelOffsetContainer_locator[] = {0xCC, 0x01, 0x00, 0x00, 0x00, 0x01, 0xCC, 0xAA, 0xAA, 0xAA, 0xAA, 0x38, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0x74, 0xCC, 0x88};
+BYTE g_LevelOffsetContainer_locator[] = {
+	                                    // Spelunky.exe+69C10
+	0xB8, 0x01, 0x00, 0x00, 0x00,       // B8 01000000    - mov eax,00000001
+	0x01, 0xCC, 0xAA, 0xAA, 0xAA, 0xAA, // 01 87 D4054400 - add [edi+Spelunky.exe+305D4],eax
+	0x38, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, // 38 8F 00064400 - cmp [edi+Spelunky.exe+30600],cl
+	0x74, 0xCC,                         // 74 0E          - je Spelunky.exe+69C31
+	0x88                                // 88 8F FF054400 - mov [edi+Spelunky.exe+305FF],cl
+};
 
-std::string g_PtrCurrentGameContainer_mask = "x..x..x..x....x....x.....x";
-BYTE g_PtrCurrentGameContainer_locator[] = {0x8B, 0xCC, 0xCC, 0x8D, 0xCC, 0xCC, 0x8D, 0xCC, 0xCC, 0xBF, 0xCC, 0xCC, 0xCC, 0xCC, 0xE8, 0xCC, 0xCC, 0xCC, 0xCC, 0x8B, 0xCC, 0xAA, 0xAA, 0xAA, 0xAA, 0x80};
+std::string g_PtrCurrentGameContainer_mask = "x..x....x....x.....x";
+BYTE g_PtrCurrentGameContainer_locator[] = {
+	                                    // Spelunky.exe+00069983
+	0x8D, 0xCC, 0xCC,                   // 8D 70 88       - lea esi,[eax-78]
+	0xBF, 0xCC, 0xCC, 0xCC, 0xCC,       // BF BE010000    - mov edi,000001BE
+	0xE8, 0xCC, 0xCC, 0xCC, 0xCC,       // E8 A0DE0300    - call Spelunky.exe+A7830
+	0x8B, 0xCC, 0xAA, 0xAA, 0xAA, 0xAA, // 8B 35 B4845400 - mov esi,[Spelunky.exe+1384B4]
+	0x80                                // 80 7E 70 00    - cmp byte ptr [esi+70],00
+}; 
 
 //instance assembly
 /*
@@ -133,7 +147,7 @@ DerandomizePatch::DerandomizePatch(std::shared_ptr<Spelunky> spel) : Patch(spel)
 			throw std::runtime_error("Could not find game information struct in memory.");
 		}
 
-		spel->read_mem(g_PtrCurrentGameContainer+21, &g_PtrCurrentGame, sizeof(Address));
+		spel->read_mem(g_PtrCurrentGameContainer+15, &g_PtrCurrentGame, sizeof(Address));
 
 		Address g_LevelOffsetContainer = spel->find_mem(g_LevelOffsetContainer_locator, g_LevelOffsetContainer_mask);
 		if(g_LevelOffsetContainer == 0) {
