@@ -36,7 +36,6 @@ namespace Signature {
 		size_t mask_size = mask.size();
 
 		BYTE buf[BUF_SCAN_SIZE];
-		size_t current_size = 0;
 
 		while(curr_addr < end) 
 		{
@@ -50,15 +49,16 @@ namespace Signature {
 			if(remainder > BUF_SCAN_SIZE) {
 				remainder = BUF_SCAN_SIZE; 
 			}
+
+			size_t advance_by = remainder;
+			if (remainder > mask_size) {
+				advance_by -= mask_size;
+			}
 			
 			if(mbi.State == MEM_COMMIT) 
 			{
-				if(current_size < remainder) {
-					current_size = remainder;
-				}
-
 				if(!ReadProcessMemory(my_proc, reinterpret_cast<PVOID>(curr_addr), buf, remainder, NULL)) {
-					curr_addr += remainder;
+					curr_addr += advance_by;
 					continue;
 				}
 
@@ -70,7 +70,7 @@ namespace Signature {
 				}
 			}
 
-			curr_addr += remainder;
+			curr_addr += advance_by;
 		}
 
 		return NULL;
