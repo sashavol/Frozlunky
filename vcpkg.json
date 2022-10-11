@@ -8,7 +8,9 @@
         "openssl",
         "pugixml",
         "enet",
-        "boost"
+        "boost-assign",
+        "boost-algorithm",
+        "boost-property-tree"
     ],
     "builtin-baseline": "1704a11b5e0bc072d1fcf35ff440149c6c76a080",
     "overrides": [
