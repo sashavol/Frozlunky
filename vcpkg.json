@@ -1,6 +1,6 @@
 {
     "name": "frozlunky",
-    "version-string": "2.6",
+    "version-string": "3.0",
     "dependencies": [
         "curl",
         "fltk",
